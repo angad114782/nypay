@@ -12,6 +12,7 @@ import { useAuth } from "../utils/AuthContext";
 import { GlobalContext } from "../utils/globalData";
 import WithdrawHome from "../sections/Withdrawhome";
 import WithdrawPanel from "../sections/WithdrawPanel";
+import { Button } from "@/components/ui/button";
 
 function Home() {
   const { walletBalance, setWalletBalance } = useContext(GlobalContext);
