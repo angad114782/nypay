@@ -3,7 +3,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "../../components/ui/avatar";
-import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 import Logo from "/asset/logo.png";
 
 import {
@@ -15,14 +14,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useEffect, useState } from "react";
-import { Input } from "../../components/ui/input";
+import ModeToggle from "@/components/Theme";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
-  ArrowDownLeft,
   ArrowUpDown,
   ArrowUpRight,
-  BarChart3,
-  Gift,
   LogOut,
   Menu,
   TrendingUp,
@@ -30,219 +27,27 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ProfileEditDialog } from "./Profile";
-import { PasswordChangeDialog } from "./PasswordChange";
-import ModeToggle from "@/components/Theme";
-import { Card, CardContent } from "@/components/ui/card";
+import AccountSetting from "./AccountSetting";
+import AddRemovePanel from "./AddRemovePanel";
+import CreateIdAndClientInfo from "./CreateIdAndClientInfo";
 import DashboardTab from "./Dashboard";
 import DepositWithdrawal from "./DepositWithdrawal";
-import SliderManagement from "./SliderManagement";
-import RefillUnload from "./RefillUnload";
-import TeamManagement from "./TeamManagement";
 import { MessageCounterDialog } from "./MessageCounterDialog";
+import { PasswordChangeDialog } from "./PasswordChange";
+import { ProfileEditDialog } from "./Profile";
+import RefillUnload from "./RefillUnload";
+import SliderManagement from "./SliderManagement";
+import TeamManagement from "./TeamManagement";
 
 const Dashboard = () => {
-  //   const { logout } = useAuth();
-  //   const handleLogout = () => {
-  //     try {
-  //       logout();
-  //       localStorage.removeItem("token");
-  //       localStorage.removeItem("role");
-  //       navigate("/login-register");
-  //     } catch (error) {
-  //       console.error("Logout failed:", error);
-  //       toast.error("Failed to log out");
-  //     }
-  //   };
-
-  const [adminProfile, setAdminProfile] = useState({
-    name: "",
-    email: "",
-    role: "",
-  });
-
-  //   useEffect(() => {
-  //     const fetchAdminProfile = async () => {
-  //       try {
-  //         const token = localStorage.getItem("token");
-  //         if (!token) {
-  //           toast.error("Please login again");
-  //           navigate("/login-register");
-  //           return;
-  //         }
-
-  //         const response = await axios.get(`${import.meta.env.VITE_URL}/me`, {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         });
-
-  //         if (response.data) {
-  //           setAdminProfile({
-  //             name: response.data.name,
-  //             email: response.data.email,
-  //             role: response.data.role,
-  //           });
-  //         }
-  //       } catch (error) {
-  //         toast.error("Failed to load admin profile");
-  //         console.error("Admin profile fetch error:", error);
-  //       }
-  //     };
-
-  //     fetchAdminProfile();
-  //   }, []);
-
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isMessageCounterDialogOpen, setIsMessageCounterDialogOpen] =
     useState(false);
-  //   const [receiveCurrencydata, setReceiveCurrencydata] = useState<any[]>([]);
-  //   const [investmentsData, setInvestmentsData] = useState<any[]>([]);
-  //   const [adminPassbook, setAdminPassbook] = useState<any[]>([]);
-  //   const {
-  //     data: sendCurrencyData,
-  //     loading,
-  //     updateStatus,
-  //     refresh,
-  //   } = useSendCurrency();
-  //   // console.log(sendCurrencyData, "asdsadasdadas");
-  //   useEffect(() => {
-  //     getReceiveCurrencyData();
-  //     GetAllInvestmentsData();
-  //     getAdminPassbooks();
-  //   }, []);
-
-  //   const GetAllInvestmentsData = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       if (!token) {
-  //         toast.error("Please login again");
-  //         navigate("/login-register");
-  //         return;
-  //       }
-  //       const response = await axios.get(
-  //         `${import.meta.env.VITE_URL}/all-investments`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //             "Content-Type": "application/json",
-  //             Accept: "application/json",
-  //           },
-  //         }
-  //       );
-  //       if (response.data) {
-  //         setInvestmentsData(response.data.investments || []);
-  //         return response.data; // Adjust based on your API response structure
-  //       } else {
-  //         throw new Error(response.data.message || "Failed to fetch data");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching receive currency data:", error);
-  //       toast.error("Failed to fetch receive currency data");
-  //     }
-  //   };
-  //   const getReceiveCurrencyData = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       if (!token) {
-  //         toast.error("Please login again");
-  //         navigate("/login-register");
-  //         return;
-  //       }
-  //       const response = await axios.get(`${import.meta.env.VITE_URL}/receive`, {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //           "Content-Type": "application/json",
-  //           Accept: "application/json",
-  //         },
-  //       });
-  //       if (response.data) {
-  //         setReceiveCurrencydata(response.data.data || []);
-  //         return response.data.receiveCurrency; // Adjust based on your API response structure
-  //       } else {
-  //         throw new Error(response.data.message || "Failed to fetch data");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching receive currency data:", error);
-  //       toast.error("Failed to fetch receive currency data");
-  //     }
-  //   };
-  //   const getAdminPassbooks = async () => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       if (!token) {
-  //         toast.error("Please login again");
-  //         navigate("/login-register");
-  //         return;
-  //       }
-  //       const response = await axios.get(
-  //         `${import.meta.env.VITE_URL}/admin/passbooks`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //             "Content-Type": "application/json",
-  //             Accept: "application/json",
-  //           },
-  //         }
-  //       );
-  //       if (response.data) {
-  //         setAdminPassbook(response.data.data || []);
-  //         return response.data; // Adjust based on your API response structure
-  //       } else {
-  //         throw new Error(response.data.message || "Failed to fetch data");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error fetching receive currency data:", error);
-  //       toast.error("Failed to fetch admin passbook data");
-  //     }
-  //   };
-
-  //   const updateWithdrawalStatus = async (
-  //     id: string,
-  //     status: string,
-  //     remark: string
-  //   ) => {
-  //     try {
-  //       const token = localStorage.getItem("token");
-  //       if (!token) {
-  //         toast.error("Session expired. Please login again.");
-  //         navigate("/login-register");
-  //         throw new Error("Authorization token missing");
-  //       }
-
-  //       const response = await axiosInstance.put(
-  //         `${import.meta.env.VITE_URL}/receive/${id}/status`,
-  //         {
-  //           status,
-  //           remark: remark || undefined,
-  //         }
-  //       );
-
-  //       if (response.data) {
-  //         await getReceiveCurrencyData();
-  //         return true;
-  //       }
-
-  //       throw new Error(response.data.message || "Failed to update status");
-  //     } catch (error: any) {
-  //       const errorMessage = error.response?.data?.message || error.message;
-  //       console.error("Error updating status:", errorMessage);
-
-  //       if (error.response?.status === 401) {
-  //         localStorage.removeItem("token");
-  //         localStorage.removeItem("role");
-  //         toast.error("Session expired. Please login again.");
-  //         navigate("/login-register");
-  //       } else {
-  //         toast.error(errorMessage);
-  //       }
-
-  //       throw error;
-  //     }
-  //   };
+  const [isAccountSettingDialogOpen, setIsAccountSettingDialogOpen] =
+    useState(false);
 
   const openProfileDialog = () => {
     setIsProfileDialogOpen(true);
@@ -250,6 +55,13 @@ const Dashboard = () => {
 
   const closeProfileDialog = () => {
     setIsProfileDialogOpen(false);
+  };
+  const openAccountSettingDialog = () => {
+    setIsAccountSettingDialogOpen(true);
+  };
+
+  const closeAccountSettingDialog = () => {
+    setIsAccountSettingDialogOpen(false);
   };
 
   const openPasswordDialog = () => {
@@ -276,10 +88,25 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(getCurrentTab());
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    setActiveTab(getCurrentTab());
+  }, [location.pathname]);
 
+  // Fixed handleTabChange to accept both main tab and sub-tab
+
+  const handleTabChange = (mainTab, subTab = null) => {
+    setActiveTab(mainTab);
+    navigate(`/admin/${mainTab?.toLowerCase()}`, {
+      state: { subTab },
+    });
+
+    if (window.innerWidth < 768) {
+      setIsMobileMenuOpen(false);
+    }
+  };
   const sidebarItems = [
     { icon: Wallet, label: "Dashboard", id: "dashboard" },
-    { icon: ArrowDownLeft, label: "Account Setting", id: "account-setting" },
+    // { icon: ArrowDownLeft, label: "Account Setting", id: "account-setting" },
     {
       icon: ArrowUpRight,
       label: "Deposit/Withdrawals",
@@ -290,11 +117,15 @@ const Dashboard = () => {
       label: "Refill ID/Unload ID",
       id: "refill-unload",
     },
-    { icon: TrendingUp, label: "Create New ID", id: "create-new-id" },
-    { icon: Users, label: "Client Info", id: "client-info" },
+    {
+      icon: TrendingUp,
+      label: "Create ID/Client Info",
+      id: "create-id",
+    },
+    // { icon: Users, label: "Client Info", id: "client-info" },
     { icon: ArrowUpDown, label: "Platform/Panel", id: "platform-panel" },
     { icon: Users, label: "Banner/Slider", id: "banner-slider" },
-    { icon: Users, label: "SMS Tokens", id: "sms-tokens" },
+    // { icon: Users, label: "SMS Tokens", id: "sms-tokens" },
     { icon: Users, label: "Team Management", id: "team-management" },
     { icon: LogOut, label: "LogOut", id: "LogOut" },
   ];
@@ -302,27 +133,22 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab />;
-      // <div>Dashboard</div>;
-      case "account-setting":
-        return <div>AccountSetting</div>;
-
+        return <DashboardTab onTabChange={handleTabChange} />;
       case "deposit-withdrawals":
-        return <DepositWithdrawal />;
+        return <DepositWithdrawal onTabChange={handleTabChange} />;
       case "refill-unload":
-        return <RefillUnload />;
-
-      case "create-new-id":
-        return <div>Create new Id</div>;
+        return <RefillUnload onTabChange={handleTabChange} />;
+      case "create-id":
+        return <CreateIdAndClientInfo onTabChange={handleTabChange} />;
 
       case "platform-panel":
-        return <div>Platform Panel</div>;
-      case "client-info":
-        return <div>Client Info</div>;
+        return <AddRemovePanel />;
+      // case "client-info":
+      //   return <div>Client Info</div>;
       case "banner-slider":
         return <SliderManagement />;
-      case "sms-tokens":
-        return <div>SMS Tokens</div>;
+      // case "sms-tokens":
+      //   return <div>SMS Tokens</div>;
       case "team-management":
         return <TeamManagement />;
 
@@ -339,7 +165,7 @@ const Dashboard = () => {
                 <div className="flex gap-3 justify-center">
                   <Button
                     variant="outline"
-                    onClick={() => setActiveTab("Dashboard")}
+                    onClick={() => setActiveTab("dashboard")}
                   >
                     Cancel
                   </Button>
@@ -353,24 +179,11 @@ const Dashboard = () => {
         );
       default:
         console.log("Current activeTab:", activeTab);
-        return <div>Dashboard</div>;
+        return <DashboardTab onTabChange={handleTabChange} />;
     }
   };
 
   //   // Update activeTab when URL changes
-  useEffect(() => {
-    setActiveTab(getCurrentTab());
-  }, [location.pathname]);
-
-  const handleTabChange = (tabId) => {
-    setActiveTab(tabId);
-    // Convert the URL to lowercase for consistency
-    const urlPath = tabId.toLowerCase();
-    navigate(`/admin/${urlPath}`);
-    if (window.innerWidth < 768) {
-      setIsMobileMenuOpen(false);
-    }
-  };
 
   return (
     <div className="min-h-screen dark:bg-white  ">
@@ -426,12 +239,14 @@ const Dashboard = () => {
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={openPasswordDialog}>
-                  Passwprd
+                  Password
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={openMessageCounterDialog}>
                   Message Counter
                 </DropdownMenuItem>
-                <DropdownMenuItem>Subscription</DropdownMenuItem>
+                <DropdownMenuItem onClick={openAccountSettingDialog}>
+                  Account Setting
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -541,6 +356,10 @@ const Dashboard = () => {
       <MessageCounterDialog
         isOpen={isMessageCounterDialogOpen}
         onClose={closeMessageCounterDialog}
+      />
+      <AccountSetting
+        isOpen={isAccountSettingDialogOpen}
+        onClose={closeAccountSettingDialog}
       />
     </div>
   );

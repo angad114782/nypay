@@ -90,6 +90,8 @@ function DepositStep1({
             onChange={(e) => setInputAmount(e.target.value)}
             placeholder="Enter Coins"
             className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+            min={500}
+            required
           />
           {!depositPanel && (
             <p className="text-xs font-normal my-2">

@@ -1,4 +1,12 @@
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -8,33 +16,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import logo1 from "/asset/Arrow 1.png";
-import {
-  Camera,
-  Copy,
-  CreditCard,
-  Hash,
-  IndianRupee,
-  MapPin,
-  MessageSquare,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import ScreenshotProof from "./ScreenshotProof";
-import PDFLogo from "/asset/icons8-pdf-48.png";
-import ExcelLogo from "/asset/icons8-excel.svg";
-import logo from "/asset/gpay.png";
-import { DateRangePicker } from "./DateRangePicker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Copy, CreditCard, Hash, MapPin, MessageSquare } from "lucide-react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
-import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "./DateRangePicker";
+import ScreenshotProof from "./ScreenshotProof";
+import logo1 from "/asset/Arrow 1.png";
+import logo from "/asset/gpay.png";
+import ExcelLogo from "/asset/icons8-excel.svg";
+import PDFLogo from "/asset/icons8-pdf-48.png";
+import CopyButton from "@/components/CopyButton";
 
 // import { DatePicker } from "@/components/ui/datepicker"; // If you have a shadcn/ui DatePicker
 
@@ -214,7 +207,7 @@ const GenericTable = ({ data }) => {
 
             {/* Status select */}
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full bg-orange-400 text-white w-full md:w-auto">
+              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 text-white w-full md:w-auto">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -238,7 +231,7 @@ const GenericTable = ({ data }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
               <Select value={searchColumn} onValueChange={setSearchColumn}>
-                <SelectTrigger className="min-w-[100px] border-1 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
+                <SelectTrigger className="min-w-[100px] border-1 dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
@@ -309,55 +302,33 @@ const GenericTable = ({ data }) => {
               <TableCell className="w-[100px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `Username - ${item.userName}\nAmount - ${item.amount}\nUTR - ${item.utr}`
-                      )
-                    }
+                  <CopyButton
+                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nUTR - ${item.utr}`}
                     title="Copy User Name, Amount, UTR"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
               </TableCell>
               <TableCell>{item.profileName}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
-                  <button
-                    onClick={() => handleCopy(`${item.userName}`)}
+                  <CopyButton
+                    textToCopy={item.userName}
                     title="Copy User Name"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}
-                  <button
-                    onClick={() => handleCopy(`${item.amount}`)}
-                    title="Copy Amount"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <CopyButton textToCopy={item.amount} title="Copy Amount" />
                 </div>
               </TableCell>
               <TableCell>{item.paymentType}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.utr}
-                  <button
-                    onClick={() => handleCopy(`${item.utr}`)}
-                    title="Copy UTR"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <CopyButton textToCopy={item.utr} title="Copy UTR" />
                 </div>
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
@@ -462,15 +433,10 @@ export const TransactionCard = ({ transaction }) => {
               <h3 className="text-sm dark:text-white text-white font-bold">
                 {transaction.profileName}
               </h3>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(transaction.profileName);
-                }}
-                className="p-1 hover:bg-green-200 rounded transition"
-                title="Copy Profile Name"
-              >
-                <Copy className="w-4 h-4 text-white" />
-              </button>
+              <CopyButton
+                textToCopy={transaction.profileName}
+                title="Copy profile name"
+              />
             </div>
             <p className="text-sm dark:text-white text-white">
               {transaction.userName}
@@ -516,15 +482,7 @@ export const TransactionCard = ({ transaction }) => {
           <span className="text-sm text-black ">UTR</span>
           <span className="text-sm ml-auto font-bold flex items-center gap-1">
             {transaction.utr}
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(transaction.utr);
-              }}
-              className="p-1 hover:bg-green-200 rounded transition"
-              title="Copy UTR"
-            >
-              <Copy className="w-4 h-4 text-black" />
-            </button>
+            <CopyButton textToCopy={transaction.utr} title="Copy UTR" />
           </span>
         </div>
 

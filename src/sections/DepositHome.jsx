@@ -9,14 +9,13 @@ function DepositHome({ onClose }) {
   const [step, setStep] = useState(1);
   const [depositAmount, setDepositAmount] = useState("");
   const [depositModalMessageType, setdepositModalMessageType] =
-    useState("warning");
+    useState("success");
 
   const depositModalMessages = [
     {
       type: "success",
-      title: "Request Placed",
-      message:
-        "Account creation request has been submitted. Status will update shortly.",
+      title: "Deposit Placed",
+      message: "Please wait for the deposit to reflect in the wallet.",
     },
     {
       type: "warning",

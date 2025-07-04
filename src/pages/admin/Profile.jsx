@@ -6,12 +6,11 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Camera } from "lucide-react";
+import { useRef, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
-import { Camera } from "lucide-react";
 import Logo from "/asset/logo.png";
-import React, { useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
 
 export const ProfileEditDialog = ({ isOpen, onClose }) => {
   const fileInputRef = useRef(null);
@@ -103,10 +102,10 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[525px] p-0 bg-white text-black overflow-hidden">
         <DialogTitle className="hidden" />
         <DialogDescription className="hidden" />
-        <div className="h-24 bg-gradient-to-r from-blue-400 to-blue-300" />
+        <div className="h-24 bg-gradient-to-r from-[#8AAA08] to-[#15CA5280]" />
 
         <div className="px-6">
           <input
@@ -160,7 +159,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                     setFormData({ ...formData, fullName: e.target.value })
                   }
                   placeholder="Your Full Name"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border border-black focus:bg-white"
                 />
               </div>
 
@@ -175,7 +174,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                     setFormData({ ...formData, contactNo: e.target.value })
                   }
                   placeholder="Your Contact Number"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border-black border focus:bg-white"
                 />
               </div>
 
@@ -191,7 +190,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="Your Email Address"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border-black border focus:bg-white"
                 />
               </div>
             </div>

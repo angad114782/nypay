@@ -15,9 +15,13 @@ import { toast } from "sonner";
 import { Slider } from "@/components/ui/slider";
 
 export const MessageCounterDialog = ({ isOpen, onClose }) => {
+  // Example: extract the current value from "504/10000"
+  const cycleValue = 2600; // Replace with dynamic value if needed
+  const cycleMax = 10000;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[525px] p-0 bg-white text-black overflow-hidden">
         <DialogTitle className="h-16 bg-gradient-to-r p-4 from-[#8AAA08] to-[#15CA5280]">
           Message Counter
         </DialogTitle>
@@ -34,16 +38,19 @@ export const MessageCounterDialog = ({ isOpen, onClose }) => {
               <div className="flex items-center flex-col gap-2 text-center">
                 <div className="font-bold">This Cycle</div>
                 <span className="text-[#FF6411] text-xl font-bold">
-                  504/10000
+                  {cycleValue}/{cycleMax}
                 </span>
               </div>
             </div>
-            <Slider
-              className={"my-3 h-10"}
-              defaultValue={[33]}
-              max={100}
-              step={1}
-            />
+            <div className="mx-14">
+              <Slider
+                className={"my-3 h-10 "}
+                value={[cycleValue]}
+                max={cycleMax}
+                step={1}
+                // disabled
+              />
+            </div>
             {/* List Items Section */}
             <div className="flex flex-col gap-3 my-6 mx-14">
               <div className="flex justify-between items-center py-1">

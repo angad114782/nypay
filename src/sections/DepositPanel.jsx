@@ -8,15 +8,14 @@ import useScrollLock from "../utils/useScrollLock";
 function DepositPanel({ cardData, onClose }) {
   const [step, setStep] = useState(1);
   const [depositModalMessageType, setdepositModalMessageType] =
-    useState("error");
+    useState("success");
   const [usePayWallet, setUsePayWallet] = useState(false);
 
   const depositModalMessages = [
     {
       type: "success",
-      title: "Request Placed",
-      message:
-        "Account creation request has been submitted. Status will update shortly.",
+      title: "Site Deposit Placed",
+      message: "Please wait for the deposit to reflect in the website ID.",
     },
     {
       type: "warning",

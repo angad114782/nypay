@@ -1,16 +1,20 @@
-import React from "react";
-import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
-import {
-  ArrowRight,
-  ChevronRight,
-  CreditCard,
-  Landmark,
-  Users,
-  UserSquare,
-} from "lucide-react";
-import { MdFeedback } from "react-icons/md";
+import { ChevronRight, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import QuickActionCards from "./QuickActionCards";
 
-const DashboardTab = () => {
+const DashboardTab = ({ onTabChange }) => {
+  const location = useLocation();
+  // Get sub-tab from route state or default to 'refillID'
+  const initialTab = location.state?.subTab || "refillID";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Update tab when route state changes
+  useEffect(() => {
+    if (location.state?.subTab) {
+      setActiveTab(location.state.subTab);
+    }
+  }, [location.state]);
   const depositData = [
     {
       title: "Total Deposit",
@@ -84,48 +88,6 @@ const DashboardTab = () => {
     { title: "First time Withdrawal Clients", count: 0, icon: Users },
   ];
 
-  const InfoCard = ({
-    title,
-    count,
-    bgColor,
-    textColor,
-    showMoreInfo = true,
-    className = "",
-  }) => (
-    <div className={`${bgColor} rounded-lg py-2 shadow-sm border ${className}`}>
-      <div className="text-center">
-        <div className="text-3xl font-bold text-gray-800 mb-2">{count}</div>
-        <div className={`text-sm font-medium mb-1 ${textColor}`}>
-          Count : {count}
-        </div>
-        <div className="text-xs  text-gray-600 mb-4">{title}</div>
-        {showMoreInfo && (
-          <button className="inline-flex items-center text-orange-600 hover:text-orange-700 text-sm font-medium">
-            More Info
-            <ChevronRight className="ml-1 h-4 w-4" />
-          </button>
-        )}
-      </div>
-    </div>
-  );
-
-  const ClientCard = ({ title, count, icon: Icon }) => (
-    <div className="bg-white rounded-lg p-2 shadow-sm border flex items-center justify-between">
-      <div className="flex items-center">
-        <div className="bg-orange-100 p-3 rounded-lg mr-4">
-          <Icon className="h-6 w-6 text-orange-600" />
-        </div>
-        <div>
-          <div className="text-2xl font-bold text-gray-800">{count}</div>
-          <div className="text-sm text-gray-600">{title}</div>
-        </div>
-      </div>
-      <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-full flex items-center justify-center">
-        <ChevronRight className="h-4 w-4" />
-      </button>
-    </div>
-  );
-
   return (
     <div className=" bg-gray-50 h-full">
       <div className="max-w-full mx-auto">
@@ -134,66 +96,7 @@ const DashboardTab = () => {
         </h1>
 
         {/* Quick Action Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
-          <div className="bg-blue-500 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-blue-300 bg-opacity-20 p-1 rounded mr-1">
-              <PiHandDeposit className="size-6" />
-            </div>
-            <span className="font-sm text-sm">Deposit List</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-
-          <div className="bg-teal-500 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-teal-300 bg-opacity-20 p-1 rounded mr-1">
-              <PiHandWithdraw className="size-6" />
-            </div>
-            <span className="font-sm text-sm">Withdraw</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-
-          <div className="bg-purple-500 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-purple-300 bg-opacity-20 p-1 rounded mr-1">
-              <UserSquare className="size-6" />
-            </div>
-            <span className="font-sn text-sm">Refill ID</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-
-          <div className="bg-orange-500 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-orange-300 bg-opacity-20 p-1 rounded mr-1">
-              <CreditCard className="size-6" />
-            </div>
-            <span className="font-sm text-sm">Unload ID</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-          <div className="bg-green-500 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-green-300 bg-opacity-20 p-1 rounded mr-1">
-              <CreditCard className="size-6" />
-            </div>
-            <span className="font-sm text-sm">Add Client</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-
-          <div className="bg-blue-600 text-white rounded-lg p-1 flex items-center">
-            <div className="bg-blue-300 bg-opacity-20 p-1 rounded mr-1">
-              <Landmark className="size-6" />
-            </div>
-            <span className="font-sm text-sm">Active Account</span>
-            <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-              <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-        </div>
+        <QuickActionCards onTabChange={onTabChange} />
 
         {/* Deposit Information Section */}
         <div className="mb-8">
@@ -263,3 +166,45 @@ const DashboardTab = () => {
 };
 
 export default DashboardTab;
+
+const ClientCard = ({ title, count, icon: Icon }) => (
+  <div className="bg-white rounded-lg p-2 shadow-sm border flex items-center justify-between">
+    <div className="flex items-center">
+      <div className="bg-orange-100 p-3 rounded-lg mr-4">
+        <Icon className="h-6 w-6 text-orange-600" />
+      </div>
+      <div>
+        <div className="text-2xl font-bold text-gray-800">{count}</div>
+        <div className="text-sm text-gray-600">{title}</div>
+      </div>
+    </div>
+    <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white p-2 rounded-full flex items-center justify-center">
+      <ChevronRight className="h-4 w-4" />
+    </button>
+  </div>
+);
+
+const InfoCard = ({
+  title,
+  count,
+  bgColor,
+  textColor,
+  showMoreInfo = true,
+  className = "",
+}) => (
+  <div className={`${bgColor} rounded-lg py-2 shadow-sm border ${className}`}>
+    <div className="text-center">
+      <div className="text-3xl font-bold text-gray-800 mb-2">{count}</div>
+      <div className={`text-sm font-medium mb-1 ${textColor}`}>
+        Count : {count}
+      </div>
+      <div className="text-xs  text-gray-600 mb-4">{title}</div>
+      {showMoreInfo && (
+        <button className="inline-flex items-center text-orange-600 hover:text-orange-700 text-sm font-medium">
+          More Info
+          <ChevronRight className="ml-1 h-4 w-4" />
+        </button>
+      )}
+    </div>
+  </div>
+);

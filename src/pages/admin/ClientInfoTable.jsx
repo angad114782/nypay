@@ -1,4 +1,13 @@
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -8,33 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Camera,
-  Copy,
-  CreditCard,
-  Hash,
-  IndianRupee,
-  MapPin,
-  MessageSquare,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import WithdrawLogo from "/asset/Group 48095823.png";
-import { Input } from "@/components/ui/input";
-import ScreenshotProof from "./ScreenshotProof";
-import PDFLogo from "/asset/icons8-pdf-48.png";
-import ExcelLogo from "/asset/icons8-excel.svg";
-import logo from "/asset/gpay.png";
-import { DateRangePicker } from "./DateRangePicker";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  Copy,
+  CreditCard,
+  MapPin,
+  MessageSquare,
+  Trash2,
+  User2,
+} from "lucide-react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
-import { Button } from "@/components/ui/button";
+import { DateRangePicker } from "./DateRangePicker";
+import WithdrawLogo from "/asset/Group 48095823.png";
+import ExcelLogo from "/asset/icons8-excel.svg";
+import PDFLogo from "/asset/icons8-pdf-48.png";
 import CopyButton from "@/components/CopyButton";
 
 // import { DatePicker } from "@/components/ui/datepicker"; // If you have a shadcn/ui DatePicker
@@ -42,8 +40,8 @@ import CopyButton from "@/components/CopyButton";
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
   { label: "User Name", value: "userName" },
-  { label: "Amount", value: "amount" },
-  { label: "Payment Type", value: "paymentType" },
+  //   { label: "Unique ID", value: "uniqueId" },
+  //   { label: "UTR", value: "utr" },
 ];
 
 const STATUS_OPTIONS = [
@@ -54,20 +52,35 @@ const STATUS_OPTIONS = [
   { label: "Rejected", value: "Rejected" },
 ];
 
-const WithdrawTable = ({ data }) => {
+const ClientInfoTable = ({ data }) => {
   const [entries, setEntries] = useState(10);
   const [search, setSearch] = useState("");
   const [searchColumn, setSearchColumn] = useState("profileName");
   const [currentPage, setCurrentPage] = useState(1);
   const [status, setStatus] = useState("all");
   const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [handleBlockToggle, setHandleBlockToggle] = useState(null);
+  const [tableData, setTableData] = useState(data);
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
   };
 
+  // Handle block/unblock toggle
+  const handleBlockToggleFn = (id, isBlocked) => {
+    // Update the local state to reflect the change
+    setTableData((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, isBlocked } : item))
+    );
+    // Optionally, call your API here to persist the change
+    // Example: await api.updateBlockStatus(id, isBlocked);
+    console.log(
+      `Toggling block for ID ${id}: ${isBlocked ? "Blocked" : "Unblocked"}`
+    );
+  };
+
   // Enhanced filter logic
-  const filteredData = data.filter((item) => {
+  const filteredData = tableData.filter((item) => {
     const matchesColumn = item[searchColumn]
       ?.toString()
       .toLowerCase()
@@ -136,13 +149,13 @@ const WithdrawTable = ({ data }) => {
         idx + 1,
         item.profileName,
         item.userName,
-        item.amount,
-        item.paymentType,
-        `Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`,
-        item.entryDate,
+        item.password,
+        item.uniqueId,
+        item.website,
+        item.createdAt,
+        item.isBlocked ? "Blocked" : "Unblocked",
         item.status,
         item.remark,
-        item.withdrawDate,
         item.parentIp,
       ]),
     });
@@ -156,13 +169,13 @@ const WithdrawTable = ({ data }) => {
         "S.No": idx + 1,
         "Profile Name": item.profileName,
         "User Name": item.userName,
-        Amount: item.amount,
-        "Payment Type": item.paymentType,
-        Details: `Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`,
-        "Entry Date": item.entryDate,
+        Password: item.password,
+        UniqueId: item.uniqueId,
+        Website: item.website,
+        "Date Created": item.createdAt,
+        "Block/Unblock": item.isBlocked ? "Blocked" : "Unblocked",
         Status: item.status,
         Remark: item.remark,
-        "Withdraw Date": item.withdrawDate,
         "Parent IP": item.parentIp,
       }))
     );
@@ -218,7 +231,7 @@ const WithdrawTable = ({ data }) => {
 
             {/* Status select */}
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full dark:bg-orange-400 bg-orange-400 text-white  w-full md:w-auto">
+              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 text-white w-full md:w-auto">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -242,7 +255,7 @@ const WithdrawTable = ({ data }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
               <Select value={searchColumn} onValueChange={setSearchColumn}>
-                <SelectTrigger className="min-w-[100px] border-1 bg-orange-400  dark:bg-orange-400 border-black text-white rounded-full  w-full md:w-auto">
+                <SelectTrigger className="min-w-[100px] border-1 dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
@@ -290,16 +303,41 @@ const WithdrawTable = ({ data }) => {
         <TableCaption>A list of your request list.</TableCaption>
         <TableHeader className="bg-[#8AAA08]">
           <TableRow>
-            <TableHead className="w-[100px] rounded-tl-lg">S.No</TableHead>
+            <TableHead className="w-[50px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
             <TableHead>User Name</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Payment Type</TableHead>
-            <TableHead>Details</TableHead>
-            <TableHead>Entry Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Remark</TableHead>
-            <TableHead>Withdraw Date</TableHead>
+            <TableHead>
+              Mobile <br /> Number
+            </TableHead>
+            <TableHead>
+              Created <br /> Date
+            </TableHead>
+            <TableHead>
+              First <br /> Deposit
+            </TableHead>
+            <TableHead>
+              First <br /> Bonus
+            </TableHead>
+            <TableHead>
+              Last <br /> Deposit
+            </TableHead>
+            <TableHead>
+              Last <br /> Deposit <br /> Date
+            </TableHead>
+            <TableHead>
+              Last <br /> Login <br /> Date
+            </TableHead>
+            <TableHead>
+              Referral <br /> Code
+            </TableHead>
+            <TableHead>
+              Total <br /> Deposit
+            </TableHead>
+            <TableHead>Source</TableHead>
+            <TableHead>Block/Unblock</TableHead>
+            <TableHead className={"text-center"}>
+              Delete <br /> User
+            </TableHead>
             <TableHead className="text-center">Action</TableHead>
             <TableHead className="text-right rounded-tr-lg">
               Parent IP
@@ -310,12 +348,12 @@ const WithdrawTable = ({ data }) => {
           {paginatedData.map((item, index) => (
             <TableRow key={item.id}>
               {/* S.No with copy all */}
-              <TableCell className="w-[100px]">
+              <TableCell className="w-[50px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nDetails - Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`}
-                    title="Copy User Name, Amount, Details"
+                    textToCopy={`Username - ${item.userName}\nMobile - ${item.mobile}`}
+                    title="Copy User Name, Mobile"
                   />
                 </div>
               </TableCell>
@@ -325,75 +363,54 @@ const WithdrawTable = ({ data }) => {
                   {item.userName}
                   <CopyButton
                     textToCopy={item.userName}
-                    title="Copy username"
+                    title="Copy User Name"
                   />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.amount}
+                  {item.mobile}
                   <CopyButton
-                    textToCopy={item.amount}
-                    title="Copy amount Number"
+                    textToCopy={item.mobile}
+                    title="Copy Mobile Number"
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.paymentType}</TableCell>
-              <TableCell>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.name}
-                    <CopyButton
-                      textToCopy={item.details.name}
-                      title="Copy name"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.accountNumber}
-                    <CopyButton
-                      textToCopy={item.details.accountNumber}
-                      title="Copy Account Number"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.IFSCCode}
-                    <CopyButton
-                      textToCopy={item.details.IFSCCode}
-                      title="Copy IFSC Code"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.bankName}
-                    <CopyButton
-                      textToCopy={item.details.bankName}
-                      title="Copy Bank Name"
-                    />
-                  </div>
-                  <div className="justify-center items-center flex bg-gray-200 rounded-sm ">
-                    <CopyButton
-                      textToCopy={`Name: ${item.details.name}\nAccount: ${item.details.accountNumber}\nIFSC: ${item.details.IFSCCode}\nBank: ${item.details.bankName}`}
-                      title="Copy Bank All Details"
-                    />
-                  </div>
+              <TableCell>{item.createdAt}</TableCell>
+              <TableCell>{item.firstDeposit}</TableCell>
+
+              <TableCell>{item.firstBonus}</TableCell>
+              <TableCell>{item.lastDeposit}</TableCell>
+              <TableCell>{item.lastDepositDate}</TableCell>
+              <TableCell>{item.lastLoginDate}</TableCell>
+              <TableCell>{item.referralCode}</TableCell>
+              <TableCell>{item.totalDeposit}</TableCell>
+              <TableCell>{item.source}</TableCell>
+
+              <TableCell className={"text-center align-middle"}>
+                {/* {item.isBlocked} */}
+                <div className="flex items-center justify-center gap-1">
+                  <Switch
+                    checked={item.isBlocked}
+                    onCheckedChange={(val) => handleBlockToggleFn(item.id, val)}
+                  />
                 </div>
               </TableCell>
-              <TableCell>{item.entryDate}</TableCell>
-              <TableCell>{item.status}</TableCell>
-              <TableCell>{item.remark}</TableCell>
-              <TableCell>
-                {item.withdrawDate || "N/A"}
-                {/* <ScreenshotProof url={logo} utr={item.utr} /> */}
+              <TableCell className={"text-center align-middle"}>
+                <div className="flex items-center justify-center gap-1">
+                  {<Trash2 className="text-red-500" />}
+                </div>
               </TableCell>
               <TableCell className="text-center align-middle">
-                <div className="flex gap-1 items-center justify-center">
+                <div className="flex gap-1 flex-col items-center justify-center">
                   <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
-                    Approve
+                    A/c Statement
                   </button>
                   <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
-                    Reject
+                    Deposit Report
                   </button>
                   <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
-                    Remark
+                    Withdraw Report
                   </button>
                 </div>
               </TableCell>
@@ -405,7 +422,11 @@ const WithdrawTable = ({ data }) => {
 
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
-          <TransactionCard key={item.id} transaction={item} />
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            handleBlockToggleFn={handleBlockToggleFn}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -449,9 +470,9 @@ const WithdrawTable = ({ data }) => {
   );
 };
 
-export default WithdrawTable;
+export default ClientInfoTable;
 
-export const TransactionCard = ({ transaction }) => {
+export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -465,8 +486,12 @@ export const TransactionCard = ({ transaction }) => {
     }
   };
 
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+  };
+
   return (
-    <div className="bg-[#ffb3b3] rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
+    <div className="bg-gray-300 rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
       <div className="flex bg-[#8AAA08] items-center justify-between p-2">
         <div className="flex items-center gap-2">
@@ -481,7 +506,7 @@ export const TransactionCard = ({ transaction }) => {
               </h3>
               <CopyButton
                 textToCopy={transaction.profileName}
-                title="Copy profile name"
+                title="Copy Profile Name"
               />
             </div>
             <p className="text-sm dark:text-white text-white">
@@ -497,78 +522,35 @@ export const TransactionCard = ({ transaction }) => {
           >
             {transaction.status}
           </div>
-          <div className="text-sm text-white">{transaction.entryDate}</div>
+          <div className="text-sm text-white">{transaction.createdAt}</div>
         </div>
       </div>
 
       {/* Amount */}
       <div className="flex items-center p-2 gap-2">
         {/* <IndianRupee className="w-4 h-4" /> */}
-        <span className="text-sm">Amount</span>
-        <span className="ml-auto text-sm font-bold ">{transaction.amount}</span>
-        <CopyButton
-          textToCopy={transaction.amount}
-          title="Copy Account Number"
-        />
+        <User2 className="w-4 h-4 text-black" />
+        <span className="text-sm">Username</span>
+        <span className="ml-auto text-sm font-bold ">
+          {transaction.userName}
+        </span>
+        <CopyButton textToCopy={transaction.userName} title="Copy User Name" />
       </div>
 
       {/* Payment Type */}
       <div className="flex items-center p-2 gap-2">
         <CreditCard className="w-4 h-4 text-black" />
-        <span className="text-sm text-black">Payment Type</span>
-        <span className="ml-auto text-sm text-black">
-          {transaction.paymentType}
-        </span>
+        <span className="text-sm text-black">Mobile No.</span>
+        <span className="ml-auto text-sm text-black">{transaction.mobile}</span>
       </div>
 
-      {/* Bank Details */}
-      <div className=" flex justify-between  m-2  ">
-        <div className="flex items-start gap-2 mb-1">
-          <Hash className="w-4 h-4 text-black" />
-          <span className="text-sm  text-black">Bank Details</span>
-        </div>
-        <div className="space-y-1  ">
-          <div className="flex items-center ">
-            {/* <span className="text-sm text-gray-600">Name:</span> */}
-            <span className="text-sm text-black text-right ml-auto">
-              {transaction.details.name}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.name}
-              title="Copy Account Holder name"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">Account:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.accountNumber}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.accountNumber}
-              title="Copy Account Number"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">IFSC:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.IFSCCode}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.IFSCCode}
-              title="Copy IFSC Code"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">Bank:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.bankName}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.bankName}
-              title="Copy Bank Name"
-            />
-          </div>
-        </div>
+      {/* Payment Type */}
+      <div className="flex items-center p-2 gap-2">
+        <CreditCard className="w-4 h-4 text-black" />
+        <span className="text-sm text-black">Referral</span>
+        <span className="ml-auto text-sm text-black">
+          {transaction.referralCode}
+        </span>
       </div>
 
       {/* Parent IP */}
@@ -576,13 +558,6 @@ export const TransactionCard = ({ transaction }) => {
         <MapPin className="w-4 h-4 text-black" />
         <span className="text-sm text-black">Parent IP</span>
         <span className="ml-auto text-sm ">{transaction.parentIp}</span>
-      </div>
-
-      {/* Withdraw Date */}
-      <div className="flex items-center p-2 gap-2">
-        <MessageSquare className="w-4 h-4" />
-        <span className="text-sm text-black">Withdraw Date</span>
-        <span className="ml-auto text-sm ">{transaction.withdrawDate}</span>
       </div>
 
       {/* Status and Remarks */}
@@ -594,11 +569,20 @@ export const TransactionCard = ({ transaction }) => {
 
         <span className="text-sm ">{transaction.remark}</span>
       </div>
-
+      <div className="flex items-center p-2 gap-2">
+        <span className="ml-auto text-sm flex  items-center gap-2 ">
+          <span className=" text-black">Block/Unblock</span>
+          <Switch
+            checked={transaction.isBlocked}
+            onCheckedChange={(val) => handleBlockToggleFn(transaction.id, val)}
+          />
+        </span>
+      </div>
       {/* Footer Actions */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           {/* Placeholder for Screenshot/UTR actions */}
+          <Trash2 className="h-6 w-6 text-red-500" />
           <Copy className="h-6 w-6" />
         </div>
         <div className="flex gap-2">

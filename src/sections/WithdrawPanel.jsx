@@ -7,14 +7,13 @@ import useScrollLock from "../utils/useScrollLock";
 function WithdrawPanel({ cardData, onClose }) {
   const [step, setStep] = useState(1);
   const [withdrawModalMessageType, setWithdrawModalMessageType] =
-    useState("error");
+    useState("success");
 
   const withdrawModalMessages = [
     {
       type: "success",
-      title: "Request Placed",
-      message:
-        "Account creation request has been submitted. Status will update shortly.",
+      title: "Site Withdrawal Placed",
+      message: "Please wait for the withdrawal to reflect in the wallet.",
     },
     {
       type: "warning",

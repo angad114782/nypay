@@ -45,7 +45,16 @@ import { Badge } from "@/components/ui/badge";
 import latestLogo from "/asset/Group.png";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { TeamManagementDialog } from "./TeamManagementDialog";
+import CopyButton from "@/components/CopyButton";
 // import { DatePicker } from "@/components/ui/datepicker"; // If you have a shadcn/ui DatePicker
 
 // const COLUMN_OPTIONS = [
@@ -288,13 +297,7 @@ const TeamManagement = () => {
           </Select>
           <span className="text-sm text-gray-700">entries</span>
         </div>
-        <Button
-          className={
-            "bg-[#FAB906] text-black cursor-pointer lg:px-6 px-3 h-6 lg:h-full hover:bg-[#fab940]"
-          }
-        >
-          Add User
-        </Button>
+        <TeamManagementDialog />
       </div>
       <Table className="hidden lg:table w-full">
         <TableCaption>A list of your request list.</TableCaption>
@@ -318,30 +321,28 @@ const TeamManagement = () => {
               <TableCell className="w-[100px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `Username - ${item.userName}\nAmount - ${item.amount}\nUTR - ${item.utr}`
-                      )
-                    }
-                    title="Copy User Name, Amount, UTR"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <CopyButton
+                    textToCopy={`Username - ${item.userName}\nProfile Name - ${item.profileName}`}
+                    title="Copy User Name, Profile Name"
+                  />
                 </div>
               </TableCell>
-              <TableCell>{item.profileName}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {item.profileName}
+                  <CopyButton
+                    textToCopy={item.profileName}
+                    title="Copy Profile Name"
+                  />
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
-                  <button
-                    onClick={() => handleCopy(`${item.userName}`)}
+                  <CopyButton
+                    textToCopy={item.userName}
                     title="Copy User Name"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
               </TableCell>
               <TableCell className="text-center align-middle">
@@ -437,10 +438,6 @@ const TransactionCard = ({ transaction }) => {
     }
   };
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
   return (
     <div className="bg-[#F3D5F4] rounded-2xl shadow-md border border-gray-200 overflow-hidden  mb-4">
       {/* Header */}
@@ -455,20 +452,20 @@ const TransactionCard = ({ transaction }) => {
               <h3 className="text-sm dark:text-white text-white font-bold">
                 {transaction.profileName}
               </h3>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(transaction.profileName);
-                  s;
-                }}
-                className="p-1 hover:bg-green-200 rounded transition"
+              <CopyButton
+                textToCopy={transaction.profileName}
                 title="Copy Profile Name"
-              >
-                <Copy className="w-4 h-4 text-white" />
-              </button>
+              />
             </div>
-            <p className="text-sm dark:text-white text-white">
-              {transaction.userName}
-            </p>
+            <div className="flex items-center gap-1">
+              <h3 className="text-sm dark:text-white text-white font-bold">
+                {transaction.userName}
+              </h3>
+              <CopyButton
+                textToCopy={transaction.userName}
+                title="Copy User Name"
+              />
+            </div>
           </div>
         </div>
         <div className=" flex flex-col gap-1">
@@ -494,15 +491,12 @@ const TransactionCard = ({ transaction }) => {
           </div>
 
           <span className="text-sm  ml-auto">{transaction.paymentType}</span>
+          <CopyButton
+            textToCopy={transaction.paymentType}
+            title="Copy Payment Type"
+          />
           <button
-            onClick={() => handleCopy(transaction.paymentType)}
-            title="Copy IFSC Code"
-            className="ml-1 p-1 hover:bg-gray-200 rounded"
-          >
-            <Copy className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleCopy(transaction.paymentType)}
+            // onClick={() => handleCopy(transaction.paymentType)}
             title="Copy IFSC Code"
             className="ml-1 p-1 hover:bg-gray-200 rounded"
           >
@@ -516,15 +510,9 @@ const TransactionCard = ({ transaction }) => {
           </div>
 
           <span className="text-sm  ml-auto">{transaction.utr}</span>
+          <CopyButton textToCopy={transaction.utr} title="Copy UTR" />
           <button
-            onClick={() => handleCopy(transaction.utr)}
-            title="Copy IFSC Code"
-            className="ml-1 p-1 hover:bg-gray-200 rounded"
-          >
-            <Copy className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleCopy(transaction.utr)}
+            // onClick={() => handleCopy(transaction.utr)}
             title="Copy UTR"
             className="ml-1 p-1 hover:bg-gray-200 rounded"
           >
@@ -574,7 +562,6 @@ const TransactionCard = ({ transaction }) => {
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <Trash2Icon className="h-6 w-6 text-red-500" />
-          {/* <ScreenshotProof url={logo} utr={transaction.utr} /> */}
 
           <Copy className={"h-6 w-6"} />
         </div>

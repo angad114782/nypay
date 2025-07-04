@@ -1,10 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import GenericTable from "./GenericTable";
 import WithdrawTable from "./Withdrawtable";
 import RefillUnloadTable from "./RefillUnloadTable";
 import { ChevronRight, CreditCard, Landmark, UserSquare } from "lucide-react";
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
+import QuickActionCards from "./QuickActionCards";
+import { useLocation } from "react-router-dom";
 
 const data = [
   {
@@ -225,72 +227,30 @@ const unloadData = [
     parentIp: " 2131231231",
   },
 ];
-const RefillUnload = () => {
+const RefillUnload = ({ onTabChange }) => {
+  const location = useLocation();
+  // Get sub-tab from route state or default to 'refillID'
+  const initialTab = location.state?.subTab || "refillID";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Update tab when route state changes
+  useEffect(() => {
+    if (location.state?.subTab) {
+      setActiveTab(location.state.subTab);
+    }
+  }, [location.state]);
+
   return (
     <>
       {/* Quick Action Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
-        <div className="bg-blue-500 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-blue-300 bg-opacity-20 p-1 rounded mr-1">
-            <PiHandDeposit className="size-6" />
-          </div>
-          <span className="font-sm text-sm">Deposit List</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-
-        <div className="bg-teal-500 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-teal-300 bg-opacity-20 p-1 rounded mr-1">
-            <PiHandWithdraw className="size-6" />
-          </div>
-          <span className="font-sm text-sm">Withdraw</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-
-        <div className="bg-purple-500 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-purple-300 bg-opacity-20 p-1 rounded mr-1">
-            <UserSquare className="size-6" />
-          </div>
-          <span className="font-sn text-sm">Refill ID</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-
-        <div className="bg-orange-500 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-orange-300 bg-opacity-20 p-1 rounded mr-1">
-            <CreditCard className="size-6" />
-          </div>
-          <span className="font-sm text-sm">Unload ID</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-        <div className="bg-green-500 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-green-300 bg-opacity-20 p-1 rounded mr-1">
-            <CreditCard className="size-6" />
-          </div>
-          <span className="font-sm text-sm">Add Client</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-
-        <div className="bg-blue-600 text-white rounded-lg p-1 flex items-center">
-          <div className="bg-blue-300 bg-opacity-20 p-1 rounded mr-1">
-            <Landmark className="size-6" />
-          </div>
-          <span className="font-sm text-sm">Active Account</span>
-          <button className="ml-auto bg-orange-600 hover:bg-orange-700 text-white  rounded-full flex items-center justify-center">
-            <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
-          </button>
-        </div>
-      </div>
+      <QuickActionCards onTabChange={onTabChange} />
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
-      <Tabs defaultValue="refillID" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        defaultValue="refillID"
+        className="w-full"
+      >
         <TabsList>
           <TabsTrigger value="refillID">Refill ID</TabsTrigger>
           <TabsTrigger value="unloadID">Unload ID</TabsTrigger>

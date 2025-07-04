@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { BiCopy } from "react-icons/bi";
 import { FaCopy, FaExternalLinkAlt } from "react-icons/fa";
 import { IoCopy, IoCopyOutline } from "react-icons/io5";
+import CopyButton from "./CopyButton";
 
 const MyIdCard = ({
   logo,
@@ -66,23 +67,11 @@ const MyIdCard = ({
               <div className="flex flex-col gap-3 pt-1">
                 <div className="flex items-center gap-6">
                   <span className="text-base">{username}</span>
-                  <button onClick={() => handleCopy(username, "username")}>
-                    {copiedField === "username" ? (
-                      <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                    ) : (
-                      <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                    )}
-                  </button>
+                  <CopyButton textToCopy={username} title="Copy User Name" />
                 </div>
                 <div className="flex items-center gap-6">
                   <span className="text-base">{password}</span>
-                  <button onClick={() => handleCopy(password, "password")}>
-                    {copiedField === "password" ? (
-                      <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                    ) : (
-                      <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                    )}
-                  </button>
+                  <CopyButton textToCopy={password} title="Copy Password" />
                 </div>
               </div>
 

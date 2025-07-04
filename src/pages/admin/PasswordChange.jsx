@@ -64,12 +64,12 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[525px] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[525px] p-0 bg-white text-black overflow-hidden">
         <DialogTitle className="hidden" />
         <DialogDescription className="hidden" />
 
         {/* Header with gradient */}
-        <div className="h-24 bg-gradient-to-r from-blue-400 to-blue-300" />
+        <div className="h-24 bg-gradient-to-r from-[#8AAA08] to-[#15CA5280]" />
 
         <div className="px-6">
           {/* Lock Icon */}
@@ -110,7 +110,7 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
                     })
                   }
                   placeholder="Enter current password"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border border-black focus:bg-white"
                 />
               </div>
 
@@ -129,7 +129,7 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
                     })
                   }
                   placeholder="Enter new password"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border border-black focus:bg-white"
                 />
               </div>
 
@@ -148,7 +148,7 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
                     })
                   }
                   placeholder="Confirm new password"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className="mt-2 bg-gray-100 border border-black focus:bg-white"
                 />
               </div>
             </div>

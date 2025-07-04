@@ -35,6 +35,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
+import CopyButton from "@/components/CopyButton";
 
 // import { DatePicker } from "@/components/ui/datepicker"; // If you have a shadcn/ui DatePicker
 
@@ -42,7 +43,8 @@ const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
   { label: "User Name", value: "userName" },
   { label: "Amount", value: "amount" },
-  { label: "UTR", value: "utr" },
+  { label: "Website", value: "website" },
+  { label: "Payment Type", value: "paymentType" },
 ];
 
 const STATUS_OPTIONS = [
@@ -214,7 +216,7 @@ const RefillUnloadTable = ({ data, type }) => {
 
             {/* Status select */}
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full bg-orange-400 text-white w-full md:w-auto">
+              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 text-white w-full md:w-auto">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -238,7 +240,7 @@ const RefillUnloadTable = ({ data, type }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
               <Select value={searchColumn} onValueChange={setSearchColumn}>
-                <SelectTrigger className="min-w-[100px] border-1 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
+                <SelectTrigger className="min-w-[100px] border-1 dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
                   <SelectValue placeholder="Select column" />
                 </SelectTrigger>
                 <SelectContent>
@@ -315,55 +317,33 @@ const RefillUnloadTable = ({ data, type }) => {
               <TableCell className="w-[100px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
-                  <button
-                    onClick={() =>
-                      handleCopy(
-                        `Username - ${item.userName}\nAmount - ${item.amount}\nWebsite - ${item.website}`
-                      )
-                    }
+                  <CopyButton
+                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nWebsite - ${item.website}`}
                     title="Copy User Name, Amount, UTR"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
               </TableCell>
               <TableCell>{item.profileName}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
-                  <button
-                    onClick={() => handleCopy(`${item.userName}`)}
+                  <CopyButton
+                    textToCopy={item.userName}
                     title="Copy User Name"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}
-                  <button
-                    onClick={() => handleCopy(`${item.amount}`)}
-                    title="Copy Amount"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <CopyButton textToCopy={item.amount} title="Copy Amount" />
                 </div>
               </TableCell>
               <TableCell>{item.paymentType}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.website}
-                  <button
-                    onClick={() => handleCopy(`${item.website}`)}
-                    title="Copy website"
-                    className="ml-1 p-1 hover:bg-gray-200 rounded"
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
+                  <CopyButton textToCopy={item.website} title="Copy website" />
                 </div>
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
@@ -459,7 +439,7 @@ export const TransactionCard = ({ transaction, type }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden  mb-4">
+    <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden  mb-4">
       {/* Header */}
       <div className="flex bg-[#8AAA08]    items-center justify-between p-2 ">
         <div className="flex items-center gap-2">
@@ -469,22 +449,16 @@ export const TransactionCard = ({ transaction, type }) => {
             } rounded-full flex items-center justify-center dark:text-white text-white font-semibold`}
           >
             <img src={logonew} alt="" />
-            {/* {transaction.userName?.charAt(0)} */}
           </div>
           <div>
             <div className="flex items-center gap-1">
               <h3 className="text-sm dark:text-white text-white font-bold">
                 {transaction.profileName}
               </h3>
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(transaction.profileName);
-                }}
-                className="p-1 hover:bg-green-200 rounded transition"
+              <CopyButton
+                textToCopy={transaction.profileName}
                 title="Copy Profile Name"
-              >
-                <Copy className="w-4 h-4 text-white" />
-              </button>
+              />
             </div>
             <p className="text-sm dark:text-white text-white">
               {transaction.userName}
@@ -513,13 +487,7 @@ export const TransactionCard = ({ transaction, type }) => {
         {/* <IndianRupee className="w-4 h-4" /> */}
         <span className="text-sm">Amount</span>
         <span className="ml-auto text-sm font-bold ">{transaction.amount}</span>
-        <button
-          onClick={() => handleCopy(transaction.amount)}
-          title="Copy Amount"
-          className="p-1 hover:bg-gray-200 rounded"
-        >
-          <Copy className="h-4 w-4" />
-        </button>
+        <CopyButton textToCopy={transaction.amount} title="Copy Amount" />
       </div>
 
       {/* Details */}
@@ -537,13 +505,7 @@ export const TransactionCard = ({ transaction, type }) => {
           </div>
 
           <span className="text-sm  ml-auto">{transaction.website}</span>
-          <button
-            onClick={() => handleCopy(transaction.website)}
-            title="Copy website"
-            className="p-1 hover:bg-gray-200 rounded"
-          >
-            <Copy className="h-4 w-4" />
-          </button>
+          <CopyButton textToCopy={transaction.website} title="Copy Website" />
         </div>
 
         <div className="flex items-center gap-2">
