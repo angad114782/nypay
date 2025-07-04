@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import MenuItem from "../components/Menuitem";
 import { useAuth } from "../utils/AuthContext";
 import { RiProfileFill } from "react-icons/ri";
+import logonew from "/asset/newlatestlogo.png";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
@@ -41,9 +42,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       <div className="">
         <div>
           <img
-            src="asset/ny-pay.svg"
+            src={logonew}
             alt=""
-            className="img-fluid"
+            className="img-fluid size-32"
             loading="lazy"
           />
         </div>
@@ -108,7 +109,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             setIsOpen(false);
           }}
         />
-        <MenuItem icon={<MdSettings />} label="Commission" />
+        {/* <MenuItem icon={<MdSettings />} label="Commission" /> */}
         <MenuItem icon={<FaQuestionCircle />} label="Help" />
       </nav>
 

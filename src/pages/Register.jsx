@@ -10,10 +10,12 @@ function Register() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
   const [errors, setErrors] = useState({
     name: false,
     phone: false,
+    email: false,
     otp: false,
   });
 
@@ -52,7 +54,7 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col px-3">
+    <div className="min-h-[100dvh] flex flex-col px-3">
       {step !== 3 && (
         <button className="py-4 mb-7 backBtn" onClick={handleBack}>
           <svg
@@ -94,20 +96,22 @@ function Register() {
       <div className="flex-1">
         {step === 1 && (
           <div className="step1">
-            <div className="flex justify-center items-center my-8">
+            <div className="flex justify-center items-center my-6">
               <img src="asset/otp.png" alt="" className="img-fluid" />
             </div>
-            <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
+            <h6 className="text-[18px] font-bold font-inter ct-black4 mb-1">
               OTP Verification
             </h6>
-            <p className="text-lg font-medium ct-grey2">
+            <p className="text-md font-medium ct-grey2">
               Enter email and phone number to send one time Password
             </p>
             <FloatingInput
               name={name}
               phone={phone}
+              email={email}
               setName={setName}
               setPhone={setPhone}
+              setEmail={setEmail}
               errors={errors}
             />
           </div>

@@ -4,6 +4,7 @@ import FloatingInput from "../sections/FloatingInput";
 import Button3 from "../components/Button3";
 import OtpInput from "../sections/OtpInput";
 import { Button } from "@/components/ui/button";
+import logonew from "/asset/newlatestlogo.png";
 
 function Login() {
   const navigate = useNavigate();
@@ -30,33 +31,31 @@ function Login() {
 
   const handleContinue = () => {
     if (step === 1) {
-      // 🚧 Bypassing validation for Step 1 temporarily
       setStep(2);
     } else if (step === 2 && validateStep2()) {
       setStep(3);
     }
   };
+
   const handleBack = () => {
     if (step === 1) {
-      navigate("/"); // go home
+      navigate("/");
     } else {
       setStep((prev) => prev - 1);
     }
   };
 
   const handleWhatsappToggle = () => {
-    if (isWhatsappLogin) {
-      setIsWhatsappLogin(false);
-    } else {
-      setIsWhatsappLogin(true);
-    }
+    setIsWhatsappLogin(!isWhatsappLogin);
   };
 
   return (
-    <div className="h-screen overflow-hidden">
+    // Remove overflow-hidden and use min-height instead of fixed height
+    <div className="min-h-[100dvh] bg-white">
       {step === 1 && (
-        <div>
-          <div className="bgt-blue px-3 h-[300px] flex justify-center items-center relative">
+        <div className="min-h-[90%] flex flex-col">
+          {/* Header section with flexible height */}
+          <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[350px] flex justify-center items-center relative flex-shrink-0">
             <button
               className="p-4 mb-7 backBtn absolute top-0 left-0 z-2"
               onClick={handleBack}
@@ -97,9 +96,9 @@ function Login() {
             </button>
             <div>
               <img
-                src="asset/logo-login.svg"
+                src={logonew}
                 alt="Logo"
-                className="img-fluid"
+                className="img-fluid max-w-[200px] size-60 "
               />
             </div>
             <div className="absolute bottom-0 right-2">
@@ -107,117 +106,131 @@ function Login() {
             </div>
           </div>
 
-          {/* White content area with rounded top corners */}
-          <div className="bg-white rounded-t-[24px] -mt-6 pt-11 relative z-10 h-[calc(100vh-240px)]">
-            <div className="px-3">
-              <h6 className="text-[22px] font-bold font-inter mx-auto text-center ct-black4">
-                Welcome Back! <br /> Glad to see you again
-              </h6>
+          {/* Content area with flexible height and proper overflow */}
+          <div className="bg-white rounded-t-[24px] -mt-6 pt-2 sm:pt-11 relative z-10 flex-1 min-h-0">
+            <div className="px-3 pb-8 h-full overflow-y-auto">
+              <div className="max-w-md mx-auto">
+                <h6 className="text-[20px] sm:text-[22px] font-bold font-inter text-center ct-black4 mb-6">
+                  Welcome Back! <br /> Glad to see you again
+                </h6>
 
-              {!isWhatsappLogin ? (
-                <div className="space-y-4 mt-10">
-                  <div
-                    className={`relative ${
-                      errors?.name ? "border-red-500" : "border-gray-300"
-                    } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
-                  >
-                    <input
-                      type="text"
-                      value={usernameEmail}
-                      onChange={(e) => setUsernameEmail(e.target.value)}
-                      className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
-                      placeholder="Enter your password"
-                    />
-                    <label
-                      className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200
-                      ${
-                        errors?.name
-                          ? "text-red-500"
-                          : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-                      }`}
+                {!isWhatsappLogin ? (
+                  <div className="space-y-4 mb-14">
+                    <div
+                      className={`relative ${
+                        errors?.name ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
                     >
-                      User Name/Email ID
-                    </label>
-                  </div>
-                  <div
-                    className={`relative ${
-                      errors?.name ? "border-red-500" : "border-gray-300"
-                    } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
-                  >
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
-                      placeholder="John Williams"
-                    />
-                    <label
-                      className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200
-                      ${
-                        errors?.name
-                          ? "text-red-500"
-                          : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-                      }`}
+                      <input
+                        type="text"
+                        value={usernameEmail}
+                        onChange={(e) => setUsernameEmail(e.target.value)}
+                        className="peer w-full p-4 rounded-2xl font-semibold text-base sm:text-lg h-[48px] sm:h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
+                        placeholder="Enter your username"
+                      />
+                      <label
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200 text-sm
+                        ${
+                          errors?.name
+                            ? "text-red-500"
+                            : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+                        }`}
+                      >
+                        User Name/Email ID
+                      </label>
+                    </div>
+                    <div
+                      className={`relative ${
+                        errors?.name ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
                     >
-                      Password
-                    </label>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="peer w-full p-4 rounded-2xl font-semibold text-base sm:text-lg h-[48px] sm:h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
+                        placeholder="Enter your password"
+                      />
+                      <label
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200 text-sm
+                        ${
+                          errors?.name
+                            ? "text-red-500"
+                            : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+                        }`}
+                      >
+                        Password
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4 mt-10">
-                  <div
-                    className={`relative ${
-                      errors?.name ? "border-red-500" : "border-gray-300"
-                    } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
-                  >
-                    <input
-                      type="text"
-                      value={usernameEmail}
-                      onChange={(e) => setUsernameEmail(e.target.value)}
-                      className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
-                      placeholder="Enter your password"
-                    />
-                    <label
-                      className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200
-                      ${
-                        errors?.name
-                          ? "text-red-500"
-                          : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-                      }`}
-                    >
-                      Mobile Whatsapp
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-8 flex flex-col gap-2">
-                {isWhatsappLogin ? (
-                  <Button
-                    onClick={handleContinue}
-                    className={"bg-[#0C42A8] py-6 hover:bg-blue-500"}
-                  >
-                    Continue
-                  </Button>
                 ) : (
-                  <Button className={"bg-[#0C42A8] py-6 hover:bg-blue-500"}>
-                    Login
-                  </Button>
+                  <div className="space-y-4 mb-26">
+                    <div
+                      className={`relative ${
+                        errors?.name ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
+                    >
+                      <input
+                        type="text"
+                        value={usernameEmail}
+                        onChange={(e) => setUsernameEmail(e.target.value)}
+                        className="peer w-full p-4 rounded-2xl font-semibold text-base sm:text-lg h-[48px] sm:h-[72px] ct-grey4 placeholder-transparent focus:outline-none"
+                        placeholder="Enter your mobile number"
+                      />
+                      <label
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200 text-sm
+                        ${
+                          errors?.name
+                            ? "text-red-500"
+                            : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+                        }`}
+                      >
+                        Mobile Whatsapp
+                      </label>
+                    </div>
+                  </div>
                 )}
-                {/* Divider with "or" */}
-                <div className="flex items-center my-4">
-                  <div className="flex-grow h-px bg-gray-300" />
-                  <span className="mx-5 text-gray-400 font-semibold">OR</span>
-                  <div className="flex-grow h-px bg-gray-300" />
+
+                <div className="flex flex-col gap-4">
+                  {isWhatsappLogin ? (
+                    <Button
+                      onClick={handleContinue}
+                      className={
+                        "bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg"
+                      }
+                    >
+                      Continue
+                    </Button>
+                  ) : (
+                    <Button
+                      className={
+                        "bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg"
+                      }
+                    >
+                      Login
+                    </Button>
+                  )}
+
+                  {/* Divider with "or" */}
+                  <div className="flex items-center ">
+                    <div className="flex-grow h-px bg-gray-300" />
+                    <span className="mx-4 text-gray-400 font-semibold text-sm">
+                      OR
+                    </span>
+                    <div className="flex-grow h-px bg-gray-300" />
+                  </div>
+
+                  <Button
+                    onClick={handleWhatsappToggle}
+                    className={
+                      "bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg"
+                    }
+                  >
+                    {isWhatsappLogin
+                      ? "Login with username/email Id"
+                      : "Login with Whatsapp"}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleWhatsappToggle}
-                  className={"bg-[#0C42A8] py-6 hover:bg-blue-500"}
-                >
-                  {isWhatsappLogin
-                    ? "Login with username/emailId"
-                    : "Login with Whatsapp"}
-                </Button>
               </div>
             </div>
           </div>
@@ -225,9 +238,9 @@ function Login() {
       )}
 
       {step === 2 && (
-        <div className="bg-white rounded-t-[24px] h-screen overflow-hidden">
-          <div className="px-3">
-            <button className="py-4 mb-7 backBtn" onClick={handleBack}>
+        <div className="min-h-screen bg-white">
+          <div className="px-3 py-4">
+            <button className="mb-7 backBtn" onClick={handleBack}>
               <svg
                 width="23"
                 height="18"
@@ -262,35 +275,40 @@ function Login() {
                 />
               </svg>
             </button>
-            <div className="step2">
-              <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
+
+            <div className="max-w-md mx-auto">
+              <h6 className="text-[20px] sm:text-[22px] font-bold font-inter ct-black4 mb-2">
                 Verification Code
               </h6>
-              <p className="text-lg font-medium ct-grey2 w-4/5">
+              <p className="text-base sm:text-lg font-medium ct-grey2 mb-8">
                 We have sent the verification code to your number
               </p>
-              <OtpInput
-                otpValues={otpValues}
-                setOtpValues={setOtpValues}
-                hasError={errors.otp}
-              />
-              <div className="pt-3">
-                <Button
-                  onClick={handleContinue}
-                  className={"bg-[#0C42A8] py-6 w-full hover:bg-blue-500"}
-                >
-                  Confirm
-                </Button>
+
+              <div className="mb-8">
+                <OtpInput
+                  otpValues={otpValues}
+                  setOtpValues={setOtpValues}
+                  hasError={errors.otp}
+                />
               </div>
+
+              <Button
+                onClick={handleContinue}
+                className={
+                  "bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg"
+                }
+              >
+                Confirm
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div className="bg-white rounded-t-[24px] h-screen overflow-hidden">
-          <div className="px-3">
-            <button className="py-4 mb-7 backBtn" onClick={handleBack}>
+        <div className="min-h-screen bg-white">
+          <div className="px-3 py-4">
+            <button className="mb-7 backBtn" onClick={handleBack}>
               <svg
                 width="23"
                 height="18"
@@ -325,24 +343,27 @@ function Login() {
                 />
               </svg>
             </button>
-            <div className="step3 min-h-[90vh] flex items-center justify-center text-center">
-              <div className="flex flex-col justify-center items-center">
+
+            <div className="min-h-[80vh] flex items-center justify-center">
+              <div className="max-w-md mx-auto text-center px-4">
                 <img
                   src="asset/success.png"
                   alt="success"
-                  className="img-fluid animate-scale-in"
+                  className="img-fluid animate-scale-in mx-auto max-w-[150px] sm:max-w-[200px]"
                 />
-                <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2 mt-10">
+                <h6 className="text-[20px] sm:text-[22px] font-bold font-inter ct-black4 mb-2 mt-8">
                   Success!
                 </h6>
-                <p className="text-lg font-medium ct-grey2 mb-10">
+                <p className="text-base sm:text-lg font-medium ct-grey2 mb-8">
                   Congratulations! You have been successfully authenticated
                 </p>
                 <Button
                   onClick={() => navigate("/")}
-                  className={"bg-[#0C42A8] py-6 w-full hover:bg-blue-500"}
+                  className={
+                    "bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg"
+                  }
                 >
-                  Confirm
+                  Continue
                 </Button>
               </div>
             </div>

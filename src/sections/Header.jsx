@@ -3,6 +3,7 @@ import Button1 from "../components/Button1";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import WalletBalance from "../components/WalletBalance";
+import logonew from "/asset/newlatestlogo.png";
 import { useAuth } from "../utils/AuthContext";
 import { GlobalContext } from "../utils/globalData";
 
@@ -41,9 +42,9 @@ function Header() {
             </button>
             <button>
               <img
-                src="/NY-Pay.png"
+                src={logonew}
                 alt="logo"
-                className="img-fluid mt-2"
+                className="img-fluid mt-2 size-20"
                 loading="lazy"
               />
             </button>
