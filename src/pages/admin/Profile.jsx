@@ -11,6 +11,7 @@ import { useRef, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import Logo from "/asset/logo.png";
+import PhoneInput from "react-phone-input-2";
 
 export const ProfileEditDialog = ({ isOpen, onClose }) => {
   const fileInputRef = useRef(null);
@@ -21,35 +22,6 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
     contactNo: "",
     email: "",
   });
-
-  // ✅ Fetch profile data on mount
-  //   useEffect(() => {
-  //     const fetchProfile = async () => {
-  //       try {
-  //         const token = localStorage.getItem("token");
-  //         const response = await fetch(`${import.meta.env.VITE_URL}/me`, {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         });
-  //         const data = await response.json();
-  //         setFormData({
-  //           fullName: data.name || "",
-  //           contactNo: data.mobile || "",
-  //           email: data.email || "",
-  //         });
-  //         if (data.profilePic) {
-  //           const baseUrl = import.meta.env.VITE_URL.split("/api")[0];
-  //           setSelectedImage(`${baseUrl}${data.profilePic}`);
-  //         }
-  //       } catch (err) {
-  //         console.error("Failed to fetch profile", err);
-  //         toast.error("Unable to load profile");
-  //       }
-  //     };
-
-  //     if (isOpen) fetchProfile();
-  //   }, [isOpen]);
 
   const handleImageClick = () => {
     fileInputRef.current?.click();
@@ -66,39 +38,6 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
       reader.readAsDataURL(file);
     }
   };
-
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
-
-  //     const token = localStorage.getItem("token");
-  //     const updateForm = new FormData();
-  //     updateForm.append("name", formData.fullName);
-  //     updateForm.append("email", formData.email);
-  //     updateForm.append("mobile", formData.contactNo);
-  //     if (imageFile) {
-  //       updateForm.append("profilePic", imageFile);
-  //     }
-
-  //     try {
-  //       const response = await fetch(
-  //         `${import.meta.env.VITE_URL}/update-profile`,
-  //         {
-  //           method: "PUT",
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //           body: updateForm,
-  //         }
-  //       );
-
-  //       if (!response.ok) throw new Error("Update failed");
-  //       toast.success("Profile updated successfully");
-  //       onClose();
-  //     } catch (err) {
-  //       console.error("Update Error", err);
-  //       toast.error("Failed to update profile");
-  //     }
-  //   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -145,10 +84,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <form
-            //   onSubmit={handleSubmit}
-            className="space-y-6"
-          >
+          <form className="space-y-6">
             <div className="space-y-4">
               <div>
                 <Label className="text-gray-800 font-medium">Full Name</Label>
@@ -159,7 +95,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                     setFormData({ ...formData, fullName: e.target.value })
                   }
                   placeholder="Your Full Name"
-                  className="mt-2 bg-gray-100 border border-black focus:bg-white"
+                  className="mt-2 bg-gray-100 h-[48px] border rounded-lg border-black focus:bg-white"
                 />
               </div>
 
@@ -167,15 +103,46 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                 <Label className="text-gray-800 font-medium">
                   Contact Number
                 </Label>
-                <Input
-                  name="contactNo"
-                  value={formData.contactNo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contactNo: e.target.value })
-                  }
-                  placeholder="Your Contact Number"
-                  className="mt-2 bg-gray-100 border-black border focus:bg-white"
-                />
+                <div className="mt-2 focus-within:shadow focus-within:shadow-gray-300 rounded-lg">
+                  <PhoneInput
+                    country="in"
+                    value={formData.contactNo}
+                    onChange={(value) =>
+                      setFormData({ ...formData, contactNo: value })
+                    }
+                    inputStyle={{
+                      width: "100%",
+                      height: "48px",
+                      borderRadius: "12px",
+                      backgroundColor: "white",
+                      border: "1px solid black",
+                      paddingLeft: "48px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      boxShadow: "none",
+                    }}
+                    buttonStyle={{
+                      border: "none",
+                      backgroundColor: "transparent",
+                      borderRadius: "12px 0 0 12px",
+                      boxShadow: "none",
+                      padding: "4px",
+                    }}
+                    dropdownStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "8px",
+                    }}
+                    containerStyle={{
+                      width: "100%",
+                    }}
+                    inputProps={{
+                      name: "phone",
+                      required: true,
+                      placeholder: "Mobile WhatsApp Number",
+                    }}
+                  />
+                </div>
               </div>
 
               <div>
@@ -190,7 +157,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="Your Email Address"
-                  className="mt-2 bg-gray-100 border-black border focus:bg-white"
+                  className="mt-2 bg-gray-100 border-black border h-[48px] focus:bg-white"
                 />
               </div>
             </div>

@@ -1,3 +1,5 @@
+import PhoneInput from "react-phone-input-2";
+
 export default function FloatingInput({
   name,
   phone,
@@ -41,25 +43,55 @@ export default function FloatingInput({
         <div
           className={`relative ${
             errors?.phone ? "border-red-500" : "border-gray-300"
-          } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
+          } border rounded-2xl focus-within:border-[var(--theme-orange2)] `}
+          style={{ position: "relative" }}
         >
-          <input
-            type="tel"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
-            placeholder="+91 XXXXXXXXXX"
-          />
           <label
-            className={`absolute -top-3 left-4 px-1 text-sm font-medium bg-white transition-colors duration-200
-          ${
-            errors?.phone
-              ? "text-red-500"
-              : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-          }`}
+            className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 ${
+              errors?.phone
+                ? "text-red-500"
+                : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+            }`}
           >
-            Phone Number
+            Mobile WhatsApp
           </label>
+          <PhoneInput
+            country="in"
+            value={phone}
+            onChange={setPhone}
+            inputStyle={{
+              width: "100%",
+              height: "48px",
+              borderRadius: "16px",
+              backgroundColor: "white",
+              border: "none",
+              paddingLeft: "48px",
+              fontSize: "16px",
+              fontWeight: "600",
+              boxShadow: "none",
+            }}
+            buttonStyle={{
+              border: "none",
+              backgroundColor: "transparent",
+              borderRadius: "16px 0 0 16px",
+              boxShadow: "none",
+              padding: "4px",
+            }}
+            dropdownStyle={{
+              backgroundColor: "white",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+            }}
+            containerStyle={{
+              width: "100%",
+              borderRadius: "16px",
+            }}
+            inputProps={{
+              name: "phone",
+              required: true,
+              placeholder: "Mobile WhatsApp Number",
+            }}
+          />
         </div>
       )}
       {/* Email Input */}

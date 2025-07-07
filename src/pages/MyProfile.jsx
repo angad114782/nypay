@@ -2,12 +2,15 @@ import React, { useRef, useState } from "react";
 import { ArrowLeft, Camera, User } from "lucide-react";
 import Footer from "@/sections/Footer";
 import { useNavigate } from "react-router-dom";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 const MyProfile = () => {
   const navigate = useNavigate();
+  const [phone, setPhone] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
-  const userName = "Your User Name"; // Replace with actual user name if available
+  const userName = "Your User Name";
 
   const handleImageClick = () => {
     fileInputRef.current.click();
@@ -23,17 +26,19 @@ const MyProfile = () => {
       reader.readAsDataURL(file);
     }
   };
+
   const handleCancel = (e) => {
     e.preventDefault();
     navigate(-1);
   };
+
   return (
-    <div className="flex flex-col items-center relative justify-start min-h-[100dvh] px-5  bg-[#0C49BE]">
+    <div className="flex flex-col items-center relative justify-start min-h-[100dvh] px-5 bg-[#0C49BE]">
       <ArrowLeft
         onClick={() => navigate(-1)}
-        className="absolute top-5 left-4 size-8 text-white "
+        className="absolute top-5 left-4 size-8 text-white"
       />
-      <div className=" mt-12 relative ">
+      <div className="mt-12 relative">
         <div className="h-28 w-28 border-white border-4 rounded-full bg-[#0C49BE] flex items-center justify-center overflow-hidden">
           {selectedImage ? (
             <img
@@ -42,7 +47,7 @@ const MyProfile = () => {
               alt="Profile"
             />
           ) : (
-            <User className="h-24 w-24  text-white " />
+            <User className="h-24 w-24 text-white" />
           )}
         </div>
         <button
@@ -60,50 +65,76 @@ const MyProfile = () => {
           onChange={handleImageChange}
         />
       </div>
+
       <div className="mt-2 text-white text-lg font-semibold">{userName}</div>
+
       <div className="flex-1 flex flex-col justify-end items-center w-full">
-        <div className="bgt-blue3 text-white absolute bottom-10 font-medium text-[15px] mx-2  rounded-2xl rounded-tl-4xl rounded-tr-4xl shadow-md w-full  overflow-hidden  mb-4 max-w-3xl">
+        <div className="bgt-blue3 text-white absolute bottom-10 font-medium text-[15px] mx-2 rounded-2xl rounded-tl-4xl rounded-tr-4xl shadow-md w-full overflow-hidden mb-4 max-w-3xl">
           <div className="flex items-center justify-center gap-2 mb-1 bgt-blue2 px-3 py-3 relative t-shadow3">
             <h3 className="text-center text-white font-medium">
               Update Profile Information And Password
             </h3>
           </div>
 
-          {/* Form */}
-          <form
-            className="flex flex-col gap-2 px-3 text-[15px] font-medium space-y-1 mb-5 mt-3"
-            // onSubmit={handleSubmit}
-          >
+          <form className="flex flex-col gap-2 px-3 text-[15px] font-medium space-y-1 mb-5 mt-3">
             <div>
               <label className="text-white text-sm font-normal">Username</label>
               <input
-                type="number"
-                // value={inputAmount}
-                // onChange={(e) => setInputAmount(e.target.value)}
+                type="text"
                 placeholder="Enter username"
-                className="font-inter font-normal h-[40px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+                className="font-inter font-normal h-[40px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-white text-sm outline-none"
               />
             </div>
+
             <div>
               <label className="text-white text-sm font-normal">
                 Mobile Number
               </label>
-              <input
-                type="number"
-                // value={inputAmount}
-                // onChange={(e) => setInputAmount(e.target.value)}
-                placeholder="Enter mobile number"
-                className="font-inter font-normal h-[40px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
-              />
+              <div className="w-full">
+                <PhoneInput
+                  country="in"
+                  value={phone}
+                  onChange={setPhone}
+                  containerStyle={{ width: "100%" }}
+                  inputStyle={{
+                    width: "100%",
+                    height: "40px",
+                    borderRadius: "10px",
+                    backgroundColor: "#F3F4F6",
+                    border: "none",
+                    paddingLeft: "48px",
+                    fontSize: "14px",
+                    color: "black",
+                    fontWeight: "500",
+                  }}
+                  buttonStyle={{
+                    border: "none",
+                    backgroundColor: "transparent",
+                    borderRadius: "10px 0 0 10px",
+                    boxShadow: "none",
+                    padding: "4px",
+                  }}
+                  dropdownStyle={{
+                    backgroundColor: "white",
+                    border: "1px solid #d1d5db",
+                    borderRadius: "8px",
+                  }}
+                  inputProps={{
+                    name: "phone",
+                    required: true,
+
+                    placeholder: "Enter WhatsApp Number",
+                  }}
+                />
+              </div>
             </div>
+
             <div>
               <label className="text-white text-sm font-normal">Email ID</label>
               <input
-                type="number"
-                // value={inputAmount}
-                // onChange={(e) => setInputAmount(e.target.value)}
+                type="email"
                 placeholder="Enter email ID"
-                className="font-inter font-normal h-[40px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+                className="font-inter font-normal h-[40px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-white text-sm outline-none"
               />
             </div>
 
@@ -121,7 +152,6 @@ const MyProfile = () => {
             </button>
           </form>
         </div>
-
         <Footer />
       </div>
     </div>
