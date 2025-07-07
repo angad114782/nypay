@@ -64,12 +64,12 @@ const MyIdCard = ({
             {/* Top section with credentials and action buttons */}
             <div className="flex items-start justify-between w-full">
               {/* Credentials */}
-              <div className="flex flex-col gap-3 pt-1">
-                <div className="flex items-center gap-6">
+              <div className="flex flex-col gap-1 pt-1">
+                <div className="flex items-center gap-3">
                   <span className="text-base">{username}</span>
                   <CopyButton textToCopy={username} title="Copy User Name" />
                 </div>
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-3">
                   <span className="text-base">{password}</span>
                   <CopyButton textToCopy={password} title="Copy Password" />
                 </div>
@@ -84,7 +84,7 @@ const MyIdCard = ({
                   className="bg-white p-0.5 rounded-full"
                   onClick={onDepositClick}
                 >
-                  <span className="w-6.5 h-6.5 flex items-center justify-center rounded-full bg-green-500 text-xl font-bold text-white">
+                  <span className="w-6.5 h-6.5 flex items-center justify-center rounded-full bg-green-500 text-xl font-medium text-white">
                     D
                   </span>
                 </button>
@@ -92,7 +92,7 @@ const MyIdCard = ({
                   onClick={onWithdrawClick}
                   className="bg-white p-0.5 rounded-full"
                 >
-                  <span className="w-6.5 h-6.5 flex items-center justify-center rounded-full bg-red-600 text-xl font-bold text-white">
+                  <span className="w-6.5 h-6.5 flex items-center justify-center rounded-full bg-red-600 text-xl font-medium text-white">
                     W
                   </span>
                 </button>

@@ -93,7 +93,11 @@ function Register() {
         </button>
       )}
 
-      <div className="flex-1">
+      <div
+        className={
+          step === 3 ? "flex-1 flex items-center justify-center" : "flex-1"
+        }
+      >
         {step === 1 && (
           <div className="step1">
             <div className="flex justify-center items-center my-6">
@@ -102,7 +106,7 @@ function Register() {
             <h6 className="text-[18px] font-bold font-inter ct-black4 mb-1">
               OTP Verification
             </h6>
-            <p className="text-md font-medium ct-grey2">
+            <p className="text-sm font-light ct-grey2">
               Enter email and phone number to send one time Password
             </p>
             <FloatingInput
@@ -134,7 +138,7 @@ function Register() {
         )}
 
         {step === 3 && (
-          <div className="step3 min-h-[90vh] flex items-center justify-center text-center">
+          <div className="step3 text-center">
             <div className="flex flex-col justify-center items-center">
               <img
                 src="asset/success.png"

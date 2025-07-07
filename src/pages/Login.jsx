@@ -4,7 +4,7 @@ import FloatingInput from "../sections/FloatingInput";
 import Button3 from "../components/Button3";
 import OtpInput from "../sections/OtpInput";
 import { Button } from "@/components/ui/button";
-import logonew from "/asset/newlatestlogo.png";
+import logonew from "/asset/Logo Exchages.png";
 
 function Login() {
   const navigate = useNavigate();
@@ -101,9 +101,9 @@ function Login() {
                 className="img-fluid max-w-[200px] size-60 "
               />
             </div>
-            <div className="absolute bottom-0 right-2">
+            {/* <div className="absolute bottom-0 right-2">
               <img src="asset/login-ellipse.svg" alt="" className="img-fluid" />
-            </div>
+            </div> */}
           </div>
 
           {/* Content area with flexible height and proper overflow */}
@@ -238,7 +238,7 @@ function Login() {
       )}
 
       {step === 2 && (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-[100dvh] bg-white">
           <div className="px-3 py-4">
             <button className="mb-7 backBtn" onClick={handleBack}>
               <svg
@@ -306,7 +306,7 @@ function Login() {
       )}
 
       {step === 3 && (
-        <div className="min-h-screen bg-white">
+        <div className="min-h-[100dvh] bg-white">
           <div className="px-3 py-4">
             <button className="mb-7 backBtn" onClick={handleBack}>
               <svg

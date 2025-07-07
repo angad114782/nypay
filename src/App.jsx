@@ -11,6 +11,7 @@ import Dashboard from "./pages/admin/AdminDashboard";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import MyProfile from "./pages/MyProfile";
+import ClientDetails from "./pages/super admin/ClientDetails";
 
 function App() {
   return (
@@ -25,6 +26,16 @@ function App() {
         <Route path="/id" element={<Id />} />
         <Route path="/banking" element={<Banking />} />
         <Route path="/passbook" element={<Passbook />} />
+        {/* <Route
+          path="/client-details"
+          element={
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <div id="client-details">
+                <ClientDetails />
+              </div>
+            </ThemeProvider>
+          }
+        /> */}
         <Route
           path="/admin"
           element={

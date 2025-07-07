@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaCopy } from "react-icons/fa";
 import { IoCopy, IoCopyOutline } from "react-icons/io5";
 import Tesseract from "tesseract.js";
-
+import { Progress } from "./ui/progress";
 const upiAccounts = [
   {
     upiId: "demoupil1232@ybl",
@@ -24,6 +24,7 @@ const paymentModes = [
 ];
 
 // Enhanced extraction patterns for different payment apps and banks
+// Enhanced extraction patterns that handle spaces and periods
 const extractTransactionDetails = (text) => {
   console.log("Extracted OCR Text:", text);
 
@@ -65,18 +66,25 @@ const extractTransactionDetails = (text) => {
     }
   }
 
-  // Enhanced UTR/Transaction ID patterns
+  // IMPROVED UTR/Reference patterns that handle spaces, periods, and various formats
   const utrPatterns = [
-    // Standard UPI UTR format (12 digits)
-    /(?:UTR|UPI.*?Ref|Transaction.*?ID|Ref.*?No|Reference.*?No)[:\s]*([0-9]{12})/i,
-    // Alternative UTR patterns
+    // Handle "UPI Ref. No: 5183527 90253" format with spaces
+    /(?:UPI\s*Ref\.?\s*No\.?)[:\s]*([0-9]{7,12}\s*[0-9]{5,12})/i,
+
+    // Handle standard UTR patterns
+    /(?:UTR|UPI.*?Ref|UPI Reference|UPI Ref No|UPI Ref|Ref No|Reference No|Ref#|Reference#|Ref\.|Reference\.)[:\s]*([A-Z0-9\s]{8,25})/i,
+
+    // Handle Transaction ID patterns
+    /(?:Transaction ID|Txn ID|TxnID|Order ID|OrderID|Reference ID|Ref ID|RefID|Payment ID|PaymentID|Trans ID|TransID|Transaction Reference Number|Reference Number|Ref Number|Ref No|Reference No)[:\s]*([A-Z0-9\s]{8,25})/i,
+
+    // Handle 12-digit numbers with spaces (like "5183527 90253")
+    /\b([0-9]{7,12}\s+[0-9]{5,12})\b/g,
+
+    // Handle regular 12-digit numbers
     /\b([0-9]{12})\b/g,
-    // Transaction ID patterns
-    /(?:Transaction.*?ID|Trans.*?ID|TXN.*?ID)[:\s]*([A-Z0-9]{8,20})/i,
-    // Reference number patterns
-    /(?:Ref.*?No|Reference)[:\s]*([A-Z0-9]{8,20})/i,
-    // App-specific patterns
-    /(?:Payment.*?ID|Order.*?ID)[:\s]*([A-Z0-9]{8,25})/i,
+
+    // Handle long alphanumeric strings
+    /\b([A-Z0-9]{10,25})\b/g,
   ];
 
   // Extract UTR/Transaction details
@@ -84,33 +92,66 @@ const extractTransactionDetails = (text) => {
     const matches = cleanText.match(pattern);
     if (matches) {
       if (pattern.global) {
-        // For global patterns, find the most likely UTR (12 digits)
+        // For global patterns, find the most likely UTR
         const candidates = [...cleanText.matchAll(pattern)];
         for (const match of candidates) {
-          if (match[0].length === 12 && /^\d{12}$/.test(match[0])) {
-            result.utr = match[0];
+          const extractedValue = match[0];
+
+          // Check for 12-digit number with spaces (like "5183527 90253")
+          if (/^[0-9]{7,12}\s+[0-9]{5,12}$/.test(extractedValue)) {
+            result.utr = extractedValue;
             break;
+          }
+          // Check for regular 12-digit number
+          else if (
+            extractedValue.length === 12 &&
+            /^\d{12}$/.test(extractedValue)
+          ) {
+            result.utr = extractedValue;
+            break;
+          }
+          // Check for long alphanumeric (likely transaction ID)
+          else if (extractedValue.length >= 10 && !result.transactionId) {
+            result.transactionId = extractedValue;
           }
         }
       } else {
         const extractedValue = matches[1] || matches[0];
-        if (extractedValue.length >= 8) {
-          if (!result.utr && /UTR|UPI.*?Ref/i.test(matches[0])) {
-            result.utr = extractedValue;
-          } else if (
-            !result.transactionId &&
-            /Transaction.*?ID|Trans.*?ID|TXN.*?ID/i.test(matches[0])
+
+        // Clean up the extracted value (remove extra spaces)
+        const cleanedValue = extractedValue.replace(/\s+/g, " ").trim();
+
+        if (cleanedValue.length >= 8) {
+          // Check what type of pattern matched
+          const matchedPattern = matches[0];
+
+          if (
+            /UPI\s*Ref/i.test(matchedPattern) ||
+            /UTR/i.test(matchedPattern)
           ) {
-            result.transactionId = extractedValue;
-          } else if (!result.referenceNumber) {
-            result.referenceNumber = extractedValue;
+            result.utr = cleanedValue;
+          } else if (
+            /Transaction.*?ID|Trans.*?ID|TXN.*?ID|Order.*?ID|Payment.*?ID/i.test(
+              matchedPattern
+            )
+          ) {
+            result.transactionId = cleanedValue;
+          } else if (/Reference|Ref\s*No|Ref\s*#/i.test(matchedPattern)) {
+            result.referenceNumber = cleanedValue;
+          } else if (
+            !result.utr &&
+            !result.transactionId &&
+            !result.referenceNumber
+          ) {
+            // If no specific type detected, use as reference number
+            result.referenceNumber = cleanedValue;
           }
         }
       }
     }
   }
 
-  // Amount extraction patterns
+  // Amount extraction patterns (unchanged)
   const amountPatterns = [
     /(?:Amount|Paid|Rs\.?|₹)\s*([0-9,]+\.?[0-9]*)/i,
     /₹\s*([0-9,]+\.?[0-9]*)/g,
@@ -125,7 +166,7 @@ const extractTransactionDetails = (text) => {
     }
   }
 
-  // Date/Time extraction
+  // Date/Time extraction (unchanged)
   const datePatterns = [
     /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/g,
     /(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})/i,
@@ -140,7 +181,7 @@ const extractTransactionDetails = (text) => {
     }
   }
 
-  // Name extraction (basic patterns)
+  // Name extraction (unchanged)
   const namePatterns = [
     /(?:To|Paid to|Recipient)[:\s]*([A-Za-z\s]{3,30})/i,
     /(?:From|Payer)[:\s]*([A-Za-z\s]{3,30})/i,
@@ -167,6 +208,7 @@ const extractTransactionDetails = (text) => {
     }
   }
 
+  console.log("Final extraction result:", result);
   return result;
 };
 
@@ -179,6 +221,8 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
   const [depositMethod, setDepositMethod] = useState("upi");
   const [resetKey, setResetKey] = useState(0);
   const [copiedField, setCopiedField] = useState(null);
+  const [ocrProgress, setOcrProgress] = useState(0);
+  const [editableUtr, setEditableUtr] = useState("");
 
   const handleCopy = (value, field) => {
     navigator.clipboard.writeText(value);
@@ -202,7 +246,7 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
           const result = await Tesseract.recognize(imageData, "eng", {
             logger: (m) => {
               if (m.status === "recognizing text") {
-                console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+                setOcrProgress(m.progress);
               }
             },
             tessedit_char_whitelist:
@@ -236,7 +280,16 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
   };
 
   const selectedUpi = upiAccounts[0];
-
+  useEffect(() => {
+    if (extractedData) {
+      setEditableUtr(
+        extractedData.utr ||
+          extractedData.transactionId ||
+          extractedData.referenceNumber ||
+          ""
+      );
+    }
+  }, [extractedData]);
   return (
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full mb-4 relative overflow-hidden max-w-3xl">
       {/* Header */}
@@ -458,8 +511,8 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
 
           {/* OCR Loading Status */}
           {ocrLoading && (
-            <div className="text-xs text-yellow-300 mt-2">
-              Extracting text from screenshot...
+            <div className="mt-2">
+              <Progress value={Math.round(ocrProgress * 100)} className="h-1" />
             </div>
           )}
 
@@ -468,11 +521,19 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
             (extractedData.utr ||
               extractedData.transactionId ||
               extractedData.referenceNumber) && (
-              <div className="text-xs text-blue-300 mt-2">
-                <strong>Detected UTR/Reference:</strong>{" "}
-                {extractedData.utr ||
-                  extractedData.transactionId ||
-                  extractedData.referenceNumber}
+              <div className="mt-2">
+                <label className="block text-xs text-blue-200 mb-1">
+                  UTR / Transaction / Reference Number
+                </label>
+                <input
+                  type="text"
+                  value={editableUtr}
+                  onChange={(e) =>
+                    setEditableUtr(e.target.value.replace(/\s+/g, ""))
+                  }
+                  className="w-full rounded-lg px-3 py-2 text-black bg-white text-sm"
+                  placeholder="Enter or correct the number"
+                />
               </div>
             )}
         </div>

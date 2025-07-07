@@ -20,41 +20,41 @@ const BankingBankTabCard = ({ data }) => {
     <div className="flex flex-col rounded-lg shadow-md bg-[#0C42A8] gap-2 py-2  px-4 text-white mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FaLandmark className="h-6 w-6" />
+          <FaLandmark className="h-8 w-8" />
           <div>
-            <h3 className="text-[12px] font-light leading-[22px]">
+            <h3 className="text-[14px] font-light leading-[22px]">
               {data.bankName}
             </h3>
-            <p className="text-[8px] font-extralight">Default</p>
+            <p className="text-[10px] font-extralight">Default</p>
           </div>
         </div>
         <div className="flex gap-2">
           {/* Edit Button */}
-          <BiEdit />
+          <BiEdit className="h-6 w-6" />
           {/* Delete Button */}
-          <RiDeleteBin6Line className="text-[#FF0000]" />
+          <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6" />
         </div>
       </div>
       <div className="flex flex-col gap-1 py-2">
-        <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Holder Name</span>
           <span className="font-medium text-right break-all">
             {data.accountHolderName.toUpperCase()}
           </span>
         </div>
-        <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Number</span>
           <span className="font-medium text-right break-all">
             {data.accountNumber}
           </span>
         </div>
-        <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">IFSC Code</span>
           <span className="font-medium text-right break-all">
             {data.ifscCode}
           </span>
         </div>
-        <div className="flex items-center justify-between text-[10px]">
+        <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Added On</span>
           <span className="font-medium text-right break-all">
             {data.createdAt}

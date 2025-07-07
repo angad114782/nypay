@@ -20,7 +20,7 @@ export default function FloatingInput({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[40px] ct-grey4 placeholder-transparent focus:outline-none"
+            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
             placeholder="John Williams"
           />
           <label
@@ -47,7 +47,7 @@ export default function FloatingInput({
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[40px] ct-grey4 placeholder-transparent focus:outline-none"
+            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
             placeholder="+91 XXXXXXXXXX"
           />
           <label
@@ -73,11 +73,11 @@ export default function FloatingInput({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[40px] ct-grey4 placeholder-transparent focus:outline-none"
+            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
             placeholder="+91 XXXXXXXXXX"
           />
           <label
-            className={`absolute -top-3 left-4 px-1 font-medium bg-white transition-colors duration-200
+            className={`absolute -top-3 left-4 px-1 text-sm font-medium bg-white transition-colors duration-200
           ${
             errors?.phone
               ? "text-red-500"

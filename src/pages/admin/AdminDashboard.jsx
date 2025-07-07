@@ -27,7 +27,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AccountSetting from "./AccountSetting";
 import AddRemovePanel from "./AddRemovePanel";
@@ -40,6 +40,11 @@ import { ProfileEditDialog } from "./Profile";
 import RefillUnload from "./RefillUnload";
 import SliderManagement from "./SliderManagement";
 import TeamManagement from "./TeamManagement";
+import { Separator } from "@/components/ui/separator";
+import SuperAdminClientSetup from "../super admin/SuperAdminClientSetup";
+import ClientDetails from "../super admin/ClientDetails";
+import SuperAdminBannerSlider from "../super admin/SuperAdminBannerSlider";
+import { FaLandmark } from "react-icons/fa";
 
 const Dashboard = () => {
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
@@ -105,6 +110,16 @@ const Dashboard = () => {
     }
   };
   const sidebarItems = [
+    {
+      icon: Wallet,
+      label: "Super Admin Client Setup",
+      id: "super-admin-client-setup",
+    },
+    {
+      icon: FaLandmark,
+      label: "Super Admin Banner/Slider",
+      id: "super-admin-banner-slider",
+    },
     { icon: Wallet, label: "Dashboard", id: "dashboard" },
     // { icon: ArrowDownLeft, label: "Account Setting", id: "account-setting" },
     {
@@ -132,6 +147,12 @@ const Dashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case "super-admin-client-setup":
+        return <SuperAdminClientSetup />;
+      case "super-admin-banner-slider":
+        return <SuperAdminBannerSlider />;
+      case "client-details":
+        return <ClientDetails />;
       case "dashboard":
         return <DashboardTab onTabChange={handleTabChange} />;
       case "deposit-withdrawals":
@@ -191,7 +212,7 @@ const Dashboard = () => {
       <header
         className={`fixed top-0 font-display h-16 dark:bg-[#575460] bg-white border-b z-50 transition-all duration-300
         left-0 right-0
-        ${isSidebarOpen ? "md:left-64" : "md:left-20"}
+        ${isSidebarOpen ? "md:left-68" : "md:left-20"}
         md:right-0
       `}
       >
@@ -264,7 +285,7 @@ const Dashboard = () => {
       {/* Sidebar */}
       <aside
         className={`fixed font-display bg-white  border-r dark:bg-[#575460] transition-all duration-300 z-40
-          ${isSidebarOpen ? "w-64" : "w-20"}
+          ${isSidebarOpen ? "w-68" : "w-20"}
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           
           // Mobile specific styles
@@ -318,19 +339,28 @@ const Dashboard = () => {
             </span>
           </div>
         )}
-        <nav className="p-4 space-y-1 ">
-          {sidebarItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeTab === item.id ? "secondary" : "ghost"}
-              className={`w-full justify-start ${
-                isSidebarOpen ? "px-4" : "px-2"
-              }`}
-              onClick={() => handleTabChange(item.id)}
-            >
-              <item.icon className="h-10 w-10" />
-              {isSidebarOpen && <span className="ml-3">{item.label}</span>}
-            </Button>
+        <nav className="p-2 space-y-1 ">
+          {sidebarItems.map((item, idx) => (
+            <React.Fragment key={item.id}>
+              <Button
+                variant={activeTab === item.id ? "secondary" : "ghost"}
+                className={`w-full justify-start ${
+                  isSidebarOpen ? "px-2" : "px-2"
+                }`}
+                onClick={() => handleTabChange(item.id)}
+              >
+                <item.icon className="h-10 w-10" />
+                {isSidebarOpen && (
+                  <span className={`${isSidebarOpen ? "ml-3" : "ml-2"}`}>
+                    {item.label}
+                  </span>
+                )}
+              </Button>
+              {/* Add separator after Super Admin Client Setup */}
+              {item.id === "super-admin-banner-slider" && (
+                <Separator className="my-2 bg-black border-black rounded-lg border-1" />
+              )}
+            </React.Fragment>
           ))}
         </nav>
       </aside>
@@ -338,7 +368,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <main
         className={`transition-all duration-300 bg-white dark:bg-white dark:text-black font-display pt-16 ${
-          isSidebarOpen ? "md:ml-64" : "md:ml-20"
+          isSidebarOpen ? "md:ml-68" : "md:ml-20"
         }`}
       >
         <div className="p-4  md:p-6">{renderContent()}</div>

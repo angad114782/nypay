@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import MenuItem from "../components/Menuitem";
 import { useAuth } from "../utils/AuthContext";
 import { RiProfileFill } from "react-icons/ri";
-import logonew from "/asset/newlatestlogo.png";
+import logonew from "/asset/Logo Exchages.png";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
