@@ -43,7 +43,7 @@ const MyProfile = () => {
           {selectedImage ? (
             <img
               src={selectedImage}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
               alt="Profile"
             />
           ) : (
@@ -104,8 +104,8 @@ const MyProfile = () => {
                     border: "none",
                     paddingLeft: "48px",
                     fontSize: "14px",
-                    color: "black",
                     fontWeight: "500",
+                    color: "black",
                   }}
                   buttonStyle={{
                     border: "none",
@@ -116,6 +116,7 @@ const MyProfile = () => {
                   }}
                   dropdownStyle={{
                     backgroundColor: "white",
+                    color: "black",
                     border: "1px solid #d1d5db",
                     borderRadius: "8px",
                   }}

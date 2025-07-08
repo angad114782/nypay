@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import MenuItem from "../components/Menuitem";
 import { useAuth } from "../utils/AuthContext";
 import { RiProfileFill } from "react-icons/ri";
-import logonew from "/asset/Logo Exchages.png";
+import logonew from "/asset/Bookiehub Site.svg";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
@@ -95,7 +95,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             setIsOpen(false);
           }}
         />
-        <MenuItem icon={<BsHexagonFill />} label="Rules" />
+        <MenuItem
+          icon={<BsHexagonFill />}
+          onClick={() => {
+            navigate("/rules");
+            setIsOpen(false);
+          }}
+          label="Rules"
+        />
         <MenuItem
           icon={<MdNotifications />}
           label="Notification"

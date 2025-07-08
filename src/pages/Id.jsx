@@ -26,7 +26,7 @@ function Id() {
       <Header />
 
       {/* Tabs */}
-      <div className="flex justify-center space-x-1 h-[51px] font-medium text-[15px] text-white border-b">
+      <div className="flex justify-center space-x-1 mt-2.5 h-[51px] font-medium text-[15px] text-white border-b">
         <button
           className="flex-1 transition bgt-blue2 uppercase rounded-e-[5px] relative py-3"
           onClick={() => setTab("myId")}

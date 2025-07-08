@@ -41,7 +41,7 @@ function Home() {
     <div>
       <Header />
       {!isLoggedIn && (
-        <div className="py-1 px-4">
+        <div className="pb-1 pt-4 px-4">
           <WalletBalance title={"Wallet Balance"} bal={walletBalance} />
         </div>
       )}

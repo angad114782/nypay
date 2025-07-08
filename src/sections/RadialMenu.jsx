@@ -48,13 +48,17 @@ function RadialMenu({ onClose }) {
         <defs>
           <mask id="donut-mask">
             <rect width="100%" height="100%" fill="white" />
-            <circle cx="150" cy="150" r="40" fill="black" />
+            <circle cx="150" cy="150" r="60" fill="black" />
           </mask>
         </defs>
 
         {/* Wedges */}
         {wedges.map((w, i) => (
-          <g key={i} onClick={() => handleClick(w.label)} style={{ cursor: "pointer" }}>
+          <g
+            key={i}
+            onClick={() => handleClick(w.label)}
+            style={{ cursor: "pointer" }}
+          >
             <path d={w.d} fill={w.fill} mask="url(#donut-mask)" />
             <foreignObject x={w.x - 5} y={w.y + 2} width="60" height="60">
               <div className="flex flex-col items-center justify-center text-white text-xs">
@@ -77,7 +81,10 @@ function RadialMenu({ onClose }) {
           style={{ cursor: "pointer" }}
         />
         <foreignObject x={142} y={125} width={50} height={40}>
-          <button className="flex justify-center items-center text-white text-sm font-semibold" onClick={onClose}>
+          <button
+            className="flex justify-center items-center text-white text-sm font-semibold"
+            onClick={onClose}
+          >
             <RxCross2 />
           </button>
         </foreignObject>

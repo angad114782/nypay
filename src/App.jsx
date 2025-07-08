@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
@@ -12,8 +12,27 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
 import MyProfile from "./pages/MyProfile";
 import ClientDetails from "./pages/super admin/ClientDetails";
+import Splashscreen from "./pages/Splashscreen";
+import RulesPage from "./pages/Rules";
 
 function App() {
+  const [loading, setLoading] = useState(() => {
+    return !sessionStorage.getItem("hasSeenSplash");
+  });
+
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setLoading(false);
+        sessionStorage.setItem("hasSeenSplash", "true");
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
+
+  if (loading) {
+    return <Splashscreen />;
+  }
   return (
     <>
       <Toaster position="top-center" richColors />
@@ -26,6 +45,7 @@ function App() {
         <Route path="/id" element={<Id />} />
         <Route path="/banking" element={<Banking />} />
         <Route path="/passbook" element={<Passbook />} />
+        <Route path="/rules" element={<RulesPage />} />
         {/* <Route
           path="/client-details"
           element={

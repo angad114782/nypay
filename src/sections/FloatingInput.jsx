@@ -22,8 +22,8 @@ export default function FloatingInput({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
-            placeholder="John Williams"
+            className="peer w-full p-4 rounded-2xl  text-sm text-black   h-[48px] ct-grey4 focus:outline-none"
+            placeholder="Enter Your Name"
           />
           <label
             className={`absolute -top-3 left-4 text-sm px-1 font-medium bg-white transition-colors duration-200
@@ -43,17 +43,16 @@ export default function FloatingInput({
         <div
           className={`relative ${
             errors?.phone ? "border-red-500" : "border-gray-300"
-          } border rounded-2xl focus-within:border-[var(--theme-orange2)] `}
+          } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)]`}
           style={{ position: "relative" }}
         >
           <label
-            className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 ${
-              errors?.phone
-                ? "text-red-500"
-                : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+            id="phone-label"
+            className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 transition-colors duration-200 ${
+              errors?.phone ? "text-red-500" : "text-[var(--theme-grey3)]"
             }`}
           >
-            Mobile WhatsApp
+            Phone Number
           </label>
           <PhoneInput
             country="in"
@@ -66,8 +65,8 @@ export default function FloatingInput({
               backgroundColor: "white",
               border: "none",
               paddingLeft: "48px",
-              fontSize: "16px",
-              fontWeight: "600",
+              fontSize: "14px",
+              fontWeight: "500",
               boxShadow: "none",
             }}
             buttonStyle={{
@@ -89,11 +88,28 @@ export default function FloatingInput({
             inputProps={{
               name: "phone",
               required: true,
-              placeholder: "Mobile WhatsApp Number",
+              placeholder: "Enter Phone Number",
+              onFocus: (e) => {
+                const label = e.target
+                  .closest(".relative")
+                  ?.querySelector("label");
+                if (label && !errors?.phone) {
+                  label.style.color = "var(--theme-orange2)";
+                }
+              },
+              onBlur: (e) => {
+                const label = e.target
+                  .closest(".relative")
+                  ?.querySelector("label");
+                if (label && !errors?.phone) {
+                  label.style.color = "var(--theme-grey3)";
+                }
+              },
             }}
           />
         </div>
       )}
+
       {/* Email Input */}
       {setEmail && (
         <div
@@ -105,13 +121,13 @@ export default function FloatingInput({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="peer w-full p-4 rounded-2xl font-semibold text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
-            placeholder="+91 XXXXXXXXXX"
+            className="peer w-full p-4 rounded-2xl  text-sm h-[48px] ct-grey4  focus:outline-none"
+            placeholder="user@example.com"
           />
           <label
             className={`absolute -top-3 left-4 px-1 text-sm font-medium bg-white transition-colors duration-200
           ${
-            errors?.phone
+            errors?.email
               ? "text-red-500"
               : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
           }`}

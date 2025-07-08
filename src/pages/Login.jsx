@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import logonew from "/asset/Logo Exchages.png";
+import logonew from "/asset/Bookiehub Site.svg";
 
 function Login() {
   const navigate = useNavigate();
@@ -192,14 +192,14 @@ function Login() {
                     <div
                       className={`relative ${
                         errors?.phone ? "border-red-500" : "border-gray-300"
-                      } border rounded-2xl focus-within:border-[var(--theme-orange2)] overflow-visible`}
+                      } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)]`}
                       style={{ position: "relative", zIndex: 0 }}
                     >
                       <label
                         className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 ${
                           errors?.phone
                             ? "text-red-500"
-                            : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+                            : "text-[var(--theme-grey3)]"
                         }`}
                       >
                         Mobile WhatsApp
@@ -215,8 +215,8 @@ function Login() {
                           backgroundColor: "white",
                           border: "none",
                           paddingLeft: "48px",
-                          fontSize: "16px",
-                          fontWeight: "600",
+                          fontSize: "14px",
+                          fontWeight: "500",
                           boxShadow: "none",
                         }}
                         buttonStyle={{
@@ -226,11 +226,6 @@ function Login() {
                           boxShadow: "none",
                           padding: "4px",
                         }}
-                        dropdownStyle={{
-                          backgroundColor: "white",
-                          border: "1px solid #d1d5db",
-                          borderRadius: "8px",
-                        }}
                         containerStyle={{
                           width: "100%",
                           borderRadius: "16px",
@@ -238,7 +233,25 @@ function Login() {
                         inputProps={{
                           name: "phone",
                           required: true,
-                          placeholder: "Mobile WhatsApp Number",
+                          placeholder: "Enter Whatsapp Number",
+                          onFocus: (e) => {
+                            const label = e.target
+                              .closest(".relative")
+                              ?.querySelector("label");
+                            if (label)
+                              label.classList.add(
+                                "text-[var(--theme-orange2)]"
+                              );
+                          },
+                          onBlur: (e) => {
+                            const label = e.target
+                              .closest(".relative")
+                              ?.querySelector("label");
+                            if (label && !phoneNumber)
+                              label.classList.remove(
+                                "text-[var(--theme-orange2)]"
+                              );
+                          },
                         }}
                       />
                     </div>
