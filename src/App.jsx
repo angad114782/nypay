@@ -14,6 +14,7 @@ import MyProfile from "./pages/MyProfile";
 import ClientDetails from "./pages/super admin/ClientDetails";
 import Splashscreen from "./pages/Splashscreen";
 import RulesPage from "./pages/Rules";
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 function App() {
   const [loading, setLoading] = useState(() => {
@@ -40,10 +41,31 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/notification" element={<Notification />} />
-        <Route path="/my-profile" element={<MyProfile />} />
+        <Route
+          path="/notification"
+          element={
+            <ProtectedRoute>
+              <Notification />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-profile"
+          element={
+            <ProtectedRoute>
+              <MyProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/id" element={<Id />} />
-        <Route path="/banking" element={<Banking />} />
+        <Route
+          path="/banking"
+          element={
+            <ProtectedRoute>
+              <Banking />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/passbook" element={<Passbook />} />
         <Route path="/rules" element={<RulesPage />} />
         {/* <Route
