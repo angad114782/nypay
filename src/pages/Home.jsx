@@ -40,11 +40,11 @@ function Home() {
   return (
     <div>
       <Header />
-      {!isLoggedIn && (
+      {/* {!isLoggedIn && (
         <div className="pb-1 pt-4 px-4">
           <WalletBalance title={"Wallet Balance"} bal={walletBalance} />
         </div>
-      )}
+      )} */}
 
       <Banner />
       <div className="flex justify-center items-center gap-8 py-3">

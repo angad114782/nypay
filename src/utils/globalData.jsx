@@ -1,9 +1,35 @@
-import React, { createContext, useState } from "react";
+import axios from "axios";
+import React, { createContext, useEffect, useState } from "react";
 
 export const GlobalContext = createContext();
 
 export const GlobalProvider = ({ children }) => {
   const [walletBalance, setWalletBalance] = useState("10,00,000");
+  const [userProfile, setUserProfile] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(false); // 🔁 trigger for refetch
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!token) return;
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUserProfile(res.data);
+      } catch (err) {
+        console.error("Failed to fetch user profile in context", err);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token, refreshTrigger]); // 🔁 include refreshTrigger
+
+  // 🔄 Call this after profile update to refetch fresh data
+  const refreshUserProfile = () => {
+    setRefreshTrigger((prev) => !prev);
+  };
 
   const myIdCardData = [
     {
@@ -109,5 +135,19 @@ export const GlobalProvider = ({ children }) => {
     },
   ];
 
-  return <GlobalContext.Provider value={{ walletBalance, setWalletBalance, myIdCardData, allCreateIDList }}>{children}</GlobalContext.Provider>;
+  return (
+    <GlobalContext.Provider
+      value={{
+        walletBalance,
+        setWalletBalance,
+        userProfile,
+        setUserProfile,
+        refreshUserProfile, // ✅ expose refresher
+        myIdCardData,
+        allCreateIDList,
+      }}
+    >
+      {children}
+    </GlobalContext.Provider>
+  );
 };

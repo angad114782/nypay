@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import FloatingInput from "../sections/FloatingInput";
-import Button3 from "../components/Button3";
+import { Button } from "@/components/ui/button";
 import OtpInput from "../sections/OtpInput";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 function Register() {
   const navigate = useNavigate();
@@ -12,122 +12,209 @@ function Register() {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
   const [errors, setErrors] = useState({
     name: false,
     phone: false,
     email: false,
     otp: false,
+    password: false,
   });
+  const [loading, setLoading] = useState(false);
 
-const validateStep1 = () => {
-  const nameError = name.trim() === "";
-  const phoneError = !/^\d{10,15}$/.test(phone); // Only digits, react-phone-input-2 returns numbers
-  const emailError = !/\S+@\S+\.\S+/.test(email);
-  const passwordError =
-    password.length < 6 ||
-    !/\d/.test(password) ||
-    !/[A-Z]/.test(password) ||
-    !/[a-z]/.test(password);
+  // Loading Components
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center space-x-2">
+      <div className="relative">
+        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+        <div className="absolute inset-0 w-5 h-5 border-2 border-transparent border-t-white/40 rounded-full animate-spin animation-delay-150"></div>
+      </div>
+      <span className="text-white font-medium">Processing...</span>
+    </div>
+  );
 
-  setErrors({
-    ...errors,
-    name: nameError,
-    phone: phoneError,
-    email: emailError,
-    password: passwordError,
-  });
+  const LoadingDots = () => (
+    <div className="flex items-center space-x-1">
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-100"></div>
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-200"></div>
+    </div>
+  );
 
-  return !(nameError || phoneError || emailError || passwordError);
-};
+  const LoadingOverlay = ({ message = "Please wait..." }) => (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl">
+        <div className="mb-4">
+          <div className="w-12 h-12 mx-auto border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+        <p className="text-lg font-semibold text-gray-700 mb-2">{message}</p>
+        <p className="text-sm text-gray-500">This may take a few moments</p>
+      </div>
+    </div>
+  );
 
+  const validateStep1 = () => {
+    const nameError = name.trim() === "";
+    const phoneError = !/^\d{10,15}$/.test(phone);
+    const emailError = !/\S+@\S+\.\S+/.test(email);
+    const passwordError =
+      password.length < 6 ||
+      !/\d/.test(password) ||
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password);
 
-  
+    setErrors({
+      ...errors,
+      name: nameError,
+      phone: phoneError,
+      email: emailError,
+      password: passwordError,
+    });
 
-const handleContinue = async () => {
-  if (step === 1) {
-    if (!validateStep1()) return;
+    return !(nameError || phoneError || emailError || passwordError);
+  };
 
-    try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          email,
-          phone: "+" + phone, // ✅ Ensure "+" is present
-          password,
-          via: "email", // or "whatsapp"
-        }),
-      });
+  const handleContinue = async () => {
+    if (step === 1) {
+      if (!validateStep1()) return;
 
-      let data = {};
+      setLoading(true);
       try {
-        data = await res.json();
-      } catch (e) {
-        console.warn("No JSON body returned.");
+        const res = await fetch(
+          `${import.meta.env.VITE_URL}/api/auth/register`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              email,
+              phone: "+" + phone,
+              password,
+              via: "email",
+            }),
+          }
+        );
+
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (e) {
+          console.warn("No JSON body returned.");
+        }
+
+        if (res.ok) {
+          setStep(2);
+        } else {
+          alert(data?.message || "Something went wrong");
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+        alert("Something went wrong. Try again.");
+      } finally {
+        setLoading(false);
       }
+    } else if (step === 2) {
+      const otp = otpValues.join("").trim();
 
-      if (res.ok) {
-        setStep(2);
-      } else {
-        alert(data?.message || "Something went wrong");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      alert("Something went wrong. Try again.");
-    }
-  }
-
-  // ✅ Step 2: Verify OTP
-  else if (step === 2) {
-    const otp = otpValues.join("").trim();
-
-    if (otp.length !== 6) {
-      setErrors((prev) => ({ ...prev, otp: true }));
-      return;
-    }
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: "+" + phone,
-          otp,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        // Save token if needed
-        localStorage.setItem("token", data.token);
-        setStep(3); // Show success screen
-      } else {
-        alert(data?.message || "Invalid OTP");
+      if (otp.length !== 6) {
         setErrors((prev) => ({ ...prev, otp: true }));
+        return;
       }
-    } catch (error) {
-      console.error("OTP Verify Error:", error);
-      alert("OTP verification failed.");
-    }
-  }
-};
 
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_URL}/api/auth/verify-otp`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              phone: "+" + phone,
+              otp,
+            }),
+          }
+        );
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          setStep(3);
+        } else {
+          alert(data?.message || "Invalid OTP");
+          setErrors((prev) => ({ ...prev, otp: true }));
+        }
+      } catch (error) {
+        console.error("OTP Verify Error:", error);
+        alert("OTP verification failed.");
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   const handleBack = () => {
+    if (loading) return;
+
     if (step === 1) {
-      navigate("/"); // go home
+      navigate("/");
     } else {
       setStep((prev) => prev - 1);
     }
   };
 
+  const renderButtonContent = (text) => {
+    if (loading) {
+      return step === 1 ? <LoadingSpinner /> : <LoadingDots />;
+    }
+    return text;
+  };
+
   return (
-    <div className="min-h-[100dvh] flex flex-col px-3">
+    <div className="min-h-[100dvh] flex flex-col px-3 bg-white">
+      <style jsx={"true"}>{`
+        .animation-delay-100 {
+          animation-delay: 0.1s;
+        }
+        .animation-delay-150 {
+          animation-delay: 0.15s;
+        }
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
+
+      {/* Loading Overlay */}
+      {loading && step !== 3 && (
+        <LoadingOverlay
+          message={step === 1 ? "Creating your account..." : "Verifying OTP..."}
+        />
+      )}
+
       {step !== 3 && (
-        <button className="py-4 mb-7 backBtn" onClick={handleBack}>
+        <button
+          className={`py-4 mb-7 backBtn ${
+            loading ? "opacity-50 pointer-events-none" : ""
+          }`}
+          onClick={handleBack}
+          disabled={loading}
+        >
           <svg
             width="23"
             height="18"
@@ -170,7 +257,11 @@ const handleContinue = async () => {
         }
       >
         {step === 1 && (
-          <div className="step1">
+          <div
+            className={`step1 ${
+              loading ? "opacity-75 pointer-events-none" : ""
+            }`}
+          >
             <div className="flex justify-center items-center my-6">
               <img src="asset/otp.png" alt="" className="img-fluid" />
             </div>
@@ -180,23 +271,45 @@ const handleContinue = async () => {
             <p className="text-sm font-light ct-grey2">
               Enter email and phone number to send one time Password
             </p>
-            <FloatingInput
-  name={name}
-  phone={phone}
-  email={email}
-  password={password}
-  setName={setName}
-  setPhone={setPhone}
-  setEmail={setEmail}
-  setPassword={setPassword}
-  errors={errors}
-/>
 
+            <FloatingInput
+              name={name}
+              phone={phone}
+              email={email}
+              password={password}
+              setName={setName}
+              setPhone={setPhone}
+              setEmail={setEmail}
+              setPassword={setPassword}
+              errors={errors}
+              loading={loading}
+            />
+
+            {/* Password visibility toggle */}
+            <div className="relative mt-4">
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-gray-500 hover:text-gray-700 absolute -mt-9 mr-3"
+                >
+                  {showPassword ? (
+                    <EyeOffIcon size={20} />
+                  ) : (
+                    <EyeIcon size={20} />
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="step2">
+          <div
+            className={`step2 ${
+              loading ? "opacity-75 pointer-events-none" : ""
+            }`}
+          >
             <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
               Verification Code
             </h6>
@@ -207,12 +320,13 @@ const handleContinue = async () => {
               otpValues={otpValues}
               setOtpValues={setOtpValues}
               hasError={errors.otp}
+              disabled={loading}
             />
           </div>
         )}
 
         {step === 3 && (
-          <div className="step3 text-center">
+          <div className="step3 text-center fade-in">
             <div className="flex flex-col justify-center items-center">
               <img
                 src="asset/success.png"
@@ -235,17 +349,23 @@ const handleContinue = async () => {
         {step === 1 && (
           <Button
             onClick={handleContinue}
-            className="bg-[#0C42A8] py-6 w-full hover:bg-blue-500"
+            disabled={loading}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
+              loading ? "opacity-90 cursor-not-allowed" : ""
+            }`}
           >
-            Continue
+            {renderButtonContent("Continue")}
           </Button>
         )}
         {step === 2 && (
           <Button
             onClick={handleContinue}
-            className="bg-[#0C42A8] py-6 w-full hover:bg-blue-500"
+            disabled={loading || otpValues.some((val) => !val)}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
+              loading ? "opacity-90 cursor-not-allowed" : ""
+            }`}
           >
-            Confirm
+            {renderButtonContent("Confirm")}
           </Button>
         )}
         {step === 3 && (

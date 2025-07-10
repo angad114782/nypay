@@ -1,12 +1,14 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useContext } from "react";
 import { ArrowLeft, Camera, User } from "lucide-react";
 import Footer from "@/sections/Footer";
 import { useNavigate } from "react-router-dom";
 import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import "react-phone-input-2/lib/style.css";
+import { GlobalContext } from "@/utils/globalData";
 
 const MyProfile = () => {
+  const { refreshUserProfile } = useContext(GlobalContext);
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -17,32 +19,31 @@ const MyProfile = () => {
 
   const token = localStorage.getItem("token");
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      // console.log("✅ Profile response:", res.data);
+        // console.log("✅ Profile response:", res.data);
 
-      const user = res.data; // 🟢 NOT res.data.user
+        const user = res.data; // 🟢 NOT res.data.user
+        console.log(user, "myprofiledata");
+        setName(user.name || "");
+        setPhone((user.phone || "").replace("+", ""));
+        setEmail(user.email || "");
 
-      setName(user.name || "");
-      setPhone((user.phone || "").replace("+", ""));
-      setEmail(user.email || "");
-
-      if (user.profilePic) {
-        setSelectedImage(`${import.meta.env.VITE_URL}/${user.profilePic}`);
+        if (user.profilePic) {
+          setSelectedImage(`${import.meta.env.VITE_URL}/${user.profilePic}`);
+        }
+      } catch (err) {
+        console.error("❌ Failed to load profile", err);
       }
-    } catch (err) {
-      console.error("❌ Failed to load profile", err);
-    }
-  };
+    };
 
-  fetchProfile();
-}, []);
-
+    fetchProfile();
+  }, []);
 
   const handleImageClick = () => fileInputRef.current.click();
 
@@ -71,13 +72,17 @@ useEffect(() => {
         formData.append("profilePic", fileInputRef.current.files[0]);
       }
 
-      await axios.put(`${import.meta.env.VITE_URL}/api/auth/me/update`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/auth/me/update`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      refreshUserProfile();
       alert("✅ Profile updated successfully!");
     } catch (err) {
       console.error("❌ Update failed", err);
@@ -94,7 +99,11 @@ useEffect(() => {
       <div className="mt-12 relative">
         <div className="h-28 w-28 border-white border-4 rounded-full bg-[#0C49BE] flex items-center justify-center overflow-hidden">
           {selectedImage ? (
-            <img src={selectedImage} className="h-full w-full object-cover" alt="Profile" />
+            <img
+              src={selectedImage}
+              className="h-full w-full object-cover"
+              alt="Profile"
+            />
           ) : (
             <User className="h-24 w-24 text-white" />
           )}
@@ -125,7 +134,10 @@ useEffect(() => {
             </h3>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-2 px-3 text-[15px] font-medium mb-5 mt-3">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-2 px-3 text-[15px] font-medium mb-5 mt-3"
+          >
             <div>
               <label className="text-white text-sm font-normal">Name</label>
               <input
@@ -138,7 +150,9 @@ useEffect(() => {
             </div>
 
             <div>
-              <label className="text-white text-sm font-normal">Mobile Number</label>
+              <label className="text-white text-sm font-normal">
+                Mobile Number
+              </label>
               <PhoneInput
                 country="in"
                 value={phone}
@@ -167,10 +181,17 @@ useEffect(() => {
               />
             </div>
 
-            <button type="submit" className="bgt-blue2 rounded-lg px-6 mt-2 py-1.5 w-full t-shadow5">
+            <button
+              type="submit"
+              className="bgt-blue2 rounded-lg px-6 mt-2 py-1.5 w-full t-shadow5"
+            >
               Submit
             </button>
-            <button type="button" onClick={handleCancel} className="bgt-blue2 rounded-lg px-6 py-1.5 w-full t-shadow5">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="bgt-blue2 rounded-lg px-6 py-1.5 w-full t-shadow5"
+            >
               Cancel
             </button>
           </form>

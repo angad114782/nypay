@@ -6,15 +6,18 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import logonew from "/asset/Bookiehub Site.svg";
+import { useAuth } from "../utils/AuthContext";
 
 function Login() {
   const navigate = useNavigate();
+  const { setIsLoggedIn } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [usernameEmail, setUsernameEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isWhatsappLogin, setIsWhatsappLogin] = useState(false);
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     phone: false,
     otp: false,
@@ -22,6 +25,45 @@ function Login() {
     password: false,
   });
   const [step, setStep] = useState(1);
+
+  // Enhanced Loading Components
+  const LoadingSpinner = () => (
+    <div className="flex items-center justify-center space-x-2">
+      <div className="relative">
+        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+        <div className="absolute inset-0 w-5 h-5 border-2 border-transparent border-t-white/40 rounded-full animate-spin animation-delay-150"></div>
+      </div>
+      <span className="text-white font-medium">Processing...</span>
+    </div>
+  );
+
+  const LoadingDots = () => (
+    <div className="flex items-center space-x-1">
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-100"></div>
+      <div className="w-2 h-2 bg-white rounded-full animate-bounce animation-delay-200"></div>
+    </div>
+  );
+
+  const PulseLoader = () => (
+    <div className="flex items-center space-x-2">
+      <div className="w-4 h-4 bg-white rounded-full animate-pulse"></div>
+      <span className="text-white font-medium animate-pulse">Loading...</span>
+    </div>
+  );
+
+  // Loading Overlay for full screen loading states
+  const LoadingOverlay = ({ message = "Please wait..." }) => (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl">
+        <div className="mb-4">
+          <div className="w-12 h-12 mx-auto border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+        <p className="text-lg font-semibold text-gray-700 mb-2">{message}</p>
+        <p className="text-sm text-gray-500">This may take a few moments</p>
+      </div>
+    </div>
+  );
 
   const validateStep1 = () => {
     if (isWhatsappLogin) {
@@ -41,72 +83,91 @@ function Login() {
   };
 
   const handleContinue = async () => {
+    setLoading(true);
     if (step === 1) {
       if (isWhatsappLogin && validateStep1()) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/send-otp-login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: "+" + phoneNumber }),
-          });
-
+          const response = await fetch(
+            `${import.meta.env.VITE_URL}/api/auth/send-otp-login`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ phone: "+" + phoneNumber }),
+            }
+          );
           const data = await response.json();
-          if (response.ok) {
-            setStep(2);
-          } else {
-            alert(data.message || "Failed to send OTP");
-          }
+          if (response.ok) setStep(2);
+          else alert(data.message || "Failed to send OTP");
         } catch (err) {
           alert("Something went wrong!");
+        } finally {
+          setLoading(false);
         }
       } else if (!isWhatsappLogin && validateStep1()) {
         try {
-          const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: usernameEmail,
-              password,
-            }),
-          });
-
+          const response = await fetch(
+            `${import.meta.env.VITE_URL}/api/auth/login`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: usernameEmail,
+                password,
+              }),
+            }
+          );
           const data = await response.json();
-
           if (response.ok) {
             localStorage.setItem("token", data.token);
+            setIsLoggedIn(true);
             setStep(3);
-          } else {
-            alert(data.message || "Login failed");
-          }
+          } else alert(data.message || "Login failed");
         } catch (err) {
           alert("Login error");
+        } finally {
+          setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     } else if (step === 2) {
       const otpString = otpValues.join("");
-
       try {
-        const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/verify-otp-login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            phone: "+" + phoneNumber,
-            otp: otpString,
-          }),
-        });
-
+        const response = await fetch(
+          `${import.meta.env.VITE_URL}/api/auth/verify-otp-login`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: "+" + phoneNumber, otp: otpString }),
+          }
+        );
         const data = await response.json();
-
         if (response.ok) {
           localStorage.setItem("token", data.token);
+          setIsLoggedIn(true);
           navigate("/");
-        } else {
-          alert(data.message || "Invalid OTP");
-        }
+        } else alert(data.message || "Invalid OTP");
       } catch (err) {
         alert("Failed to verify OTP");
+      } finally {
+        setLoading(false);
       }
     }
+  };
+
+  const renderButtonContent = (text) => {
+    if (loading) {
+      // Different loading styles for different contexts
+      if (step === 1 && isWhatsappLogin) {
+        return <LoadingSpinner />;
+      } else if (step === 1) {
+        return <LoadingSpinner />;
+      } else if (step === 2) {
+        return <LoadingDots />;
+      }
+      return <PulseLoader />;
+    }
+    return text;
   };
 
   const handleBack = () => {
@@ -124,12 +185,71 @@ function Login() {
 
   return (
     <div className="min-h-[100dvh] bg-white">
+      <style jsx={"true"}>{`
+        .animation-delay-100 {
+          animation-delay: 0.1s;
+        }
+        .animation-delay-150 {
+          animation-delay: 0.15s;
+        }
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+
+        .loading-pulse {
+          animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes shimmer {
+          0% {
+            background-position: -200px 0;
+          }
+          100% {
+            background-position: calc(200px + 100%) 0;
+          }
+        }
+
+        .shimmer {
+          background: linear-gradient(
+            90deg,
+            #f0f0f0 0px,
+            #e0e0e0 40px,
+            #f0f0f0 80px
+          );
+          background-size: 200px;
+          animation: shimmer 1.5s infinite;
+        }
+      `}</style>
+
+      {/* Loading Overlay for critical operations */}
+      {loading && step === 1 && !isWhatsappLogin && (
+        <LoadingOverlay message="Authenticating your credentials..." />
+      )}
+
+      {loading && step === 2 && <LoadingOverlay message="Verifying OTP..." />}
+
       {step === 1 && (
         <div className="min-h-[80%] flex flex-col">
           <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[350px] flex justify-center items-center relative flex-shrink-0">
             <button
               className="p-4 mb-7 backBtn absolute top-0 left-0 z-2"
               onClick={handleBack}
+              disabled={loading}
             >
               <svg
                 width="23"
@@ -137,6 +257,7 @@ function Login() {
                 viewBox="0 0 23 18"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
+                className={loading ? "opacity-50" : ""}
               >
                 <path
                   d="M2 9L21 9"
@@ -174,7 +295,7 @@ function Login() {
 
           <div className="bg-white rounded-t-[24px] -mt-6 pt-2 sm:pt-11 relative z-10 flex-1 min-h-0">
             <div className="px-3 pb-8 h-full overflow-y-auto">
-              <div className=" mx-auto">
+              <div className="mx-auto">
                 <h6 className="text-[20px] sm:text-[22px] font-bold font-inter text-center ct-black4 mb-6">
                   Welcome Back! <br /> Glad to see you again
                 </h6>
@@ -184,7 +305,9 @@ function Login() {
                     <div
                       className={`relative ${
                         errors?.username ? "border-red-500" : "border-gray-300"
-                      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                     >
                       <input
                         type="text"
@@ -192,6 +315,7 @@ function Login() {
                         onChange={(e) => setUsernameEmail(e.target.value)}
                         className="peer w-full p-4 rounded-2xl font-semibold text-base sm:text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
                         placeholder="Enter your username"
+                        disabled={loading}
                       />
                       <label
                         className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${
@@ -206,7 +330,9 @@ function Login() {
                     <div
                       className={`relative ${
                         errors?.password ? "border-red-500" : "border-gray-300"
-                      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                     >
                       <input
                         type={showPassword ? "text" : "password"}
@@ -214,6 +340,7 @@ function Login() {
                         onChange={(e) => setPassword(e.target.value)}
                         className="peer w-full p-4 pr-12 rounded-2xl font-semibold text-base sm:text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
                         placeholder="Enter your password"
+                        disabled={loading}
                       />
                       <label
                         className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${
@@ -228,6 +355,7 @@ function Login() {
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        disabled={loading}
                       >
                         {showPassword ? (
                           <EyeOffIcon size={20} />
@@ -242,7 +370,9 @@ function Login() {
                     <div
                       className={`relative ${
                         errors?.phone ? "border-red-500" : "border-gray-300"
-                      } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)]`}
+                      } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                       style={{ position: "relative", zIndex: 0 }}
                     >
                       <label
@@ -258,6 +388,7 @@ function Login() {
                         country="in"
                         value={phoneNumber}
                         onChange={setPhoneNumber}
+                        disabled={loading}
                         inputStyle={{
                           width: "100%",
                           height: "48px",
@@ -268,6 +399,7 @@ function Login() {
                           fontSize: "14px",
                           fontWeight: "500",
                           boxShadow: "none",
+                          opacity: loading ? 0.75 : 1,
                         }}
                         buttonStyle={{
                           border: "none",
@@ -275,6 +407,7 @@ function Login() {
                           borderRadius: "12px 0 0 12px",
                           boxShadow: "none",
                           padding: "4px",
+                          opacity: loading ? 0.75 : 1,
                         }}
                         containerStyle={{
                           width: "100%",
@@ -284,24 +417,7 @@ function Login() {
                           name: "phone",
                           required: true,
                           placeholder: "Enter Whatsapp Number",
-                          onFocus: (e) => {
-                            const label = e.target
-                              .closest(".relative")
-                              ?.querySelector("label");
-                            if (label)
-                              label.classList.add(
-                                "text-[var(--theme-orange2)]"
-                              );
-                          },
-                          onBlur: (e) => {
-                            const label = e.target
-                              .closest(".relative")
-                              ?.querySelector("label");
-                            if (label && !phoneNumber)
-                              label.classList.remove(
-                                "text-[var(--theme-orange2)]"
-                              );
-                          },
+                          disabled: loading,
                         }}
                       />
                     </div>
@@ -311,9 +427,14 @@ function Login() {
                 <div className="flex flex-col gap-4">
                   <Button
                     onClick={handleContinue}
-                    className="bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg"
+                    disabled={loading}
+                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                      loading ? "opacity-90 cursor-not-allowed" : ""
+                    }`}
                   >
-                    {isWhatsappLogin ? "Continue" : "Login"}
+                    {renderButtonContent(
+                      isWhatsappLogin ? "Continue" : "Login"
+                    )}
                   </Button>
                   <div className="flex items-center">
                     <div className="flex-grow h-px bg-gray-300" />
@@ -324,11 +445,18 @@ function Login() {
                   </div>
                   <Button
                     onClick={handleWhatsappToggle}
-                    className="bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg"
+                    disabled={loading}
+                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                      loading ? "opacity-75 cursor-not-allowed" : ""
+                    }`}
                   >
-                    {isWhatsappLogin
-                      ? "Login with username/email Id"
-                      : "Login with Whatsapp"}
+                    {loading ? (
+                      <PulseLoader />
+                    ) : isWhatsappLogin ? (
+                      "Login with username/email Id"
+                    ) : (
+                      "Login with Whatsapp"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -351,14 +479,26 @@ function Login() {
                 otpValues={otpValues}
                 setOtpValues={setOtpValues}
                 hasError={errors.otp}
+                disabled={loading}
               />
             </div>
             <Button
               onClick={handleContinue}
-              className="bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg"
+              disabled={loading || otpValues.some((val) => !val)}
+              className={`bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
             >
-              Confirm
+              {renderButtonContent("Confirm")}
             </Button>
+
+            {loading && (
+              <div className="mt-4 text-center">
+                <p className="text-sm text-gray-500 animate-pulse">
+                  Verifying your code...
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -367,7 +507,7 @@ function Login() {
         <div className="min-h-[100dvh] bg-white">
           <div className="px-3 py-4">
             <div className="min-h-[80vh] flex items-center justify-center">
-              <div className="max-w-md mx-auto text-center px-4">
+              <div className="max-w-md mx-auto text-center px-4 fade-in">
                 <img
                   src="asset/success.png"
                   alt="success"
