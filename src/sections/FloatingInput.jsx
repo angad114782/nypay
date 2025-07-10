@@ -1,17 +1,22 @@
 import PhoneInput from "react-phone-input-2";
+import { useState } from "react";
 
 export default function FloatingInput({
   name,
   phone,
   setName,
   setPhone,
-  setEmail,
   email,
+  setEmail,
+  password,
+  setPassword,
   errors,
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <div className="space-y-6 py-4 mt-4">
-      {/* Conditionally render Name Input only if setName is provided */}
+      {/* Name Input */}
       {setName && (
         <div
           className={`relative ${
@@ -22,7 +27,7 @@ export default function FloatingInput({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="peer w-full p-4 rounded-2xl  text-sm text-black   h-[48px] ct-grey4 focus:outline-none"
+            className="peer w-full p-4 rounded-2xl text-sm text-black h-[48px] ct-grey4 focus:outline-none"
             placeholder="Enter Your Name"
           />
           <label
@@ -44,10 +49,8 @@ export default function FloatingInput({
           className={`relative ${
             errors?.phone ? "border-red-500" : "border-gray-300"
           } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)]`}
-          style={{ position: "relative" }}
         >
           <label
-            id="phone-label"
             className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 transition-colors duration-200 ${
               errors?.phone ? "text-red-500" : "text-[var(--theme-grey3)]"
             }`}
@@ -121,21 +124,74 @@ export default function FloatingInput({
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="peer w-full p-4 rounded-2xl  text-sm h-[48px] ct-grey4  focus:outline-none"
+            className="peer w-full p-4 rounded-2xl text-sm h-[48px] ct-grey4 focus:outline-none"
             placeholder="user@example.com"
           />
           <label
             className={`absolute -top-3 left-4 px-1 text-sm font-medium bg-white transition-colors duration-200
-          ${
-            errors?.email
-              ? "text-red-500"
-              : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-          }`}
+            ${
+              errors?.email
+                ? "text-red-500"
+                : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+            }`}
           >
             Email
           </label>
         </div>
       )}
+
+      {setPassword && (
+  <div className="space-y-1">
+    <div
+      className={`relative ${
+        errors?.password ? "border-red-500" : "border-gray-300"
+      } border rounded-2xl focus-within:border-[var(--theme-orange2)]`}
+    >
+      <input
+        type={showPassword ? "text" : "password"}
+        value={password}
+        required
+        onChange={(e) => setPassword(e.target.value)}
+        className="peer w-full p-4 rounded-2xl text-sm h-[48px] ct-grey4 focus:outline-none"
+        placeholder="********"
+      />
+      <label
+        className={`absolute -top-3 left-4 px-1 text-sm font-medium bg-white transition-colors duration-200
+        ${
+          errors?.password
+            ? "text-red-500"
+            : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
+        }`}
+      >
+        Password
+      </label>
+      <button
+        type="button"
+        className="absolute right-4 top-3 text-sm"
+        onClick={() => setShowPassword(!showPassword)}
+      >
+        {showPassword ? "🙈" : "👁️"}
+      </button>
+    </div>
+
+    {/* Password Rules */}
+    <div className="text-xs space-y-1 px-1 pt-1">
+      <p className={password.length >= 6 ? "text-green-600" : "text-red-500"}>
+        {password.length >= 6 ? "✅" : "❌"} At least 6 characters
+      </p>
+      <p className={/\d/.test(password) ? "text-green-600" : "text-red-500"}>
+        {/\d/.test(password) ? "✅" : "❌"} At least 1 number
+      </p>
+      <p className={/[A-Z]/.test(password) ? "text-green-600" : "text-red-500"}>
+        {/[A-Z]/.test(password) ? "✅" : "❌"} At least 1 uppercase letter
+      </p>
+      <p className={/[a-z]/.test(password) ? "text-green-600" : "text-red-500"}>
+        {/[a-z]/.test(password) ? "✅" : "❌"} At least 1 lowercase letter
+      </p>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

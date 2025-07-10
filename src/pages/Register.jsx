@@ -11,6 +11,7 @@ function Register() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
   const [errors, setErrors] = useState({
     name: false,
@@ -19,32 +20,102 @@ function Register() {
     otp: false,
   });
 
-  const validateStep1 = () => {
-    const nameError = name.trim() === "";
-    const phoneError = !/^\+91\s\d{10}$/.test(phone);
-    setErrors({ ...errors, name: nameError, phone: phoneError });
-    return !(nameError || phoneError);
-  };
+const validateStep1 = () => {
+  const nameError = name.trim() === "";
+  const phoneError = !/^\d{10,15}$/.test(phone); // Only digits, react-phone-input-2 returns numbers
+  const emailError = !/\S+@\S+\.\S+/.test(email);
+  const passwordError =
+    password.length < 6 ||
+    !/\d/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/[a-z]/.test(password);
 
-  const validateStep2 = () => {
-    const otpString = otpValues.join("");
-    const otpError = otpString !== "111111";
-    setErrors({ ...errors, otp: otpError });
-    return !otpError;
-  };
+  setErrors({
+    ...errors,
+    name: nameError,
+    phone: phoneError,
+    email: emailError,
+    password: passwordError,
+  });
 
-  //   const handleContinue = () => {
-  //     if (step === 1 && validateStep1()) setStep(2);
-  //     else if (step === 2 && validateStep2()) setStep(3);
-  //   };
-  const handleContinue = () => {
-    if (step === 1) {
-      // 🚧 Bypassing validation for Step 1 temporarily
-      setStep(2);
-    } else if (step === 2 && validateStep2()) {
-      setStep(3);
+  return !(nameError || phoneError || emailError || passwordError);
+};
+
+
+  
+
+const handleContinue = async () => {
+  if (step === 1) {
+    if (!validateStep1()) return;
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          phone: "+" + phone, // ✅ Ensure "+" is present
+          password,
+          via: "email", // or "whatsapp"
+        }),
+      });
+
+      let data = {};
+      try {
+        data = await res.json();
+      } catch (e) {
+        console.warn("No JSON body returned.");
+      }
+
+      if (res.ok) {
+        setStep(2);
+      } else {
+        alert(data?.message || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      alert("Something went wrong. Try again.");
     }
-  };
+  }
+
+  // ✅ Step 2: Verify OTP
+  else if (step === 2) {
+    const otp = otpValues.join("").trim();
+
+    if (otp.length !== 6) {
+      setErrors((prev) => ({ ...prev, otp: true }));
+      return;
+    }
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_URL}/api/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: "+" + phone,
+          otp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        // Save token if needed
+        localStorage.setItem("token", data.token);
+        setStep(3); // Show success screen
+      } else {
+        alert(data?.message || "Invalid OTP");
+        setErrors((prev) => ({ ...prev, otp: true }));
+      }
+    } catch (error) {
+      console.error("OTP Verify Error:", error);
+      alert("OTP verification failed.");
+    }
+  }
+};
+
+
   const handleBack = () => {
     if (step === 1) {
       navigate("/"); // go home
@@ -110,14 +181,17 @@ function Register() {
               Enter email and phone number to send one time Password
             </p>
             <FloatingInput
-              name={name}
-              phone={phone}
-              email={email}
-              setName={setName}
-              setPhone={setPhone}
-              setEmail={setEmail}
-              errors={errors}
-            />
+  name={name}
+  phone={phone}
+  email={email}
+  password={password}
+  setName={setName}
+  setPhone={setPhone}
+  setEmail={setEmail}
+  setPassword={setPassword}
+  errors={errors}
+/>
+
           </div>
         )}
 

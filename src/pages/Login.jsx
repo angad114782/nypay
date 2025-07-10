@@ -40,22 +40,72 @@ function Login() {
     }
   };
 
-  const validateStep2 = () => {
-    const otpString = otpValues.join("");
-    const otpError = otpString !== "111111";
-    setErrors({ ...errors, otp: otpError });
-    return !otpError;
-  };
-
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (step === 1) {
       if (isWhatsappLogin && validateStep1()) {
-        setStep(2);
+        try {
+          const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/send-otp-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: "+" + phoneNumber }),
+          });
+
+          const data = await response.json();
+          if (response.ok) {
+            setStep(2);
+          } else {
+            alert(data.message || "Failed to send OTP");
+          }
+        } catch (err) {
+          alert("Something went wrong!");
+        }
       } else if (!isWhatsappLogin && validateStep1()) {
-        console.log("Regular login with:", { usernameEmail, password });
+        try {
+          const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: usernameEmail,
+              password,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            localStorage.setItem("token", data.token);
+            setStep(3);
+          } else {
+            alert(data.message || "Login failed");
+          }
+        } catch (err) {
+          alert("Login error");
+        }
       }
-    } else if (step === 2 && validateStep2()) {
-      setStep(3);
+    } else if (step === 2) {
+      const otpString = otpValues.join("");
+
+      try {
+        const response = await fetch(`${import.meta.env.VITE_URL}/api/auth/verify-otp-login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: "+" + phoneNumber,
+            otp: otpString,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem("token", data.token);
+          navigate("/");
+        } else {
+          alert(data.message || "Invalid OTP");
+        }
+      } catch (err) {
+        alert("Failed to verify OTP");
+      }
     }
   };
 

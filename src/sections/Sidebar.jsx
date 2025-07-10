@@ -8,6 +8,33 @@ import MenuItem from "../components/Menuitem";
 import { useAuth } from "../utils/AuthContext";
 import { RiProfileFill } from "react-icons/ri";
 import logonew from "/asset/Bookiehub Site.svg";
+import axios from "axios";
+
+const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return alert("You're already logged out");
+
+      await axios.post(
+        `${import.meta.env.VITE_URL}/api/auth/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      localStorage.removeItem("token");
+      setIsLoggedIn(false);
+      setIsOpen(false);
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error", error);
+      alert("Logout failed");
+    }
+  };
+
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
@@ -146,10 +173,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
         <button
           className="flex items-center justify-center gap-2 text-white font-bold p-4 w-full"
-          onClick={() => {
-            setIsLoggedIn(false);
-            setIsOpen(false);
-          }}
+          onClick={handleLogout}
         >
           <FiLogOut className="w-[19px] h-[19px]" />
           <span>Log Out</span>
