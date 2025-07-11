@@ -83,25 +83,39 @@ const Dashboard = () => {
   const closeMessageCounterDialog = () => {
     setIsMessageCounterDialogOpen(false);
   };
+
   const location = useLocation();
   const navigate = useNavigate();
-  //   // Get the current tab from URL, remove the '/admin/' prefix and capitalize first letter
+
+  // Check if current route is super admin
+  const isSuperAdmin = location.pathname.includes("/super-admin");
+
+  // Get the current tab from URL
   const getCurrentTab = () => {
-    const path = location.pathname.split("/admin/")[1] || "dashboard";
-    return path.toLowerCase();
+    const pathSegments = location.pathname.split("/");
+    if (pathSegments.includes("super-admin")) {
+      return (
+        pathSegments[pathSegments.indexOf("super-admin") + 1] || "dashboard"
+      );
+    } else if (pathSegments.includes("admin")) {
+      return pathSegments[pathSegments.indexOf("admin") + 1] || "dashboard";
+    }
+    return "dashboard";
   };
+
   const [activeTab, setActiveTab] = useState(getCurrentTab());
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   useEffect(() => {
     setActiveTab(getCurrentTab());
   }, [location.pathname]);
 
   // Fixed handleTabChange to accept both main tab and sub-tab
-
   const handleTabChange = (mainTab, subTab = null) => {
     setActiveTab(mainTab);
-    navigate(`/admin/${mainTab?.toLowerCase()}`, {
+    const basePath = isSuperAdmin ? "/super-admin" : "/admin";
+    navigate(`${basePath}/${mainTab?.toLowerCase()}`, {
       state: { subTab },
     });
 
@@ -109,7 +123,9 @@ const Dashboard = () => {
       setIsMobileMenuOpen(false);
     }
   };
-  const sidebarItems = [
+
+  // Super Admin sidebar items (includes all tabs)
+  const superAdminSidebarItems = [
     {
       icon: Wallet,
       label: "Super Admin Client Setup",
@@ -121,7 +137,6 @@ const Dashboard = () => {
       id: "super-admin-banner-slider",
     },
     { icon: Wallet, label: "Dashboard", id: "dashboard" },
-    // { icon: ArrowDownLeft, label: "Account Setting", id: "account-setting" },
     {
       icon: ArrowUpRight,
       label: "Deposit/Withdrawals",
@@ -137,13 +152,40 @@ const Dashboard = () => {
       label: "Create ID/Client Info",
       id: "create-id",
     },
-    // { icon: Users, label: "Client Info", id: "client-info" },
     { icon: ArrowUpDown, label: "Platform/Panel", id: "platform-panel" },
     { icon: Users, label: "Banner/Slider", id: "banner-slider" },
-    // { icon: Users, label: "SMS Tokens", id: "sms-tokens" },
     { icon: Users, label: "Team Management", id: "team-management" },
     { icon: LogOut, label: "LogOut", id: "LogOut" },
   ];
+
+  // Regular Admin sidebar items (excludes super admin tabs)
+  const adminSidebarItems = [
+    { icon: Wallet, label: "Dashboard", id: "dashboard" },
+    {
+      icon: ArrowUpRight,
+      label: "Deposit/Withdrawals",
+      id: "deposit-withdrawals",
+    },
+    {
+      icon: ArrowUpRight,
+      label: "Refill ID/Unload ID",
+      id: "refill-unload",
+    },
+    {
+      icon: TrendingUp,
+      label: "Create ID/Client Info",
+      id: "create-id",
+    },
+    { icon: ArrowUpDown, label: "Platform/Panel", id: "platform-panel" },
+    { icon: Users, label: "Banner/Slider", id: "banner-slider" },
+    { icon: Users, label: "Team Management", id: "team-management" },
+    { icon: LogOut, label: "LogOut", id: "LogOut" },
+  ];
+
+  // Choose sidebar items based on current route
+  const sidebarItems = isSuperAdmin
+    ? superAdminSidebarItems
+    : adminSidebarItems;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -161,18 +203,12 @@ const Dashboard = () => {
         return <RefillUnload onTabChange={handleTabChange} />;
       case "create-id":
         return <CreateIdAndClientInfo onTabChange={handleTabChange} />;
-
       case "platform-panel":
         return <AddRemovePanel />;
-      // case "client-info":
-      //   return <div>Client Info</div>;
       case "banner-slider":
         return <SliderManagement />;
-      // case "sms-tokens":
-      //   return <div>SMS Tokens</div>;
       case "team-management":
         return <TeamManagement />;
-
       case "LogOut":
         return (
           <div className="flex  items-center justify-center h-96">
@@ -204,8 +240,6 @@ const Dashboard = () => {
     }
   };
 
-  //   // Update activeTab when URL changes
-
   return (
     <div className="min-h-screen dark:bg-white  ">
       {/* Header */}
@@ -231,14 +265,9 @@ const Dashboard = () => {
             >
               <Menu className="h-5 w-5" />
             </Button>
-            {/* <h1 className="text-lg md:text-xl font-semibold">
-              Admin Dashboard
-            </h1> */}
-            {/* <Input
-              type="text"
-              placeholder="Search..."
-              className="  sm:64 w-50 rounded-full  focus:bg-white text-black  transition-colors"
-            /> */}
+            <h1 className="text-lg md:text-xl font-semibold">
+              {isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"}
+            </h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <ModeToggle />
@@ -302,10 +331,7 @@ const Dashboard = () => {
           className={`flex items-center justify-center ${
             !isSidebarOpen ? "flex-col gap-0" : "flex"
           }  gap-0.5`}
-        >
-          {/* <img className="h-24 w-24" src={UPILogo} alt="" />
-          <img className=" w-32" src={UPILogo} alt="" /> */}
-        </div>
+        ></div>
         <Avatar
           className={`${
             isSidebarOpen && !isMobileMenuOpen
@@ -331,11 +357,9 @@ const Dashboard = () => {
         </Avatar>
         {isSidebarOpen && (
           <div className="mx-auto text-center flex flex-col text-lg ">
-            {/* {adminProfile.name || "Admin"} */}
-            Admin
+            {isSuperAdmin ? "Super Admin" : "Admin"}
             <span className="text-[15px] font-[400px]">
-              {/* {adminProfile.role || "admin"} */}
-              Admin role
+              {isSuperAdmin ? "Super Admin Role" : "Admin Role"}
             </span>
           </div>
         )}
@@ -356,8 +380,8 @@ const Dashboard = () => {
                   </span>
                 )}
               </Button>
-              {/* Add separator after Super Admin Client Setup */}
-              {item.id === "super-admin-banner-slider" && (
+              {/* Add separator after Super Admin Banner/Slider (only in super admin) */}
+              {isSuperAdmin && item.id === "super-admin-banner-slider" && (
                 <Separator className="my-2 bg-black border-black rounded-lg border-1" />
               )}
             </React.Fragment>
@@ -366,6 +390,7 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
+
       <main
         className={`transition-all duration-300 bg-white dark:bg-white dark:text-black font-display pt-16 ${
           isSidebarOpen ? "md:ml-68" : "md:ml-20"

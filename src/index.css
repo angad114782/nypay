@@ -241,12 +241,13 @@ body {
   }
 }
 
-div#root:not(:has(> #adminDashboard)) {
+div#root:not(:has(> #adminDashboard)):not(:has(> #superAdminDashboard)) {
   max-width: 768px;
   margin: 0 auto;
 }
 
-div#adminDashboard {
+div#adminDashboard,
+div#superAdminDashboard {
   width: 100% !important;
   max-width: 100% !important;
   margin: 0 !important;

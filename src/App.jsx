@@ -34,6 +34,7 @@ function App() {
   if (loading) {
     return <Splashscreen />;
   }
+
   return (
     <>
       <Toaster position="top-center" richColors />
@@ -68,16 +69,8 @@ function App() {
         />
         <Route path="/passbook" element={<Passbook />} />
         <Route path="/rules" element={<RulesPage />} />
-        {/* <Route
-          path="/client-details"
-          element={
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <div id="client-details">
-                <ClientDetails />
-              </div>
-            </ThemeProvider>
-          }
-        /> */}
+
+        {/* Regular Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -98,6 +91,29 @@ function App() {
             </ThemeProvider>
           }
         />
+
+        {/* Super Admin Routes */}
+        <Route
+          path="/super-admin"
+          element={
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <div id="superAdminDashboard">
+                <Dashboard />
+              </div>
+            </ThemeProvider>
+          }
+        />
+        <Route
+          path="/super-admin/:tab"
+          element={
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <div id="superAdminDashboard">
+                <Dashboard />
+              </div>
+            </ThemeProvider>
+          }
+        />
+
         <Route
           path="*"
           element={
