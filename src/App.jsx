@@ -15,6 +15,8 @@ import ClientDetails from "./pages/super admin/ClientDetails";
 import Splashscreen from "./pages/Splashscreen";
 import RulesPage from "./pages/Rules";
 import ProtectedRoute from "./utils/ProtectedRoute";
+import ChangePassword from "./pages/ChangePassword";
+import ForgotPassword from "./pages/ForgetPassword";
 
 function App() {
   const [loading, setLoading] = useState(() => {
@@ -56,6 +58,22 @@ function App() {
             <ProtectedRoute>
               <MyProfile />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            // <ProtectedRoute>
+            <ForgotPassword />
+            // </ProtectedRoute>
           }
         />
         <Route path="/id" element={<Id />} />
