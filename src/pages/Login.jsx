@@ -5,15 +5,16 @@ import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import logonew from "/asset/Bookiehub Site.svg";
+import logonew from "/asset/latest logo.svg";
 import { useAuth } from "../utils/AuthContext";
+import { toast } from "sonner";
 
 function Login() {
   const navigate = useNavigate();
   const { setIsLoggedIn } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
-  const [usernameEmail, setUsernameEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isWhatsappLogin, setIsWhatsappLogin] = useState(false);
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
@@ -21,7 +22,7 @@ function Login() {
   const [errors, setErrors] = useState({
     phone: false,
     otp: false,
-    username: false,
+    email: false,
     password: false,
   });
   const [step, setStep] = useState(1);
@@ -71,14 +72,14 @@ function Login() {
       setErrors({ ...errors, phone: phoneError });
       return !phoneError;
     } else {
-      const usernameError = !usernameEmail.trim();
+      const emailError = !email.trim();
       const passwordError = !password.trim();
       setErrors({
         ...errors,
-        username: usernameError,
+        email: emailError,
         password: passwordError,
       });
-      return !usernameError && !passwordError;
+      return !emailError && !passwordError;
     }
   };
 
@@ -96,10 +97,12 @@ function Login() {
             }
           );
           const data = await response.json();
-          if (response.ok) setStep(2);
-          else alert(data.message || "Failed to send OTP");
+          if (response.ok) {
+            toast.success("OTP send successfully");
+            setStep(2);
+          } else toast.error(data.message || "Failed to send OTP");
         } catch (err) {
-          alert("Something went wrong!");
+          toast.error("Something went wrong!");
         } finally {
           setLoading(false);
         }
@@ -111,7 +114,7 @@ function Login() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                email: usernameEmail,
+                email,
                 password,
               }),
             }
@@ -120,6 +123,7 @@ function Login() {
           if (response.ok) {
             localStorage.setItem("token", data.token);
             setIsLoggedIn(true);
+            toast.success("Logged In Successfully");
             setStep(3);
           } else alert(data.message || "Login failed");
         } catch (err) {
@@ -144,6 +148,7 @@ function Login() {
         const data = await response.json();
         if (response.ok) {
           localStorage.setItem("token", data.token);
+          toast.success("Logged In Successfully");
           setIsLoggedIn(true);
           navigate("/");
         } else alert(data.message || "Invalid OTP");
@@ -180,7 +185,7 @@ function Login() {
 
   const handleWhatsappToggle = () => {
     setIsWhatsappLogin(!isWhatsappLogin);
-    setErrors({ phone: false, otp: false, username: false, password: false });
+    setErrors({ phone: false, otp: false, email: false, password: false });
   };
 
   return (
@@ -246,6 +251,7 @@ function Login() {
       {step === 1 && (
         <div className="min-h-[80%] flex flex-col">
           <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[220px] flex justify-center items-center relative flex-shrink-0">
+
             <button
               className="p-4 mb-7 backBtn absolute top-0 left-0 z-2"
               onClick={handleBack}
@@ -304,22 +310,22 @@ function Login() {
                   <div className="space-y-4 mb-14">
                     <div
                       className={`relative ${
-                        errors?.username ? "border-red-500" : "border-gray-300"
+                        errors?.email ? "border-red-500" : "border-gray-300"
                       } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${
                         loading ? "opacity-75 pointer-events-none" : ""
                       }`}
                     >
                       <input
                         type="text"
-                        value={usernameEmail}
-                        onChange={(e) => setUsernameEmail(e.target.value)}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="peer w-full p-4 rounded-2xl font-semibold text-base sm:text-lg h-[48px] ct-grey4 placeholder-transparent focus:outline-none"
-                        placeholder="Enter your username"
+                        placeholder="Enter your email"
                         disabled={loading}
                       />
                       <label
                         className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${
-                          errors?.username
+                          errors?.email
                             ? "text-red-500"
                             : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
                         }`}
@@ -362,6 +368,16 @@ function Login() {
                         ) : (
                           <EyeIcon size={20} />
                         )}
+                      </button>
+                    </div>
+                    <div className="flex justify-end mt-1">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/forgot-password")} // Change route as per your app
+                        className="text-sm font-medium text-[#0C42A8] hover:underline"
+                        disabled={loading}
+                      >
+                        Forgot Password?
                       </button>
                     </div>
                   </div>
@@ -453,7 +469,7 @@ function Login() {
                     {loading ? (
                       <PulseLoader />
                     ) : isWhatsappLogin ? (
-                      "Login with username/email Id"
+                      "Login with Email Id"
                     ) : (
                       "Login with Whatsapp"
                     )}

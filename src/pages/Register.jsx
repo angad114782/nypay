@@ -104,13 +104,14 @@ function Register() {
         }
 
         if (res.ok) {
+          toast.success("OTP send successfully");
           setStep(2);
         } else {
-          alert(data?.message || "Something went wrong");
+          toast.error(data?.message || "Something went wrong");
         }
       } catch (error) {
         console.error("Fetch error:", error);
-        alert("Something went wrong. Try again.");
+        toast.error("Something went wrong. Try again.");
       } finally {
         setLoading(false);
       }
@@ -141,13 +142,14 @@ function Register() {
         if (res.ok) {
           localStorage.setItem("token", data.token);
           setStep(3);
+          toast.success("OTP verified successfully");
         } else {
-          alert(data?.message || "Invalid OTP");
+          toast.error(data?.message || "Invalid OTP");
           setErrors((prev) => ({ ...prev, otp: true }));
         }
       } catch (error) {
         console.error("OTP Verify Error:", error);
-        alert("OTP verification failed.");
+        toast.error("OTP verification failed.");
       } finally {
         setLoading(false);
       }
@@ -210,6 +212,7 @@ function Register() {
       {step !== 3 && (
         <button
           className={`py-3  backBtn ${
+
             loading ? "opacity-50 pointer-events-none" : ""
           }`}
           onClick={handleBack}
@@ -262,7 +265,8 @@ function Register() {
               loading ? "opacity-75 pointer-events-none" : ""
             }`}
           >
-            <div className="flex justify-center items-center my-0">
+
+            <div className="flex justify-center items-center my-2">
               <img src="asset/otp.png" alt="" className="img-fluid" />
             </div>
             <h6 className="text-[18px] font-bold font-inter ct-black4 mb-1">
@@ -270,6 +274,7 @@ function Register() {
             </h6>
             <p className="text-sm font-light ct-grey2">
               Enter Valid email and phone number to send one time Password
+
             </p>
 
             <FloatingInput
@@ -285,7 +290,7 @@ function Register() {
               loading={loading}
             />
 
-            
+
           </div>
         )}
 
