@@ -3,7 +3,7 @@ import FloatingInput from "../sections/FloatingInput";
 import { Button } from "@/components/ui/button";
 import OtpInput from "../sections/OtpInput";
 import { useNavigate } from "react-router-dom";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
+// import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 function Register() {
   const navigate = useNavigate();
@@ -209,7 +209,7 @@ function Register() {
 
       {step !== 3 && (
         <button
-          className={`py-4 mb-7 backBtn ${
+          className={`py-3  backBtn ${
             loading ? "opacity-50 pointer-events-none" : ""
           }`}
           onClick={handleBack}
@@ -262,14 +262,14 @@ function Register() {
               loading ? "opacity-75 pointer-events-none" : ""
             }`}
           >
-            <div className="flex justify-center items-center my-6">
+            <div className="flex justify-center items-center my-0">
               <img src="asset/otp.png" alt="" className="img-fluid" />
             </div>
             <h6 className="text-[18px] font-bold font-inter ct-black4 mb-1">
-              OTP Verification
+              User Registration
             </h6>
             <p className="text-sm font-light ct-grey2">
-              Enter email and phone number to send one time Password
+              Enter Valid email and phone number to send one time Password
             </p>
 
             <FloatingInput
@@ -285,22 +285,7 @@ function Register() {
               loading={loading}
             />
 
-            {/* Password visibility toggle */}
-            <div className="relative mt-4">
-              <div className="flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-500 hover:text-gray-700 absolute -mt-9 mr-3"
-                >
-                  {showPassword ? (
-                    <EyeOffIcon size={20} />
-                  ) : (
-                    <EyeIcon size={20} />
-                  )}
-                </button>
-              </div>
-            </div>
+            
           </div>
         )}
 
@@ -345,7 +330,7 @@ function Register() {
       </div>
 
       {/* Bottom button */}
-      <div className="pb-10">
+      <div className="pb-5">
         {step === 1 && (
           <Button
             onClick={handleContinue}

@@ -245,7 +245,7 @@ function Login() {
 
       {step === 1 && (
         <div className="min-h-[80%] flex flex-col">
-          <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[350px] flex justify-center items-center relative flex-shrink-0">
+          <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[220px] flex justify-center items-center relative flex-shrink-0">
             <button
               className="p-4 mb-7 backBtn absolute top-0 left-0 z-2"
               onClick={handleBack}
@@ -324,7 +324,7 @@ function Login() {
                             : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
                         }`}
                       >
-                        User Name/Email ID
+                        Email ID
                       </label>
                     </div>
                     <div

@@ -30,12 +30,13 @@ function Home() {
     setSelectedCard(card);
     setShowPanelWithdraw(true);
   };
-  const whatsappNumber = "9199999999"; // Replace with the actual WhatsApp number
-  const whatsappMessage = "Hello, I need assistance with my account.";
-  const encodedMessage = encodeURIComponent(whatsappMessage);
+const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
+const whatsappMessage = import.meta.env.VITE_WHATSAPP_MESSAGE;
+const encodedMessage = encodeURIComponent(whatsappMessage);
 
-  // Final WhatsApp link with number and message
-  const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
+// Final WhatsApp link
+const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
+
 
   return (
     <div className="relative">
