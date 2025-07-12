@@ -38,60 +38,70 @@ function Home() {
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
 
   return (
-    <div>
-      <Header />
-      {/* {!isLoggedIn && (
+    <div className="relative">
+      <div className=" max-w-3xl mx-auto">
+        <Header />
+        {/* {!isLoggedIn && (
         <div className="pb-1 pt-4 px-4">
           <WalletBalance title={"Wallet Balance"} bal={walletBalance} />
         </div>
       )} */}
 
-      <Banner />
-      <div className="flex justify-center items-center gap-8 py-3">
-        <Button2
-          text={"Deposit"}
-          img={"Send-Dollar.png"}
-          onClick={() => setShowHomeDeposit(true)}
+        <Banner />
+        <div className="flex  justify-center items-center gap-8 py-3">
+          <Button2
+            text={"Deposit"}
+            img={"Send-Dollar.png"}
+            onClick={() => setShowHomeDeposit(true)}
+          />
+          <div className="w-px h-10 bg-black" />
+          <Button2
+            text={"Withdrawl"}
+            img={"Receive-Dollar.png"}
+            onClick={() => setShowHomeWithdraw(true)}
+          />
+        </div>
+        <IDSlider
+          handlePanelDeposit={handlePanelDeposit}
+          handlePanelWithdraw={handlePanelWithdraw}
         />
-        <div className="w-px h-10 bg-black" />
-        <Button2
-          text={"Withdrawl"}
-          img={"Receive-Dollar.png"}
-          onClick={() => setShowHomeWithdraw(true)}
-        />
+        <Event />
+        {showHomeDeposit && (
+          <DepositHome onClose={() => setShowHomeDeposit(false)} />
+        )}
+        {showPanelDeposit && (
+          <DepositPanel
+            cardData={selectedCard}
+            onClose={() => setShowPanelDeposit(false)}
+          />
+        )}
+        {showHomeWithdraw && (
+          <WithdrawHome onClose={() => setShowHomeWithdraw(false)} />
+        )}
+        {showPanelWithdraw && (
+          <WithdrawPanel
+            cardData={selectedCard}
+            onClose={() => setShowPanelWithdraw(false)}
+          />
+        )}
+        {/* <a
+          className="fixed bottom-16 right-4 z-50"
+          href={whatsappLink}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img src="/asset/wp.png" alt="whatsapp" className="w-12 h-12" />
+        </a> */}
+        <Footer />
       </div>
-      <IDSlider
-        handlePanelDeposit={handlePanelDeposit}
-        handlePanelWithdraw={handlePanelWithdraw}
-      />
-      <Event />
-      {showHomeDeposit && (
-        <DepositHome onClose={() => setShowHomeDeposit(false)} />
-      )}
-      {showPanelDeposit && (
-        <DepositPanel
-          cardData={selectedCard}
-          onClose={() => setShowPanelDeposit(false)}
-        />
-      )}
-      {showHomeWithdraw && (
-        <WithdrawHome onClose={() => setShowHomeWithdraw(false)} />
-      )}
-      {showPanelWithdraw && (
-        <WithdrawPanel
-          cardData={selectedCard}
-          onClose={() => setShowPanelWithdraw(false)}
-        />
-      )}
       <a
-        className="fixed bottom-16 right-4 z-5"
+        className="fixed bottom-16 right-4 md:right-[calc((100vw-48rem)/2-0rem)] z-50"
         href={whatsappLink}
         target="_blank"
         rel="noopener noreferrer"
       >
-        <img src="/asset/wp.png" alt="whatsapp" className="img-fluid" />
+        <img src="/asset/wp.png" alt="whatsapp" className="w-12 h-12" />
       </a>
-      <Footer />
     </div>
   );
 }

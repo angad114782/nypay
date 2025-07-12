@@ -252,6 +252,48 @@ div#superAdminDashboard {
   max-width: 100% !important;
   margin: 0 !important;
 }
+
+.sidebar-container {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 768px; /* Match app's max-width */
+  height: 100vh;
+  pointer-events: none;
+  z-index: 99;
+  overflow: hidden; /* This ensures sidebar is completely hidden when closed */
+}
+
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 328px; /* w-82 equivalent (82 * 0.25rem = 20.5rem ≈ 328px) */
+  /* height: 95%; */
+  pointer-events: auto;
+  transition: transform 300ms ease-in-out;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar.closed {
+  transform: translateX(-110%);
+}
+
+/* Overlay styles */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  /* background-color: rgba(0, 0, 0, 0.5); */
+  z-index: 98;
+}
 .radial-btn {
   background-image: url("../public/asset/el.png");
   background-repeat: no-repeat;
