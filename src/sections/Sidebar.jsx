@@ -2,11 +2,11 @@ import { BsHexagonFill } from "react-icons/bs";
 import { CiSettings } from "react-icons/ci";
 import { FaHome, FaLandmark, FaQuestionCircle, FaUser } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
-import { MdNotifications, MdSettings } from "react-icons/md";
+import { MdNotifications, MdPassword, MdSettings } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import MenuItem from "../components/Menuitem";
 import { RiProfileFill } from "react-icons/ri";
-import logonew from "/asset/Bookiehub Site.svg";
+import logonew from "/asset/latest logo.svg";
 import axios from "axios";
 import { useAuth } from "@/utils/AuthContext";
 import { useContext } from "react";
@@ -121,7 +121,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   )}
                 </div>
                 <div className="text-right flex-1">
-                  <p className="font-bold ct-lime leading-4  py-1 border-b border-gray-300">
+                  <p className="font-bold ct-lime leading-4 text-white  py-1 border-b border-gray-300">
                     {isLoggedIn ? userProfile?.name : "Dummy User"}
                   </p>
                   <p className="text-white  font-medium py-1">
@@ -150,6 +150,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                   setIsOpen(false);
                 }}
               />
+              {isLoggedIn && (
+                <MenuItem
+                  icon={<MdPassword />}
+                  label="Change Password"
+                  onClick={() => {
+                    navigate("/change-password");
+                    setIsOpen(false);
+                  }}
+                />
+              )}
               <MenuItem
                 icon={<BsHexagonFill />}
                 onClick={() => {

@@ -6,6 +6,7 @@ import PhoneInput from "react-phone-input-2";
 import axios from "axios";
 import "react-phone-input-2/lib/style.css";
 import { GlobalContext } from "@/utils/globalData";
+import { toast } from "sonner";
 
 const MyProfile = () => {
   const { refreshUserProfile } = useContext(GlobalContext);
@@ -83,10 +84,10 @@ const MyProfile = () => {
         }
       );
       refreshUserProfile();
-      alert("✅ Profile updated successfully!");
+      toast.success("Profile updated successfully");
     } catch (err) {
       console.error("❌ Update failed", err);
-      alert("❌ Failed to update profile");
+      toast.error("Failed to update profile");
     }
   };
 

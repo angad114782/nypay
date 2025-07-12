@@ -260,7 +260,7 @@ div#superAdminDashboard {
   transform: translateX(-50%);
   width: 100%;
   max-width: 768px; /* Match app's max-width */
-  height: 100vh;
+  height: 100dvh;
   pointer-events: none;
   z-index: 99;
   overflow: hidden; /* This ensures sidebar is completely hidden when closed */
@@ -272,6 +272,7 @@ div#superAdminDashboard {
   left: 0;
   width: 328px; /* w-82 equivalent (82 * 0.25rem = 20.5rem ≈ 328px) */
   /* height: 95%; */
+  /* padding-bottom: 12%; */
   pointer-events: auto;
   transition: transform 300ms ease-in-out;
 }

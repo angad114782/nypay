@@ -104,13 +104,14 @@ function Register() {
         }
 
         if (res.ok) {
+          toast.success("OTP send successfully");
           setStep(2);
         } else {
-          alert(data?.message || "Something went wrong");
+          toast.error(data?.message || "Something went wrong");
         }
       } catch (error) {
         console.error("Fetch error:", error);
-        alert("Something went wrong. Try again.");
+        toast.error("Something went wrong. Try again.");
       } finally {
         setLoading(false);
       }
@@ -141,13 +142,14 @@ function Register() {
         if (res.ok) {
           localStorage.setItem("token", data.token);
           setStep(3);
+          toast.success("OTP verified successfully");
         } else {
-          alert(data?.message || "Invalid OTP");
+          toast.error(data?.message || "Invalid OTP");
           setErrors((prev) => ({ ...prev, otp: true }));
         }
       } catch (error) {
         console.error("OTP Verify Error:", error);
-        alert("OTP verification failed.");
+        toast.error("OTP verification failed.");
       } finally {
         setLoading(false);
       }
@@ -209,7 +211,7 @@ function Register() {
 
       {step !== 3 && (
         <button
-          className={`py-4 mb-7 backBtn ${
+          className={`py-4 mb-2 backBtn ${
             loading ? "opacity-50 pointer-events-none" : ""
           }`}
           onClick={handleBack}
@@ -262,13 +264,13 @@ function Register() {
               loading ? "opacity-75 pointer-events-none" : ""
             }`}
           >
-            <div className="flex justify-center items-center my-6">
+            <div className="flex justify-center items-center my-2">
               <img src="asset/otp.png" alt="" className="img-fluid" />
             </div>
             <h6 className="text-[18px] font-bold font-inter ct-black4 mb-1">
               OTP Verification
             </h6>
-            <p className="text-sm font-light ct-grey2">
+            <p className="text-xs font-light ct-grey2">
               Enter email and phone number to send one time Password
             </p>
 
@@ -286,7 +288,7 @@ function Register() {
             />
 
             {/* Password visibility toggle */}
-            <div className="relative mt-4">
+            {/* <div className="relative mt-4">
               <div className="flex items-center justify-end">
                 <button
                   type="button"
@@ -300,7 +302,7 @@ function Register() {
                   )}
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         )}
 
