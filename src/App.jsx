@@ -5,7 +5,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Notification from "./pages/Notification";
 import Id from "./pages/Id";
-import Passbook from "./pages/passbook";
+import Passbook from "./pages/Passbook";
 import Banking from "./pages/Banking";
 import Dashboard from "./pages/admin/AdminDashboard";
 import { Toaster } from "sonner";

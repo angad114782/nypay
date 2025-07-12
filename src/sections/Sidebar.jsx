@@ -4,7 +4,7 @@ import { FaHome, FaLandmark, FaQuestionCircle, FaUser } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 import { MdNotifications, MdSettings } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
-import MenuItem from "../components/Menuitem";
+import MenuItem from "../components/MenuItem";
 import { RiProfileFill } from "react-icons/ri";
 import logonew from "/asset/Bookiehub Site.svg";
 import axios from "axios";
