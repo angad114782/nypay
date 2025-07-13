@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import axios from "axios";
+import { toast } from "sonner";
 
 function AddUpi({ onClose }) {
   const [upiName, setUpiName] = useState("");
@@ -10,7 +11,7 @@ function AddUpi({ onClose }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!upiName || !upiId) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
 
@@ -18,7 +19,7 @@ function AddUpi({ onClose }) {
       setLoading(true);
 
       const token = localStorage.getItem("token"); // Adjust if using context or cookies
-      const res = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_URL}/api/upi/add`,
         { upiName, upiId },
         {
@@ -28,11 +29,11 @@ function AddUpi({ onClose }) {
         }
       );
 
-      alert("UPI added successfully ✅");
+      toast.success("UPI added successfully");
       onClose(); // Close modal
     } catch (err) {
       console.error(err);
-      alert(err.response?.data?.message || "Failed to add UPI");
+      toast.error(err.response?.data?.message || "Failed to add UPI");
     } finally {
       setLoading(false);
     }

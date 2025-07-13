@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import AddBank from "../components/AddBank";
-import EditBank from "../components/EditBank"; // 🆕 Import Edit Modal
 import BankingBankTabList from "../components/BankingBankTabList";
 import axios from "axios";
+import EditBank from "@/components/EditBank";
 
 const BankingBankTab = () => {
   const [showAddBankModal, setShowAddBankModal] = useState(false);

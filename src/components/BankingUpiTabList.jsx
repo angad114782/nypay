@@ -3,7 +3,19 @@ import { BiEdit } from "react-icons/bi";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import axios from "axios";
-import EditUpi from "./EditUpi"; // 🔁 Import your EditUpi modal
+import EditUpi from "./EditUpi";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 const BankingUpiTabList = ({ data, onDelete }) => {
   const [selectedUpi, setSelectedUpi] = useState(null);
@@ -33,7 +45,7 @@ export default BankingUpiTabList;
 
 const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this UPI?")) return;
+    // if (!window.confirm("Are you sure you want to delete this UPI?")) return;
 
     try {
       const token = localStorage.getItem("token");
@@ -45,7 +57,7 @@ const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
           },
         }
       );
-      alert("UPI deleted ✅");
+      toast.success("UPI deleted successfully");
       onDelete(); // Tell parent to refresh
     } catch (err) {
       console.error("Delete failed", err);
@@ -54,7 +66,7 @@ const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
   };
 
   return (
-    <div className="flex rounded-lg shadow-md items-center bg-[#0C42A8] gap-2 px-3 text-black mb-4 justify-between">
+    <div className="flex rounded-lg shadow-md items-center bg-[#0C42A8] gap-2  px-3 text-black mb-4 justify-between">
       <div className="flex items-center gap-2">
         <img src={UPILogo} className="size-14" alt="upi logo" />
         <div>
@@ -64,12 +76,33 @@ const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
           <p className="text-[10px] text-white font-light">{data.upiId}</p>
         </div>
       </div>
-      <div className="flex gap-2">
-        <BiEdit onClick={onEdit} className="h-6 w-6 text-white cursor-pointer" />
-        <RiDeleteBin6Line
-          className="text-[#FF0000] h-6 w-6 cursor-pointer"
-          onClick={handleDelete}
+      <div className="flex gap-2 ">
+        <BiEdit
+          onClick={onEdit}
+          className="h-6 w-6 text-white cursor-pointer"
         />
+        <Dialog>
+          <DialogTrigger>
+            <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6 cursor-pointer" />
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Are you sure you want to delete this UPI?
+              </DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete your
+                upi.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button onClick={handleDelete}>Done</Button>
+              <DialogClose asChild>
+                <Button>Cancel</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

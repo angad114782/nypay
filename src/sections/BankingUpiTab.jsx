@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import AddUpi from "../components/AddUpi";
 import BankingUpiTabList from "../components/BankingUpiTabList";
 import axios from "axios";
+import AddUpi from "@/components/AddUpi";
 
 const BankingUpiTab = () => {
   const [showAddUpiModal, setShowAddUpiModal] = useState(false);

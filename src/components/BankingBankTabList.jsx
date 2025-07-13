@@ -3,6 +3,17 @@ import { FaLandmark } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import axios from "axios";
 import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "./ui/button";
 
 const BankingBankTabList = ({ data, onDelete, onEdit }) => {
   return (
@@ -25,15 +36,18 @@ const BankingBankTabCard = ({ data, onDelete, onEdit }) => {
   const token = localStorage.getItem("token");
 
   const handleDelete = async () => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this bank?");
-    if (!confirmDelete) return;
+    // const confirmDelete = window.confirm("Are you sure you want to delete this bank?");
+    // if (!confirmDelete) return;
 
     try {
-      await axios.delete(`${import.meta.env.VITE_URL}/api/bank/delete/${data._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(
+        `${import.meta.env.VITE_URL}/api/bank/delete/${data._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       toast.success("Bank deleted successfully");
       if (onDelete) onDelete();
     } catch (error) {
@@ -56,7 +70,28 @@ const BankingBankTabCard = ({ data, onDelete, onEdit }) => {
         </div>
         <div className="flex gap-2">
           <BiEdit className="h-6 w-6 cursor-pointer" onClick={onEdit} />
-          <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6 cursor-pointer" onClick={handleDelete} />
+          <Dialog>
+            <DialogTrigger>
+              <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6 cursor-pointer" />
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  Are you sure you want to delete this Bank?
+                </DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. This will permanently delete
+                  your bank.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button onClick={handleDelete}>Done</Button>
+                <DialogClose asChild>
+                  <Button>Cancel</Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
@@ -65,10 +100,7 @@ const BankingBankTabCard = ({ data, onDelete, onEdit }) => {
           label="Account Holder Name"
           value={data?.accountHolder?.toUpperCase() || "N/A"}
         />
-        <InfoRow
-          label="Account Number"
-          value={data?.accountNumber || "N/A"}
-        />
+        <InfoRow label="Account Number" value={data?.accountNumber || "N/A"} />
         <InfoRow
           label="IFSC Code"
           value={data?.ifscCode?.toUpperCase() || "N/A"}
@@ -77,12 +109,12 @@ const BankingBankTabCard = ({ data, onDelete, onEdit }) => {
           label="Account Added On"
           value={
             data?.createdAt
-              ? new Date(data.createdAt).toLocaleString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
+              ? new Date(data.createdAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                   hour12: true,
                 })
               : "N/A"

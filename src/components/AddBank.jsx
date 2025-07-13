@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom";
 import axios from "axios";
 import { useState } from "react";
+import { toast } from "sonner";
 
 function AddBank({ onClose }) {
   const [bankName, setbankName] = useState("");
@@ -12,34 +13,33 @@ function AddBank({ onClose }) {
     e.preventDefault();
 
     if (!bankName || !accountHolder || !accountNumber || !ifscCode) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
 
     try {
       const token = localStorage.getItem("token");
 
-    const res = await axios.post(
-  `${import.meta.env.VITE_URL}/api/bank/add`,
-  {
-    bankName,
-    accountHolder,
-    accountNumber,
-    ifscCode,
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/bank/add`,
+        {
+          bankName,
+          accountHolder,
+          accountNumber,
+          ifscCode,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-
-      alert(res.data.message || "Bank details added successfully.");
+      toast.success(res.data.message || "Bank details added successfully.");
       onClose();
     } catch (err) {
       console.error("Add Bank Error:", err);
-      alert(err.response?.data?.message || "Something went wrong");
+      toast.error(err.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -84,7 +84,9 @@ function AddBank({ onClose }) {
             />
           </div>
           <div>
-            <label className="text-white font-normal">Account Holder Name*</label>
+            <label className="text-white font-normal">
+              Account Holder Name*
+            </label>
             <input
               type="text"
               placeholder="Enter Account Holder Name"
