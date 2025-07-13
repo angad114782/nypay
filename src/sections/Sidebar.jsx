@@ -17,7 +17,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
   const { userProfile } = useContext(GlobalContext);
   const navigate = useNavigate();
-  // const [logoutLoading, setLogoutLoading] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
     setLogoutLoading(true);
