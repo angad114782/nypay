@@ -48,7 +48,14 @@ const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text
         </div>
       )} */}
 
-        <Banner />
+        <Banner
+          images={[
+            "/asset/Property 1=Slider.svg",
+            "/asset/Property 1=Slider2.svg",
+            "/asset/Property 1=Slider3.svg",
+          ]}
+          interval={4000}
+        />
         <div className="flex  justify-center items-center gap-8 py-3">
           <Button2
             text={"Deposit"}

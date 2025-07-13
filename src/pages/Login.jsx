@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OtpInput from "../sections/OtpInput";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,10 @@ import "react-phone-input-2/lib/style.css";
 import logonew from "/asset/latest logo.svg";
 import { useAuth } from "../utils/AuthContext";
 import { toast } from "sonner";
+import { GlobalContext } from "@/utils/globalData";
 
 function Login() {
+  const { refreshUserProfile } = useContext(GlobalContext);
   const navigate = useNavigate();
   const { setIsLoggedIn } = useAuth();
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -123,6 +125,7 @@ function Login() {
           if (response.ok) {
             localStorage.setItem("token", data.token);
             setIsLoggedIn(true);
+            refreshUserProfile(); // ADD THIS LINE
             toast.success("Logged In Successfully");
             setStep(3);
           } else alert(data.message || "Login failed");
@@ -150,6 +153,7 @@ function Login() {
           localStorage.setItem("token", data.token);
           toast.success("Logged In Successfully");
           setIsLoggedIn(true);
+          refreshUserProfile(); // ADD THIS LINE
           navigate("/");
         } else alert(data.message || "Invalid OTP");
       } catch (err) {

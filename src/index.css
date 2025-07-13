@@ -265,7 +265,15 @@ div#superAdminDashboard {
   z-index: 99;
   overflow: hidden; /* This ensures sidebar is completely hidden when closed */
 }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 .sidebar {
   position: absolute;
   top: 0;

@@ -6,28 +6,49 @@ export const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
   const [walletBalance, setWalletBalance] = useState("10,00,000");
   const [userProfile, setUserProfile] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(false); // 🔁 trigger for refetch
+  const [refreshTrigger, setRefreshTrigger] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!token) return;
+
       try {
+        setLoadingProfile(true);
+
+        // Check cache first
+        const cachedProfile = localStorage.getItem("userProfile");
+        if (cachedProfile) {
+          setUserProfile(JSON.parse(cachedProfile));
+        }
+
         const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         setUserProfile(res.data);
+        localStorage.setItem("userProfile", JSON.stringify(res.data));
+        setRetryCount(0); // Reset retry on success
       } catch (err) {
-        console.error("Failed to fetch user profile in context", err);
+        console.error("Failed to fetch user profile", err);
+
+        // Retry up to 3 times with delay
+        if (retryCount < 3) {
+          setTimeout(() => setRetryCount((c) => c + 1), 2000);
+        }
+      } finally {
+        setLoadingProfile(false);
       }
     };
 
     fetchUserProfile();
-  }, [token, refreshTrigger]); // 🔁 include refreshTrigger
+  }, [token, refreshTrigger, retryCount]);
 
-  // 🔄 Call this after profile update to refetch fresh data
   const refreshUserProfile = () => {
+    localStorage.removeItem("userProfile"); // Clear cache
     setRefreshTrigger((prev) => !prev);
   };
 
@@ -142,7 +163,8 @@ export const GlobalProvider = ({ children }) => {
         setWalletBalance,
         userProfile,
         setUserProfile,
-        refreshUserProfile, // ✅ expose refresher
+        refreshUserProfile,
+        loadingProfile,
         myIdCardData,
         allCreateIDList,
       }}

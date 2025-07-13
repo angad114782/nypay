@@ -19,7 +19,7 @@ function Header() {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
 
   return (
-    <div className="h-[56px]  relative">
+    <div className="h-[56px]  relative mb-3">
       {/* Fixed header container with full width */}
       <div className="fixed top-0 left-0 w-full bg-white z-[99]">
         {/* Inner container with max-width and centered */}
