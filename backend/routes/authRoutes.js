@@ -17,7 +17,7 @@ router.post("/register", register);             // Send OTP
 router.post("/verify-otp", verifyOtp);          // Verify OTP & Create User
 router.post("/login", login);                   // Email/password login
 router.get("/me", protect, getProfile);         // Get profile (protected)
-router.put("/me/update", protect, upload.single("profilePic"), updateProfile); // Update profile
+router.put("/me/update", protect, upload("profile_pic").single("profilePic"), updateProfile);
 router.post("/send-otp-login", sendLoginOtp);   // WhatsApp OTP
 router.post("/verify-otp-login", verifyLoginOtp); // OTP login
 router.post("/logout", protect, logout);

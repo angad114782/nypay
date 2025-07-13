@@ -1,77 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AddUpi from "../components/AddUpi";
 import BankingUpiTabList from "../components/BankingUpiTabList";
-
-const data = [
-  {
-    name: "John Doe",
-    id: "john.doe@upi",
-  },
-  {
-    name: "Jane Smith",
-    id: "jane.smith@upi",
-  },
-  // Add more sample data as needed
-  {
-    name: "Alice Johnson",
-    id: "alice.johnson@upi",
-  },
-  {
-    name: "Bob Brown",
-    id: "bob.brown@upi",
-  },
-  {
-    name: "Charlie Davis",
-    id: "charlie.davis@upi",
-  },
-  {
-    name: "Diana Prince",
-    id: "diana.prince@upi",
-  },
-  {
-    name: "Ethan Hunt",
-    id: "ethan.hunt@upi",
-  },
-  {
-    name: "Fiona Gallagher",
-    id: "fiona.gallagher@upi",
-  },
-  {
-    name: "George Costanza",
-    id: "george.costanza@upi",
-  },
-  {
-    name: "Hannah Montana",
-    id: "hannah.montana@upi",
-  },
-  {
-    name: "Ian Malcolm",
-    id: "ian.malcolm@upi",
-  },
-  {
-    name: "Jack Sparrow",
-    id: "jack.sparrow@upi",
-  },
-  {
-    name: "Katherine Johnson",
-    id: "katherine.johnson@upi",
-  },
-  {
-    name: "Liam Neeson",
-    id: "liam.neeson@upi",
-  },
-  {
-    name: "Mia Wallace",
-    id: "mia.wallace@upi",
-  },
-  {
-    name: "Noah Centineo",
-    id: "noah.centineo@upi",
-  },
-];
+import axios from "axios";
 
 const BankingUpiTab = () => {
   const [showAddUpiModal, setShowAddUpiModal] = useState(false);
+  const [upis, setUpis] = useState([]);
+
+  const fetchUpis = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${import.meta.env.VITE_URL}/api/upi/list`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setUpis(res.data.upis);
+    } catch (err) {
+      console.error("Failed to fetch UPIs", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUpis();
+  }, []);
+
   return (
     <>
       <div>
@@ -81,9 +34,18 @@ const BankingUpiTab = () => {
         >
           Add New UPI Details
         </button>
-        <BankingUpiTabList data={data} />
+
+        <BankingUpiTabList data={upis} onDelete={fetchUpis} />
       </div>
-      {showAddUpiModal && <AddUpi onClose={() => setShowAddUpiModal(false)} />}
+
+      {showAddUpiModal && (
+        <AddUpi
+          onClose={() => {
+            setShowAddUpiModal(false);
+            fetchUpis(); // refresh list after adding
+          }}
+        />
+      )}
     </>
   );
 };

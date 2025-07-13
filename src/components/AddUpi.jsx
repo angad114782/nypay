@@ -1,22 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
+import axios from "axios";
 
-function AddUpi({
-  onClose,
-  //   goNext,
-  //   depositPanel = false,
-  //   setUsePayWallet,
-  //   cardData,
-}) {
-  //   const [isChecked, setIsChecked] = useState(false);
-  //   const { walletBalance, setWalletBalance } = useContext(GlobalContext);
-  //   const depositData = [
-  //     {
-  //       logo: `asset/${cardData?.logoSrc || "Logo-Exchages.png"}`,
-  //       title: cardData?.gameName || "Go Exchange (Asia)",
-  //       subtitle: cardData?.gameURL || "gomatch9.com",
-  //     },
-  //   ];
+function AddUpi({ onClose }) {
+  const [upiName, setUpiName] = useState("");
+  const [upiId, setUpiId] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!upiName || !upiId) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token"); // Adjust if using context or cookies
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/upi/add`,
+        { upiName, upiId },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("UPI added successfully ✅");
+      onClose(); // Close modal
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to add UPI");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const modalContent = (
     <div className="bg-black/40 fixed w-full h-full top-0 left-0 flex items-end justify-center z-[110] px-3">
@@ -29,7 +49,6 @@ function AddUpi({
             className="absolute top-1/2 right-3 -translate-y-1/2"
             onClick={onClose}
           >
-            {/* Close Icon */}
             <svg
               width="25"
               height="25"
@@ -45,13 +64,9 @@ function AddUpi({
           </button>
         </div>
 
-        {/* Form */}
         <form
           className="flex flex-col gap-2 px-3 text-[15px] font-medium space-y-1 mb-5 mt-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            //   goNext(isChecked);
-          }}
+          onSubmit={handleSubmit}
         >
           <div>
             <label className="text-white font-normal">UPI Holder Name*</label>
@@ -59,6 +74,8 @@ function AddUpi({
               type="text"
               placeholder="Enter UPI Holder Name"
               className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={upiName}
+              onChange={(e) => setUpiName(e.target.value)}
             />
           </div>
           <div>
@@ -67,14 +84,17 @@ function AddUpi({
               type="text"
               placeholder="Enter UPI ID"
               className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={upiId}
+              onChange={(e) => setUpiId(e.target.value)}
             />
           </div>
 
           <button
             className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
             type="submit"
+            disabled={loading}
           >
-            Submit
+            {loading ? "Submitting..." : "Submit"}
           </button>
         </form>
       </div>

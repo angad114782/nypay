@@ -3,6 +3,8 @@ import { FaCopy } from "react-icons/fa";
 import { IoCopy, IoCopyOutline } from "react-icons/io5";
 import Tesseract from "tesseract.js";
 import { Progress } from "./ui/progress";
+
+  import axios from "axios";
 const upiAccounts = [
   {
     upiId: "demoupil1232@ybl",
@@ -26,7 +28,7 @@ const paymentModes = [
 // Enhanced extraction patterns for different payment apps and banks
 // Enhanced extraction patterns that handle spaces and periods
 const extractTransactionDetails = (text) => {
-  console.log("Extracted OCR Text:", text);
+  // console.log("Extracted OCR Text:", text);
 
   // Clean and normalize text
   const cleanText = text.replace(/\s+/g, " ").trim();
@@ -208,7 +210,7 @@ const extractTransactionDetails = (text) => {
     }
   }
 
-  console.log("Final extraction result:", result);
+  // console.log("Final extraction result:", result);
   return result;
 };
 
@@ -223,6 +225,41 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
   const [copiedField, setCopiedField] = useState(null);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [editableUtr, setEditableUtr] = useState("");
+
+
+
+const handleSubmitDeposit = async () => {
+  if (!editableUtr || editableUtr.length < 6) {
+    return alert("Please enter a valid UTR or Transaction ID.");
+  }
+
+  if (!screenshot) {
+    return alert("Please upload a payment screenshot.");
+  }
+
+  const formData = new FormData();
+  formData.append("amount", depositAmount);
+  formData.append("paymentMethod", depositMethod);
+  formData.append("utr", editableUtr);
+  formData.append("screenshot", screenshot);
+
+  try {
+    const token = localStorage.getItem("token");
+    const res = await axios.post(`${import.meta.env.VITE_URL}/api/deposit`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    alert(res.data.message);
+    goNext(); // move to next step
+  } catch (err) {
+    console.error("Deposit Error:", err);
+    alert(err?.response?.data?.message || "Deposit failed");
+  }
+};
+
 
   const handleCopy = (value, field) => {
     navigator.clipboard.writeText(value);
@@ -541,12 +578,13 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
         <div className="bg-white h-0.5 w-56 my-4 mx-auto"></div>
 
         {/* Submit Button */}
-        <button
-          className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
-          onClick={goNext}
-        >
-          Submit
-        </button>
+      <button
+  className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
+  onClick={handleSubmitDeposit}
+>
+  Submit
+</button>
+
       </div>
     </div>
   );

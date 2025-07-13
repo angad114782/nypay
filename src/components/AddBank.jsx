@@ -1,6 +1,48 @@
 import ReactDOM from "react-dom";
+import axios from "axios";
+import { useState } from "react";
 
 function AddBank({ onClose }) {
+  const [bankName, setbankName] = useState("");
+  const [accountHolder, setAccountHolder] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifscCode, setIfscCode] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!bankName || !accountHolder || !accountNumber || !ifscCode) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+    const res = await axios.post(
+  `${import.meta.env.VITE_URL}/api/bank/add`,
+  {
+    bankName,
+    accountHolder,
+    accountNumber,
+    ifscCode,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+
+      alert(res.data.message || "Bank details added successfully.");
+      onClose();
+    } catch (err) {
+      console.error("Add Bank Error:", err);
+      alert(err.response?.data?.message || "Something went wrong");
+    }
+  };
+
   const modalContent = (
     <div className="bg-black/40 fixed w-full h-full top-0 left-0 flex items-end justify-center z-[110] px-3">
       <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full relative overflow-hidden mb-4 max-w-3xl">
@@ -12,7 +54,6 @@ function AddBank({ onClose }) {
             className="absolute top-1/2 right-3 -translate-y-1/2"
             onClick={onClose}
           >
-            {/* Close Icon */}
             <svg
               width="25"
               height="25"
@@ -28,22 +69,28 @@ function AddBank({ onClose }) {
           </button>
         </div>
 
-        {/* Form */}
         <form
           className="flex flex-col gap-2 px-3 text-[15px] font-medium space-y-1 mb-5 mt-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            //   goNext(isChecked);
-          }}
+          onSubmit={handleSubmit}
         >
           <div>
-            <label className="text-white font-normal">
-              Account Holder Name*
-            </label>
+            <label className="text-white font-normal">Bank Name*</label>
             <input
               type="text"
-              placeholder="Enter UPI Holder Name"
+              placeholder="Enter Bank Name"
               className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={bankName}
+              onChange={(e) => setbankName(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="text-white font-normal">Account Holder Name*</label>
+            <input
+              type="text"
+              placeholder="Enter Account Holder Name"
+              className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={accountHolder}
+              onChange={(e) => setAccountHolder(e.target.value)}
             />
           </div>
           <div>
@@ -52,6 +99,8 @@ function AddBank({ onClose }) {
               type="text"
               placeholder="Enter Account Number"
               className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
             />
           </div>
           <div>
@@ -60,6 +109,8 @@ function AddBank({ onClose }) {
               type="text"
               placeholder="Enter Bank IFSC Code"
               className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
+              value={ifscCode}
+              onChange={(e) => setIfscCode(e.target.value)}
             />
           </div>
 

@@ -1,13 +1,19 @@
 import { BiEdit } from "react-icons/bi";
 import { FaLandmark } from "react-icons/fa";
-
-import { FiDelete } from "react-icons/fi";
 import { RiDeleteBin6Line } from "react-icons/ri";
-const BankingBankTabList = ({ data }) => {
+import axios from "axios";
+import { toast } from "react-toastify";
+
+const BankingBankTabList = ({ data, onDelete, onEdit }) => {
   return (
     <div>
-      {data.map((item, index) => (
-        <BankingBankTabCard key={index} data={item} />
+      {data?.map((item, index) => (
+        <BankingBankTabCard
+          key={item._id || index}
+          data={item}
+          onDelete={onDelete}
+          onEdit={() => onEdit(item)}
+        />
       ))}
     </div>
   );
@@ -15,52 +21,82 @@ const BankingBankTabList = ({ data }) => {
 
 export default BankingBankTabList;
 
-const BankingBankTabCard = ({ data }) => {
+const BankingBankTabCard = ({ data, onDelete, onEdit }) => {
+  const token = localStorage.getItem("token");
+
+  const handleDelete = async () => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this bank?");
+    if (!confirmDelete) return;
+
+    try {
+      await axios.delete(`${import.meta.env.VITE_URL}/api/bank/delete/${data._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast.success("Bank deleted successfully");
+      if (onDelete) onDelete();
+    } catch (error) {
+      console.error("Delete Error:", error);
+      toast.error("Failed to delete bank");
+    }
+  };
+
   return (
-    <div className="flex flex-col rounded-lg shadow-md bg-[#0C42A8] gap-2 py-2  px-4 text-white mb-4">
+    <div className="flex flex-col rounded-lg shadow-md bg-[#0C42A8] gap-2 py-2 px-4 text-white mb-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <FaLandmark className="h-8 w-8" />
           <div>
             <h3 className="text-[14px] font-light leading-[22px]">
-              {data.bankName}
+              {data?.bankName || "Unknown Bank"}
             </h3>
             <p className="text-[10px] font-extralight">Default</p>
           </div>
         </div>
         <div className="flex gap-2">
-          {/* Edit Button */}
-          <BiEdit className="h-6 w-6" />
-          {/* Delete Button */}
-          <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6" />
+          <BiEdit className="h-6 w-6 cursor-pointer" onClick={onEdit} />
+          <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6 cursor-pointer" onClick={handleDelete} />
         </div>
       </div>
+
       <div className="flex flex-col gap-1 py-2">
-        <div className="flex items-center justify-between text-[14px]">
-          <span className="font-light min-w-[120px]">Account Holder Name</span>
-          <span className="font-medium text-right break-all">
-            {data.accountHolderName.toUpperCase()}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-[14px]">
-          <span className="font-light min-w-[120px]">Account Number</span>
-          <span className="font-medium text-right break-all">
-            {data.accountNumber}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-[14px]">
-          <span className="font-light min-w-[120px]">IFSC Code</span>
-          <span className="font-medium text-right break-all">
-            {data.ifscCode}
-          </span>
-        </div>
-        <div className="flex items-center justify-between text-[14px]">
-          <span className="font-light min-w-[120px]">Account Added On</span>
-          <span className="font-medium text-right break-all">
-            {data.createdAt}
-          </span>
-        </div>
+        <InfoRow
+          label="Account Holder Name"
+          value={data?.accountHolder?.toUpperCase() || "N/A"}
+        />
+        <InfoRow
+          label="Account Number"
+          value={data?.accountNumber || "N/A"}
+        />
+        <InfoRow
+          label="IFSC Code"
+          value={data?.ifscCode?.toUpperCase() || "N/A"}
+        />
+        <InfoRow
+          label="Account Added On"
+          value={
+            data?.createdAt
+              ? new Date(data.createdAt).toLocaleString('en-IN', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: true,
+                })
+              : "N/A"
+          }
+        />
       </div>
     </div>
   );
 };
+
+// ✅ Reusable Row Component
+const InfoRow = ({ label, value }) => (
+  <div className="flex items-center justify-between text-[14px]">
+    <span className="font-light min-w-[120px]">{label}</span>
+    <span className="font-medium text-right break-all">{value}</span>
+  </div>
+);

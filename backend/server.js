@@ -29,5 +29,17 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
 
+const depositRoutes = require("./routes/depositRoutes");
+app.use("/api/deposit", depositRoutes);
+
+
+const bankRoutes  = require("./routes/bankRoutes");
+app.use("/api/bank", bankRoutes );
+
+
+const upiRoutes = require("./routes/upiRoutes");
+app.use("/api/upi", upiRoutes);
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
