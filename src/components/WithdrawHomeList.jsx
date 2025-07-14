@@ -20,17 +20,17 @@ const WithdrawHomeCard = ({ name, id, isSelected, onSelect, type }) => {
         </div>
       </div>
       <div>
-        <label className="flex items-center cursor-pointer relative">
+        <label className="relative flex items-center justify-center w-5 h-5">
           <input
             type="radio"
             name="withdrawCard"
             value={id}
             checked={isSelected}
             onChange={onSelect}
-            className="appearance-none w-4 h-4 border-2 border-white rounded-full mr-2 cursor-pointer"
+            className="appearance-none w-4 h-4 border-2 border-white rounded-full cursor-pointer"
           />
           {isSelected && (
-            <div className="absolute w-2 h-2 bg-white rounded-full ml-[6px] pointer-events-none"></div>
+            <div className="absolute w-2 h-2 bg-white rounded-full pointer-events-none" />
           )}
         </label>
       </div>
@@ -65,7 +65,7 @@ const WithdrawHomeList = ({
         <WithdrawHomeCard
           type={type}
           key={cardData._id}
-          name={type === "upi" ? cardData.name : cardData.accountHolder}
+          name={type === "upi" ? cardData.name : cardData.bankName}
           id={type === "upi" ? cardData.upiId : cardData.accountNumber}
           isSelected={selectedCardId === cardData._id}
           onSelect={() => handleCardSelection(cardData)}

@@ -1,40 +1,16 @@
-import { useState, useEffect  } from "react";
+import { useState, useEffect } from "react";
 import { FaLandmark } from "react-icons/fa";
 import WithdrawHomeList from "./WithdrawHomeList";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 
 import axios from "axios";
 
-
-
-
-// const upiAccounts = [
-//   {
-//     upiId: "demoupil1232@ybl",
-//     qrCode: "/asset/qr.png",
-//     amount: 5000,
-//   },
-// ];
-
-const paymentModes = [
-  {
-    mode: "paytm",
-  },
-  {
-    mode: "gpay",
-  },
-  {
-    mode: "phonepe",
-  },
-];
-
 function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
-  const [copySuccess, setCopySuccess] = useState(false);
   const [withdrawMethod, setWithdrawMethod] = useState("upi");
   const [selectedCard, setSelectedCard] = useState(null);
   const [resetKey, setResetKey] = useState(0);
-  const [bankList, setBankList] = useState([]);   // ✅ move inside component
-  const [upiList, setUpiList] = useState([]);     // ✅ move inside component
+  const [bankList, setBankList] = useState([]);
+  const [upiList, setUpiList] = useState([]);
 
   const fetchBankList = async () => {
     try {
@@ -65,14 +41,6 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
     fetchUpiList();
   }, []);
 
-
-  const handleCopy = (upiId) => {
-    navigator.clipboard.writeText(upiId).then(() => {
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 1500);
-    });
-  };
-
   // Handle card selection
   const handleCardSelection = (cardData) => {
     setSelectedCard(cardData);
@@ -100,8 +68,6 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
 
     goNext();
   };
-
-  // const selectedUpi = upiAccounts[0];
 
   return (
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full relative mb-4 overflow-hidden max-w-3xl">
@@ -185,14 +151,14 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
               <>
                 <FaLandmark className="h-4 w-4" />
                 <div className="text-sm font-light">
-                  {selectedCard ? selectedCard.name : "Select Bank"}
+                  {selectedCard ? selectedCard.bankName : "Select Bank"}
                 </div>
               </>
             ) : (
               <div className="flex gap-2">
                 <img src={UPILogo} alt="" />
                 <div className="text-sm font-extralight">
-                  {selectedCard ? selectedCard.id : "Select UPI ID"}
+                  {selectedCard ? selectedCard.upiId : "Select UPI ID"}
                 </div>
               </div>
             )}
@@ -200,23 +166,22 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
         </div>
 
         {withdrawMethod === "upi" ? (
-  <WithdrawHomeList
-    key={`upi-${resetKey}`}
-    type={"upi"}
-    data={upiList}
-    onSelectionChange={handleCardSelection}
-    resetSelection={resetKey}
-  />
-) : (
-  <WithdrawHomeList
-    key={`bank-${resetKey}`}
-    type={"bank"}
-    data={bankList}
-    onSelectionChange={handleCardSelection}
-    resetSelection={resetKey}
-  />
-)}
-
+          <WithdrawHomeList
+            key={`upi-${resetKey}`}
+            type={"upi"}
+            data={upiList}
+            onSelectionChange={handleCardSelection}
+            resetSelection={resetKey}
+          />
+        ) : (
+          <WithdrawHomeList
+            key={`bank-${resetKey}`}
+            type={"bank"}
+            data={bankList}
+            onSelectionChange={handleCardSelection}
+            resetSelection={resetKey}
+          />
+        )}
 
         <div className="bg-white h-0.5 w-56 my-4 mx-auto"></div>
 
