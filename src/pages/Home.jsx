@@ -30,24 +30,17 @@ function Home() {
     setSelectedCard(card);
     setShowPanelWithdraw(true);
   };
-const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
-const whatsappMessage = import.meta.env.VITE_WHATSAPP_MESSAGE;
-const encodedMessage = encodeURIComponent(whatsappMessage);
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER;
+  const whatsappMessage = import.meta.env.VITE_WHATSAPP_MESSAGE;
+  const encodedMessage = encodeURIComponent(whatsappMessage);
 
-// Final WhatsApp link
-const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
-
+  // Final WhatsApp link
+  const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodedMessage}`;
 
   return (
     <div className="relative">
       <div className=" max-w-3xl mx-auto">
         <Header />
-        {/* {!isLoggedIn && (
-        <div className="pb-1 pt-4 px-4">
-          <WalletBalance title={"Wallet Balance"} bal={walletBalance} />
-        </div>
-      )} */}
-
         <Banner
           images={[
             "/asset/Property 1=Slider.svg",
@@ -92,14 +85,7 @@ const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text
             onClose={() => setShowPanelWithdraw(false)}
           />
         )}
-        {/* <a
-          className="fixed bottom-16 right-4 z-50"
-          href={whatsappLink}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="/asset/wp.png" alt="whatsapp" className="w-12 h-12" />
-        </a> */}
+
         <Footer />
       </div>
       <a

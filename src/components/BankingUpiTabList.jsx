@@ -1,21 +1,11 @@
+import axios from "axios";
 import { useState } from "react";
 import { BiEdit } from "react-icons/bi";
-import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import axios from "axios";
-import EditUpi from "./EditUpi";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "./ui/button";
 import { toast } from "sonner";
+import ConfirmDialog from "./ConfirmDialog";
+import EditUpi from "./EditUpi";
+import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 
 const BankingUpiTabList = ({ data, onDelete }) => {
   const [selectedUpi, setSelectedUpi] = useState(null);
@@ -45,8 +35,6 @@ export default BankingUpiTabList;
 
 const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
   const handleDelete = async () => {
-    // if (!window.confirm("Are you sure you want to delete this UPI?")) return;
-
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
@@ -81,28 +69,16 @@ const BankingUpiTabCard = ({ data, onDelete, onEdit }) => {
           onClick={onEdit}
           className="h-6 w-6 text-white cursor-pointer"
         />
-        <Dialog>
-          <DialogTrigger>
+        <ConfirmDialog
+          title={"Are you sure you want to delete this UPI?"}
+          buttonLogo={
             <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6 cursor-pointer" />
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                Are you sure you want to delete this UPI?
-              </DialogTitle>
-              <DialogDescription>
-                This action cannot be undone. This will permanently delete your
-                upi.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button onClick={handleDelete}>Done</Button>
-              <DialogClose asChild>
-                <Button>Cancel</Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          }
+          onClick={handleDelete}
+          description={
+            "This action cannot be undone. This will permanently delete your upi."
+          }
+        />
       </div>
     </div>
   );
