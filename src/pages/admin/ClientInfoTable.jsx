@@ -1,12 +1,4 @@
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import CopyButton from "@/components/CopyButton";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -17,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -27,21 +20,15 @@ import {
   Trash2,
   User2,
 } from "lucide-react";
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import { DateRangePicker } from "./DateRangePicker";
+import Pagination from "./Pagination";
+import TableFilterBar from "./TableFilters";
 import WithdrawLogo from "/asset/Group 48095823.png";
-import ExcelLogo from "/asset/icons8-excel.svg";
-import PDFLogo from "/asset/icons8-pdf-48.png";
-import CopyButton from "@/components/CopyButton";
-
-// import { DatePicker } from "@/components/ui/datepicker"; // If you have a shadcn/ui DatePicker
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
   { label: "User Name", value: "userName" },
-  //   { label: "Unique ID", value: "uniqueId" },
-  //   { label: "UTR", value: "utr" },
 ];
 
 const STATUS_OPTIONS = [
@@ -53,19 +40,28 @@ const STATUS_OPTIONS = [
 ];
 
 const ClientInfoTable = ({ data }) => {
-  const [entries, setEntries] = useState(10);
-  const [search, setSearch] = useState("");
-  const [searchColumn, setSearchColumn] = useState("profileName");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [status, setStatus] = useState("all");
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
-  const [handleBlockToggle, setHandleBlockToggle] = useState(null);
+  const {
+    entries,
+    setEntries,
+    search,
+    setSearch,
+    searchColumn,
+    setSearchColumn,
+    status,
+    setStatus,
+    dateRange,
+    setDateRange,
+    currentPage,
+    setCurrentPage,
+    goToPage,
+    handleReset,
+    paginatedData,
+    filteredData,
+    totalPages,
+  } = useTableFilter({ data, initialColumn: "userName" });
+
+  // const [handleBlockToggle, setHandleBlockToggle] = useState(null);
   const [tableData, setTableData] = useState(data);
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
   // Handle block/unblock toggle
   const handleBlockToggleFn = (id, isBlocked) => {
     // Update the local state to reflect the change
@@ -80,52 +76,9 @@ const ClientInfoTable = ({ data }) => {
   };
 
   // Enhanced filter logic
-  const filteredData = tableData.filter((item) => {
-    const matchesColumn = item[searchColumn]
-      ?.toString()
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesStatus = status === "all" ? true : item.status === status;
-    const from = dateRange.from ? new Date(dateRange.from) : null;
-    const to = dateRange.to ? new Date(dateRange.to) : null;
-    const matchesDate =
-      (!from || new Date(item.entryDate) >= from) &&
-      (!to || new Date(item.entryDate) <= to);
-    return matchesColumn && matchesStatus && matchesDate;
-  });
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredData.length / entries);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * entries,
-    currentPage * entries
-  );
-
-  // Handle page change
-  const goToPage = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
-  };
-
-  // Reset to first page when entries/search/searchColumn changes
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [entries, search, searchColumn]);
-
-  // Load handler (example: reload data or refetch)
-  const handleLoad = () => {
-    window.location.reload(); // or trigger your data fetch logic
-  };
-
-  // Reset handler
-  const handleReset = () => {
-    setSearch("");
-    setSearchColumn("profileName");
-    setStatus("all");
-    setDateRange({ from: null, to: null });
-    setEntries(10);
-  };
-
   // PDF Download handler
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
@@ -194,118 +147,24 @@ const ClientInfoTable = ({ data }) => {
 
   return (
     <>
-      <div className="flex flex-col  gap-2 md:flex-row md:items-center md:justify-between mb-4">
-        {/* Show entries dropdown */}
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-sm text-gray-700">Show</span>
-          <Select
-            value={entries.toString()}
-            onValueChange={(val) => setEntries(Number(val))}
-          >
-            <SelectTrigger className="min-w-[80px]">
-              <SelectValue placeholder="Entries" />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 25, 50, 100].map((num) => (
-                <SelectItem key={num} value={num.toString()}>
-                  {num}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="text-sm text-gray-700">entries</span>
-        </div>
-        {/* Filter controls and action buttons */}
-        <div className="flex flex-col gap-2 w-full md:flex-row md:items-center md:gap-4 md:flex-1 md:ml-6">
-          {/* Filter fields */}
-          <div className="flex flex-col gap-2 w-full md:flex-row md:items-center md:gap-4 md:flex-1">
-            {/* Search input */}
-            <div className="w-full md:w-auto">
-              <DateRangePicker
-                initialDateFrom={dateRange.from}
-                initialDateTo={dateRange.to}
-                onUpdate={({ range }) => {
-                  setDateRange({
-                    from: range?.from || null,
-                    to: range?.to || null,
-                  });
-                }}
-                align="start"
-                locale="en-GB"
-                showCompare={false}
-              />
-            </div>
-            {/* Column select */}
-
-            {/* Status select */}
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="min-w-[150px] border-1 border-black rounded-full dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 text-white w-full md:w-auto">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUS_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {/* DateRangePicker */}
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <Input
-                type="text"
-                className="border-1 border-black rounded-full  px-2 py-1 text-sm w-[550px] md:w-auto"
-                placeholder={`Search ${
-                  COLUMN_OPTIONS.find((c) => c.value === searchColumn)?.label ||
-                  ""
-                }`}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <Select value={searchColumn} onValueChange={setSearchColumn}>
-                <SelectTrigger className="min-w-[100px] border-1 dark:bg-orange-400 hover:dark:bg-orange-400 bg-orange-400 border-black text-white rounded-full w-full md:w-auto">
-                  <SelectValue placeholder="Select column" />
-                </SelectTrigger>
-                <SelectContent>
-                  {COLUMN_OPTIONS.map((col) => (
-                    <SelectItem key={col.value} value={col.value}>
-                      {col.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2 mt-2 md:mt-0 flex-shrink-0">
-            <Button
-              className="px-3  text-white rounded-lg text-sm font-medium bg-orange-500 hover:bg-orange-100"
-              onClick={handleLoad}
-            >
-              Load
-            </Button>
-            <Button
-              className="px-3   text-white rounded-lg text-sm font-medium bg-red-600 hover:bg-red-100"
-              onClick={handleReset}
-            >
-              Reset
-            </Button>
-
-            <img
-              src={PDFLogo}
-              alt=""
-              className="h-10 cursor-pointer"
-              onClick={handleDownloadPDF}
-            />
-            <img
-              src={ExcelLogo}
-              alt=""
-              className="h-10 cursor-pointer"
-              onClick={handleDownloadExcel}
-            />
-          </div>
-        </div>
-      </div>
+      <TableFilterBar
+        entries={entries}
+        setEntries={setEntries}
+        search={search}
+        setSearch={setSearch}
+        searchColumn={searchColumn}
+        setSearchColumn={setSearchColumn}
+        status={status}
+        setStatus={setStatus}
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        handleLoad={() => window.location.reload()}
+        handleReset={handleReset}
+        handleDownloadPDF={handleDownloadPDF}
+        handleDownloadExcel={handleDownloadExcel}
+        columnOptions={COLUMN_OPTIONS}
+        statusOptions={STATUS_OPTIONS}
+      />
 
       <Table className="hidden lg:table w-full">
         <TableCaption>A list of your request list.</TableCaption>
@@ -438,42 +297,11 @@ const ClientInfoTable = ({ data }) => {
         ))}
       </div>
       {/* Pagination Controls */}
-      <div className="flex justify-between items-center mt-4">
-        <span className="text-sm text-gray-600">
-          Showing {(currentPage - 1) * entries + 1} to{" "}
-          {Math.min(currentPage * entries, filteredData.length)} of{" "}
-          {filteredData.length} entries
-        </span>
-        <div className="flex gap-1">
-          <button
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="px-2 py-1 rounded border text-sm disabled:opacity-50"
-          >
-            Prev
-          </button>
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              onClick={() => goToPage(i + 1)}
-              className={`px-2 py-1 rounded border text-sm ${
-                currentPage === i + 1
-                  ? "bg-[#8AAA08] text-white"
-                  : "bg-white text-gray-700"
-              }`}
-            >
-              {i + 1}
-            </button>
-          ))}
-          <button
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="px-2 py-1 rounded border text-sm disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        goToPage={goToPage}
+      />
     </>
   );
 };
@@ -493,11 +321,6 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
         return "bg-gray-100 text-gray-800";
     }
   };
-
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
-  };
-
   return (
     <div className="bg-gray-300 rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}

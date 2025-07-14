@@ -1,7 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import GenericTable from "./GenericTable";
+import DepositTable from "./DepositTable";
 import QuickActionCards from "./QuickActionCards";
 import WithdrawTable from "./Withdrawtable";
 
@@ -167,8 +167,8 @@ export const data = [
 const withdrawdata = [
   {
     id: 11,
-    profileName: "Profile K",
-    userName: "User K",
+    profileName: "Profile j",
+    userName: "User xrrer K",
     amount: "1100.00",
     paymentType: "Bank Deposit",
     details: {
@@ -189,7 +189,7 @@ const withdrawdata = [
     id: 1145,
     profileName: "Profile K",
     userName: "User K",
-    amount: "1100.00",
+    amount: "10.00",
     paymentType: "Bank Deposit",
     details: {
       name: "Puneet",
@@ -271,7 +271,7 @@ const DepositWithdrawal = ({ onTabChange }) => {
           <TabsTrigger value="withdrawal">Withdrawal</TabsTrigger>
         </TabsList>
         <TabsContent value="deposit">
-          <GenericTable data={data} />
+          <DepositTable data={data} />
         </TabsContent>
         <TabsContent value="withdrawal">
           <WithdrawTable data={withdrawdata} />

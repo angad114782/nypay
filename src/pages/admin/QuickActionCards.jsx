@@ -73,7 +73,7 @@ const QuickActionCards = ({ onTabChange }) => {
     setIsAccountSettingDialogOpen(false);
   };
   return (
-    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 mb-8">
       {config.map((item) => (
         <div
           key={item.id}
