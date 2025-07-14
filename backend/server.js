@@ -40,6 +40,9 @@ app.use("/api/bank", bankRoutes );
 const upiRoutes = require("./routes/upiRoutes");
 app.use("/api/upi", upiRoutes);
 
+app.use("/api/withdraw", require("./routes/withdrawRoutes"));
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -1,6 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaLandmark } from "react-icons/fa";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
+
+// ✅ Move this ABOVE WithdrawHomeList
+const WithdrawHomeCard = ({ name, id, isSelected, onSelect, type }) => {
+  return (
+    <div className="flex justify-between items-center p-2 my-1 border bg-[#0C42A8] rounded-lg">
+      <div className="flex items-center gap-3">
+        {type === "bank" ? (
+          <FaLandmark className="h-8 w-8" />
+        ) : (
+          <img src={UPILogo} className="h-8 w-8" alt="UPI logo" />
+        )}
+        <div>
+          <div className="text-[12px] font-normal text-white">{name}</div>
+          <div className="text-[10px] leading-[22px] font-extralight text-white">
+            {id}
+          </div>
+        </div>
+      </div>
+      <div>
+        <label className="flex items-center cursor-pointer relative">
+          <input
+            type="radio"
+            name="withdrawCard"
+            value={id}
+            checked={isSelected}
+            onChange={onSelect}
+            className="appearance-none w-4 h-4 border-2 border-white rounded-full mr-2 cursor-pointer"
+          />
+          {isSelected && (
+            <div className="absolute w-2 h-2 bg-white rounded-full ml-[6px] pointer-events-none"></div>
+          )}
+        </label>
+      </div>
+    </div>
+  );
+};
 
 const WithdrawHomeList = ({
   data,
@@ -10,16 +46,14 @@ const WithdrawHomeList = ({
 }) => {
   const [selectedCardId, setSelectedCardId] = useState(null);
 
-  // Reset selection when parent component requests it
-  React.useEffect(() => {
+  useEffect(() => {
     if (resetSelection) {
       setSelectedCardId(null);
     }
   }, [resetSelection]);
 
   const handleCardSelection = (cardData) => {
-    setSelectedCardId(cardData.id);
-    // Pass the selected card data to parent component
+    setSelectedCardId(cardData._id);
     if (onSelectionChange) {
       onSelectionChange(cardData);
     }
@@ -30,10 +64,10 @@ const WithdrawHomeList = ({
       {data.map((cardData) => (
         <WithdrawHomeCard
           type={type}
-          key={cardData.id}
-          name={cardData.name}
-          id={cardData.id}
-          isSelected={selectedCardId === cardData.id}
+          key={cardData._id}
+          name={type === "upi" ? cardData.name : cardData.accountHolder}
+          id={type === "upi" ? cardData.upiId : cardData.accountNumber}
+          isSelected={selectedCardId === cardData._id}
           onSelect={() => handleCardSelection(cardData)}
         />
       ))}
@@ -42,37 +76,3 @@ const WithdrawHomeList = ({
 };
 
 export default WithdrawHomeList;
-
-const WithdrawHomeCard = ({ name, id, isSelected, onSelect, type }) => {
-  return (
-    <div className="flex justify-between items-center p-2 my-1 border bg-[#0C42A8] rounded-lg">
-      <div className="flex items-center gap-3">
-        {type === "bank" ? (
-          <FaLandmark className="h-8 w-8" />
-        ) : (
-          <img src={UPILogo} alt="" />
-        )}
-        <div>
-          <div className="text-[12px] font-normal">{name}</div>
-          <div className="text-[10px] leading-[22px] font-extralight">{id}</div>
-        </div>
-      </div>
-      <div>
-        <label className="flex items-center cursor-pointer">
-          <input
-            type="radio"
-            name="withdrawCard"
-            value={id}
-            checked={isSelected}
-            onChange={onSelect}
-            className="appearance-none w-4 h-4 border-2 border-white rounded-full mr-2 relative cursor-pointer"
-          />
-          {/* Radio button inner dot */}
-          {isSelected && (
-            <div className="absolute w-2 h-2 bg-white rounded-full ml-1 pointer-events-none"></div>
-          )}
-        </label>
-      </div>
-    </div>
-  );
-};

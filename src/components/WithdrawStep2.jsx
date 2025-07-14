@@ -1,53 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { FaLandmark } from "react-icons/fa";
 import WithdrawHomeList from "./WithdrawHomeList";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 
-const WithdrawbankData = [
-  {
-    name: "Axis bank",
-    id: "121323324342",
-  },
-  {
-    name: "PNB bank",
-    id: "12132332433",
-  },
-  {
-    name: "HDFC bank",
-    id: "1213233243232323",
-  },
-  {
-    name: "Yes bank",
-    id: "12132332434345",
-  },
-  {
-    name: "ICICI bank",
-    id: "12132332434233",
-  },
-];
+import axios from "axios";
 
-const WithdrawUpiData = [
-  {
-    name: "Jonf",
-    id: "singapore12@ybl",
-  },
-  {
-    name: "Hello",
-    id: "usa12@ybl",
-  },
-  {
-    name: "Mark",
-    id: "china12@ybl",
-  },
-  {
-    name: "Nick",
-    id: "india12@ybl",
-  },
-  {
-    name: "World",
-    id: "lords12@ybl",
-  },
-];
+
+
 
 // const upiAccounts = [
 //   {
@@ -71,9 +30,41 @@ const paymentModes = [
 
 function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
   const [copySuccess, setCopySuccess] = useState(false);
-  const [withdrawMethod, setWithdrawMethod] = useState("upi"); // Default to UPI
-  const [selectedCard, setSelectedCard] = useState(null); // Store selected card data
-  const [resetKey, setResetKey] = useState(0); // Key to trigger reset in child components
+  const [withdrawMethod, setWithdrawMethod] = useState("upi");
+  const [selectedCard, setSelectedCard] = useState(null);
+  const [resetKey, setResetKey] = useState(0);
+  const [bankList, setBankList] = useState([]);   // ✅ move inside component
+  const [upiList, setUpiList] = useState([]);     // ✅ move inside component
+
+  const fetchBankList = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${import.meta.env.VITE_URL}/api/bank/list`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBankList(res.data.banks);
+    } catch (error) {
+      console.error("Failed to fetch banks:", error);
+    }
+  };
+
+  const fetchUpiList = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${import.meta.env.VITE_URL}/api/upi/list`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUpiList(res.data.upis);
+    } catch (error) {
+      console.error("Failed to fetch upis:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchBankList();
+    fetchUpiList();
+  }, []);
+
 
   const handleCopy = (upiId) => {
     navigator.clipboard.writeText(upiId).then(() => {
@@ -208,24 +199,24 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
           </div>
         </div>
 
-        {/* Card List */}
         {withdrawMethod === "upi" ? (
-          <WithdrawHomeList
-            key={`upi-${resetKey}`}
-            type={"upi"}
-            data={WithdrawUpiData}
-            onSelectionChange={handleCardSelection}
-            resetSelection={resetKey}
-          />
-        ) : (
-          <WithdrawHomeList
-            key={`bank-${resetKey}`}
-            type={"bank"}
-            data={WithdrawbankData}
-            onSelectionChange={handleCardSelection}
-            resetSelection={resetKey}
-          />
-        )}
+  <WithdrawHomeList
+    key={`upi-${resetKey}`}
+    type={"upi"}
+    data={upiList}
+    onSelectionChange={handleCardSelection}
+    resetSelection={resetKey}
+  />
+) : (
+  <WithdrawHomeList
+    key={`bank-${resetKey}`}
+    type={"bank"}
+    data={bankList}
+    onSelectionChange={handleCardSelection}
+    resetSelection={resetKey}
+  />
+)}
+
 
         <div className="bg-white h-0.5 w-56 my-4 mx-auto"></div>
 
