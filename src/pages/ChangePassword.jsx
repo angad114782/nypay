@@ -14,7 +14,7 @@ const ChangePassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  //   const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
   const handleCancel = (e) => {
     e.preventDefault();
@@ -27,24 +27,24 @@ const ChangePassword = () => {
       return alert("Please fill all fields");
 
     try {
-      const formData = new FormData();
-      formData.append("confirmPassword", confirmPassword);
-      formData.append("newPassword", newPassword);
-      formData.append("oldPassword", "+" + oldPassword);
-
-      //   await axios.put(
-      //     `${import.meta.env.VITE_URL}/api/auth/me/update`,
-      //     formData,
-      //     {
-      //       headers: {
-      //         "Content-Type": "multipart/form-data",
-      //         Authorization: `Bearer ${token}`,
-      //       },
-      //     }
-      //   );
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/auth/change-password`,
+        {
+          confirmPassword,
+          newPassword,
+          oldPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       toast.success("✅ Password updated successfully!");
       navigate("/");
     } catch (err) {
+      console.log(err, "error");
       console.error("❌ Update failed", err);
       alert("❌ Failed to update Password");
     }
