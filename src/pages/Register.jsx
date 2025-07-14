@@ -3,6 +3,9 @@ import FloatingInput from "../sections/FloatingInput";
 import { Button } from "@/components/ui/button";
 import OtpInput from "../sections/OtpInput";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 // import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 function Register() {
@@ -211,10 +214,8 @@ function Register() {
 
       {step !== 3 && (
         <button
-          className={`py-3  backBtn ${
-
-            loading ? "opacity-50 pointer-events-none" : ""
-          }`}
+          className={`py-3  backBtn ${loading ? "opacity-50 pointer-events-none" : ""
+            }`}
           onClick={handleBack}
           disabled={loading}
         >
@@ -261,9 +262,8 @@ function Register() {
       >
         {step === 1 && (
           <div
-            className={`step1 ${
-              loading ? "opacity-75 pointer-events-none" : ""
-            }`}
+            className={`step1 ${loading ? "opacity-75 pointer-events-none" : ""
+              }`}
           >
 
             <div className="flex justify-center items-center my-2">
@@ -296,9 +296,8 @@ function Register() {
 
         {step === 2 && (
           <div
-            className={`step2 ${
-              loading ? "opacity-75 pointer-events-none" : ""
-            }`}
+            className={`step2 ${loading ? "opacity-75 pointer-events-none" : ""
+              }`}
           >
             <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
               Verification Code
@@ -340,9 +339,8 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
-              loading ? "opacity-90 cursor-not-allowed" : ""
-            }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
           >
             {renderButtonContent("Continue")}
           </Button>
@@ -351,9 +349,8 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading || otpValues.some((val) => !val)}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
-              loading ? "opacity-90 cursor-not-allowed" : ""
-            }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
           >
             {renderButtonContent("Confirm")}
           </Button>

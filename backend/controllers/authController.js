@@ -73,12 +73,12 @@ exports.verifyOtp = async (req, res) => {
       $or: [{ phone }, { email: record.data.email.toLowerCase() }],
     });
     if (duplicate) return res.status(409).json({ message: "User already exists" });
-    const hashedPassword = await bcrypt.hash(record.data.password, 10);
+
     const newUser = await User.create({
       name: record.data.name,
       phone: record.phone,
       email: record.data.email.toLowerCase(),
-      password: hashedPassword, // ✅ Save hashed password
+      password: record.data.password,
       isVerified: true,
     });
 
@@ -149,44 +149,44 @@ exports.login = async (req, res) => {
     if (!user.isVerified)
       return res.status(403).json({ message: "User not verified via OTP" });
 
-    const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
 
-    let locationData = {};
-    try {
-      const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
-      locationData = {
-        city: geoRes.data.city,
-        region: geoRes.data.region,
-        latitude: geoRes.data.latitude,
-        longitude: geoRes.data.longitude,
-      };
+let locationData = {};
+try {
+  const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
+  locationData = {
+    city: geoRes.data.city,
+    region: geoRes.data.region,
+    latitude: geoRes.data.latitude,
+    longitude: geoRes.data.longitude,
+  };
 
-      user.lastLoginIp = ip;
-      user.city = locationData.city;
-      user.region = locationData.region;
-      user.latitude = locationData.latitude;
-      user.longitude = locationData.longitude;
-      await user.save();
-    } catch (e) {
-      console.error("📍 Location fetch failed:", e.message);
-    }
+  user.lastLoginIp = ip;
+  user.city = locationData.city;
+  user.region = locationData.region;
+  user.latitude = locationData.latitude;
+  user.longitude = locationData.longitude;
+  await user.save();
+} catch (e) {
+  console.error("📍 Location fetch failed:", e.message);
+}
 
-    res.status(200).json({
-      message: "Login successful",
-      token: generateToken(user),
-      user: {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        role: user.role,
-        lastLoginIp: user.lastLoginIp,
-        city: user.city,
-        region: user.region,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      },
-    });
+res.status(200).json({
+  message: "Login successful",
+  token: generateToken(user),
+  user: {
+    _id: user._id,
+    name: user.name,
+    phone: user.phone,
+    email: user.email,
+    role: user.role,
+    lastLoginIp: user.lastLoginIp,
+    city: user.city,
+    region: user.region,
+    latitude: user.latitude,
+    longitude: user.longitude,
+  },
+});
 
   } catch (err) {
     console.error("Login Error:", err.message);
@@ -206,46 +206,46 @@ exports.verifyLoginOtp = async (req, res) => {
     const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+  const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
 
-    let locationData = {};
-    try {
-      const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
-      locationData = {
-        city: geoRes.data.city,
-        region: geoRes.data.region,
-        latitude: geoRes.data.latitude,
-        longitude: geoRes.data.longitude,
-      };
+let locationData = {};
+try {
+  const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
+  locationData = {
+    city: geoRes.data.city,
+    region: geoRes.data.region,
+    latitude: geoRes.data.latitude,
+    longitude: geoRes.data.longitude,
+  };
 
-      user.lastLoginIp = ip;
-      user.city = locationData.city;
-      user.region = locationData.region;
-      user.latitude = locationData.latitude;
-      user.longitude = locationData.longitude;
-      await user.save();
-    } catch (e) {
-      console.error("📍 Location fetch failed:", e.message);
-    }
+  user.lastLoginIp = ip;
+  user.city = locationData.city;
+  user.region = locationData.region;
+  user.latitude = locationData.latitude;
+  user.longitude = locationData.longitude;
+  await user.save();
+} catch (e) {
+  console.error("📍 Location fetch failed:", e.message);
+}
 
 
     await Otp.deleteOne({ phone, type: "login" });
-    res.status(200).json({
-      message: "Login successful",
-      token: generateToken(user),
-      user: {
-        _id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        role: user.role,
-        lastLoginIp: user.lastLoginIp,
-        city: user.city,
-        region: user.region,
-        latitude: user.latitude,
-        longitude: user.longitude,
-      },
-    });
+res.status(200).json({
+  message: "Login successful",
+  token: generateToken(user),
+  user: {
+    _id: user._id,
+    name: user.name,
+    phone: user.phone,
+    email: user.email,
+    role: user.role,
+    lastLoginIp: user.lastLoginIp,
+    city: user.city,
+    region: user.region,
+    latitude: user.latitude,
+    longitude: user.longitude,
+  },
+});
 
   } catch (err) {
     console.error("❌ Verify Login OTP Error:", err.message);
@@ -288,7 +288,6 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
-// routes/auth.js or controllers/authController.js
 exports.logout = async (req, res) => {
   try {
     // Optional: Track logout time
@@ -301,36 +300,36 @@ exports.logout = async (req, res) => {
     res.status(500).json({ message: "Logout failed" });
   }
 };
-
-
-// Change Password (User must be logged in)
 exports.changePassword = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { oldPassword, newPassword, confirmPassword } = req.body;
+  const { oldPassword, newPassword, confirmPassword } = req.body;
 
+  try {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ message: "All fields are required." });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match." });
+      return res.status(400).json({ message: "New passwords do not match" });
     }
 
-    const user = await User.findById(userId);
-    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    const isMatch = await user.comparePassword(oldPassword);
     if (!isMatch) {
-      return res.status(400).json({ message: "Old password is incorrect." });
+      return res.status(401).json({ message: "Old password is incorrect" });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.password = newPassword;
+    user.markModified("password"); // ✅ Force pre-save hook to hash
     await user.save();
 
-    return res.status(200).json({ message: "Password changed successfully!" });
-  } catch (error) {
-    console.error("Change password error:", error);
-    return res.status(500).json({ message: "Server error" });
+    res.status(200).json({ message: "✅ Password updated successfully" });
+  } catch (err) {
+    console.error("❌ Change Password Error:", err.message);
+    res.status(500).json({ message: "Something went wrong" });
   }
 };
+

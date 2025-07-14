@@ -17,6 +17,7 @@ import RulesPage from "./pages/Rules";
 import ProtectedRoute from "./utils/ProtectedRoute";
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgetPassword";
+import { ToastContainer } from "react-toastify";
 
 function App() {
   const [loading, setLoading] = useState(() => {
@@ -39,6 +40,7 @@ function App() {
 
   return (
     <>
+      <ToastContainer position="top-center" />
       <Toaster position="top-center" richColors />
       <Routes>
         <Route path="/" element={<Home />} />
