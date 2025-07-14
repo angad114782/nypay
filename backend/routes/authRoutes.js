@@ -9,6 +9,7 @@ const {
   verifyLoginOtp,
   updateProfile,
   logout,
+  changePassword,
 } = require("../controllers/authController");
 const { protect } = require("../middlewares/auth");
 const upload = require("../config/multerConfig");
@@ -21,6 +22,6 @@ router.put("/me/update", protect, upload("profile_pic").single("profilePic"), up
 router.post("/send-otp-login", sendLoginOtp);   // WhatsApp OTP
 router.post("/verify-otp-login", verifyLoginOtp); // OTP login
 router.post("/logout", protect, logout);
-
+router.put("/change-password", protect, changePassword);
 
 module.exports = router;
