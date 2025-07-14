@@ -58,6 +58,32 @@ const createIdData = [
     isBlocked: false,
     parentIp: "1222:8080",
   },
+  {
+    id: 5,
+    profileName: "John Doe",
+    userName: "jh",
+    password: "password123",
+    uniqueId: "1234567890",
+    website: "example.com",
+    createdAt: "2023-10-01",
+    status: "Approved",
+    remark: "No issues",
+    isBlocked: true,
+    parentIp: "1222:8080",
+  },
+  {
+    id: 6,
+    profileName: "John Doe",
+    userName: "johndoe",
+    password: "password123",
+    uniqueId: "1234567890",
+    website: "example.com",
+    createdAt: "2023-10-01",
+    status: "Rejected",
+    remark: "No issues",
+    isBlocked: false,
+    parentIp: "1222:8080",
+  },
 ];
 
 const withdrawdata = [

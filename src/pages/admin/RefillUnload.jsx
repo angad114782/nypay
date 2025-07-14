@@ -1,12 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import React, { useEffect, useState } from "react";
-import GenericTable from "./GenericTable";
-import WithdrawTable from "./Withdrawtable";
-import RefillUnloadTable from "./RefillUnloadTable";
-import { ChevronRight, CreditCard, Landmark, UserSquare } from "lucide-react";
-import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi";
-import QuickActionCards from "./QuickActionCards";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import QuickActionCards from "./QuickActionCards";
+import RefillUnloadTable from "./RefillUnloadTable";
 
 const data = [
   {

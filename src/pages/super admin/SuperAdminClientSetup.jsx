@@ -248,7 +248,7 @@ const SuperAdminClientSetup = () => {
               </TableCell>
               <TableCell className={"text-center align-middle"}>
                 <Button
-                  onClick={() => navigate("/admin/client-details")}
+                  onClick={() => navigate("/super-admin/client-details")}
                   className={"bg-[#2D65D2] text-white"}
                 >
                   More Details <ArrowRight />

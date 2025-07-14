@@ -28,7 +28,7 @@ import {
   Wallet,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AccountSetting from "./AccountSetting";
 import AddRemovePanel from "./AddRemovePanel";
 import CreateIdAndClientInfo from "./CreateIdAndClientInfo";
@@ -47,6 +47,7 @@ import SuperAdminBannerSlider from "../super admin/SuperAdminBannerSlider";
 import { FaLandmark } from "react-icons/fa";
 
 const Dashboard = () => {
+  const { tab } = useParams();
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isMessageCounterDialogOpen, setIsMessageCounterDialogOpen] =
@@ -91,17 +92,31 @@ const Dashboard = () => {
   const isSuperAdmin = location.pathname.includes("/super-admin");
 
   // Get the current tab from URL
-  const getCurrentTab = () => {
-    const pathSegments = location.pathname.split("/");
-    if (pathSegments.includes("super-admin")) {
-      return (
-        pathSegments[pathSegments.indexOf("super-admin") + 1] || "dashboard"
-      );
-    } else if (pathSegments.includes("admin")) {
-      return pathSegments[pathSegments.indexOf("admin") + 1] || "dashboard";
-    }
-    return "dashboard";
+  const tabMap = {
+    "client-details": "super-admin-client-setup",
+    "edit-client": "super-admin-client-setup",
+    "view-client": "super-admin-client-setup",
   };
+
+  const getCurrentTab = () => {
+    const segments = location.pathname.split("/");
+    const base = segments.includes("super-admin") ? "super-admin" : "admin";
+    const tab = segments[segments.indexOf(base) + 1];
+
+    return tabMap[tab] || tab || "dashboard";
+  };
+
+  // const getCurrentTab = () => {
+  //   const pathSegments = location.pathname.split("/");
+  //   if (pathSegments.includes("super-admin")) {
+  //     return (
+  //       pathSegments[pathSegments.indexOf("super-admin") + 1] || "dashboard"
+  //     );
+  //   } else if (pathSegments.includes("admin")) {
+  //     return pathSegments[pathSegments.indexOf("admin") + 1] || "dashboard";
+  //   }
+  //   return "dashboard";
+  // };
 
   const [activeTab, setActiveTab] = useState(getCurrentTab());
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -396,7 +411,9 @@ const Dashboard = () => {
           isSidebarOpen ? "md:ml-68" : "md:ml-20"
         }`}
       >
-        <div className="p-4  md:p-6">{renderContent()}</div>
+        <div className="p-4  md:p-6">
+          {tab === "client-details" ? <ClientDetails /> : renderContent()}
+        </div>
       </main>
 
       {/* Add the dialogs */}
