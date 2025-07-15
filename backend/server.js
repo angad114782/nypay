@@ -16,7 +16,7 @@ const corsOptions = {
     "https://qs3rfs46-5000.inc1.devtunnels.ms",
     "https://qs3rfs46-5173.inc1.devtunnels.ms",
   ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "PATCH","DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true, // if using cookies or HTTP auth
 };
@@ -40,12 +40,12 @@ app.use("/api/bank", bankRoutes );
 const upiRoutes = require("./routes/upiRoutes");
 app.use("/api/upi", upiRoutes);
 
-const bankRoutes  = require("./routes/adminBankRoutes");
-app.use("/api/admin/bank", bankRoutes );
+const adminBankRoutes  = require("./routes/adminBankRoutes");
+app.use("/api/admin/bank", adminBankRoutes );
 
 
-const upiRoutes = require("./routes/adminUpiRoutes");
-app.use("/api/admin/upi", upiRoutes);
+const adminUpiRoutes = require("./routes/adminUpiRoutes");
+app.use("/api/admin/upi", adminUpiRoutes);
 
 app.use("/api/withdraw", require("./routes/withdrawRoutes"));
 

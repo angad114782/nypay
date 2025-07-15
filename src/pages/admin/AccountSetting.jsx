@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { BiEdit } from "react-icons/bi";
 import { FaLandmark } from "react-icons/fa";
+import axios from "axios";
+import { toast } from "sonner";
 
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -33,7 +36,10 @@ const AccountSetting = ({ isOpen, onClose }) => {
       {/* <DialogTrigger>
         <DropdownMenuItem>Account Setting</DropdownMenuItem>
       </DialogTrigger> */}
-      <DialogContent className="bg-white max-h-[90vh] overflow-hidden p-0">
+      <DialogContent
+        overlayClassName={"w-full"}
+        className="bg-white max-h-[90vh] overflow-hidden p-0"
+      >
         <DialogHeader className={"hidden"}>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription>
@@ -79,8 +85,9 @@ export default AccountSetting;
 
 export const AddAccountBankTabList = ({
   data,
-  selectedAccountNumber,
+  selectedBankId,
   onSelect,
+  onDeleteSuccess,
 }) => {
   return (
     <div>
@@ -88,15 +95,58 @@ export const AddAccountBankTabList = ({
         <AddAccountBankTabCard
           key={index}
           data={item}
-          isSelected={selectedAccountNumber === item.accountNumber}
+          isSelected={selectedBankId === item._id}
           onSelect={onSelect}
+          onDeleteSuccess={onDeleteSuccess}
         />
       ))}
     </div>
   );
 };
 
-const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
+
+const AddAccountBankTabCard = ({ data, isSelected, onSelect, onDeleteSuccess }) => {
+  const handleSelect = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${import.meta.env.VITE_URL}/api/admin/bank/set-active/${data._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Bank set as active");
+      onSelect(data._id); // Update selected ID in parent
+    } catch (err) {
+      console.error("Set active bank failed", err);
+      toast.error("Failed to update active bank");
+    }
+  };
+
+  const handleDelete = async () => {
+    // if (!confirm("Are you sure you want to delete this bank account?")) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `${import.meta.env.VITE_URL}/api/admin/bank/delete/${data._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      toast.success("Bank deleted successfully");
+      onDeleteSuccess(); // Refetch data
+    } catch (error) {
+      console.error("Delete Bank Failed", error);
+      toast.error("Failed to delete bank");
+    }
+  };
+
   return (
     <div className="flex flex-col rounded-lg shadow-md bg-[#C7CDD9] gap-2 py-2  px-4 text-black mb-4">
       <div className="flex items-center justify-between">
@@ -106,7 +156,6 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
             <h3 className="text-[14px] font-light leading-[22px]">
               {data.bankName}
             </h3>
-            <p className="text-[10px] font-light">Default</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -114,13 +163,14 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
             type="radio"
             name="selectedBank"
             checked={isSelected}
-            onChange={() => onSelect(data.accountNumber)}
+            onChange={handleSelect}
             className="accent-[#0C42A8] h-6 w-6"
           />
-          {/* Edit Button */}
-          <BiEdit className="h-6 w-6" />
-          {/* Delete Button */}
-          <RiDeleteBin6Line className="text-[#FF0000] h-6 w-6" />
+          <BiEdit className="h-6 w-6 cursor-pointer" />
+          <RiDeleteBin6Line
+            className="text-[#FF0000] h-6 w-6 cursor-pointer"
+            onClick={handleDelete}
+          />
         </div>
       </div>
       <div className="flex flex-col gap-1 py-2">
@@ -129,7 +179,6 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
           <span className="font-medium text-right break-all">
             {(data.accountHolder || "N/A").toUpperCase()}
           </span>
-
         </div>
         <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Number</span>
@@ -148,13 +197,13 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
           <span className="font-medium text-right break-all">
             {data?.createdAt
               ? new Date(data.createdAt).toLocaleString("en-IN", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+              })
               : "N/A"}
           </span>
         </div>

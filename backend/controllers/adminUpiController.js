@@ -4,21 +4,23 @@ const createUpi = async (req, res) => {
   try {
     const { upiName, upiId } = req.body;
 
-    if (!upiName || !upiId) {
+     if (!upiName || !upiId) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const exists = await Upi.findOne({ upiId, userId: req.user._id });
-    if (exists) {
-      return res.status(400).json({ message: "This UPI ID already exists for your account" });
-    }
-const qrImage = req.file ? `/uploads/upi_qr/${req.file.filename}` : null;
+    // Make all previous admin UPIs inactive
+    await Upi.updateMany({ userId: req.user._id }, { $set: { status: "inactive" } });
+
+    const qrImage = req.file ? `/uploads/upi_qr/${req.file.filename}` : null;
+
     const newUpi = await Upi.create({
       userId: req.user._id,
       upiName,
       upiId,
       qrImage,
+      status: "active",
     });
+
 
     res.status(201).json({ message: "UPI added successfully", upi: newUpi });
   } catch (error) {
@@ -78,10 +80,47 @@ const deleteUpi = async (req, res) => {
   }
 };
 
+const setActiveUpi = async (req, res) => {
+  try {
+    const { upiId } = req.params;
+
+    // Deactivate all UPIs for this user
+    await Upi.updateMany({ userId: req.user._id }, { status: "inactive" });
+
+    // Activate the selected UPI
+    const updated = await Upi.findOneAndUpdate(
+      { _id: upiId, userId: req.user._id },
+      { status: "active" },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ message: "UPI not found" });
+    }
+
+    res.json({ message: "UPI set to active", upi: updated });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update UPI", error });
+  }
+};
+
+getActiveUpiForUser = async (req, res) => {
+  try {
+    const upi = await Upi.findOne({ userId: null, status: "active" }); // Admin UPI
+    if (!upi) return res.status(404).json({ message: "No active UPI found" });
+    res.json({ upi });
+  } catch (error) {
+    console.error("Get Active UPI Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 
 module.exports = {
   createUpi,
   listUpis,
   updateUpi,
   deleteUpi,
+  setActiveUpi,
+  getActiveUpiForUser,
 };

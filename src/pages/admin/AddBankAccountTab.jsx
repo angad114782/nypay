@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 const AddAccountBankTab = ({ onClose }) => {
   const [banks, setBanks] = useState([]);
-  const [selectedAccountNumber, setSelectedAccountNumber] = useState(null);
+  const [selectedBankId, setSelectedBankId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchBankData = async () => {
@@ -22,7 +22,15 @@ const AddAccountBankTab = ({ onClose }) => {
         }
       );
 
-      setBanks(res.data.banks || []);
+      const bankList = res.data.banks || [];
+      setBanks(bankList);
+
+      // 🟢 Auto-select active bank
+      const activeBank = bankList.find((bank) => bank.status === "active");
+      if (activeBank) {
+        setSelectedBankId(activeBank._id);
+      }
+
     } catch (error) {
       console.error("❌ Fetch Error:", error);
       toast.error("Failed to fetch bank details");
@@ -36,8 +44,7 @@ const AddAccountBankTab = ({ onClose }) => {
   }, []);
 
   const handleSelect = (id) => {
-    setSelectedAccountNumber(id);
-    console.log("Selected Account Number:", id);
+    setSelectedBankId(id);
   };
 
   return (
@@ -60,9 +67,11 @@ const AddAccountBankTab = ({ onClose }) => {
         ) : (
           <AddAccountBankTabList
             data={banks}
-            selectedAccountNumber={selectedAccountNumber}
+            selectedBankId={selectedBankId}
             onSelect={handleSelect}
+            onDeleteSuccess={fetchBankData}
           />
+
         )}
       </div>
     </>

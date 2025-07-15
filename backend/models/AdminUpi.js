@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 
-const upiSchema = new mongoose.Schema(
+const adminUpiSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
     upiName: { type: String, required: true },
     upiId: { type: String, required: true },
     qrImage: { type: String }, // 🆕 new field
@@ -11,4 +11,4 @@ const upiSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Upi", upiSchema);
+module.exports = mongoose.model("AdminUpi", adminUpiSchema);

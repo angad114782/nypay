@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Lock, PaperclipIcon, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
-export const AddNewUpiDialog = () => {
+export const AddNewUpiDialog = ({ onAdd }) => {
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -44,8 +45,9 @@ export const AddNewUpiDialog = () => {
         },
       });
 
-      alert("✅ UPI added successfully");
-
+      toast.success("UPI added successfully");
+      onAdd(); // ✅ Refetch UPI list
+      setOpen(false); // ✅ Close dialog
       // Reset form
       setTeamManagementData({ upiHolderName: "", upiId: "" });
       setImage(null);
@@ -53,7 +55,7 @@ export const AddNewUpiDialog = () => {
       setOpen(false);
     } catch (error) {
       console.error("❌ UPI Add Error:", error);
-      alert("❌ Failed to add UPI");
+      toast.error("❌ Failed to add UPI");
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,9 @@ export const AddNewUpiDialog = () => {
           </div>
 
           <div className="text-center absolute top-3 left-3 mb-8">
-            <h2 className="text-2xl font-bold text-white">Add New UPI Details</h2>
+            <h2 className="text-2xl font-bold text-white">
+              Add New UPI Details
+            </h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
