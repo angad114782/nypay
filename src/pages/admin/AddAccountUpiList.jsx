@@ -26,7 +26,7 @@ const AddAccountUpiCard = ({ data, isSelected, onSelect, onDelete }) => {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `${import.meta.env.VITE_URL}/api/upi/delete/${data._id}`,
+        `${import.meta.env.VITE_URL}/api/admin/upi/delete/${data._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

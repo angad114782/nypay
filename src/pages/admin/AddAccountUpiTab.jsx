@@ -9,7 +9,7 @@ const AddAccountUpiTab = ({ onClose }) => {
 const fetchUpis = async () => {
   try {
     const token = localStorage.getItem("token");
-    const res = await axios.get(`${import.meta.env.VITE_URL}/api/upi/list`, {
+    const res = await axios.get(`${import.meta.env.VITE_URL}/api/admin/upi/list`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 

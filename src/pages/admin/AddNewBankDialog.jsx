@@ -43,7 +43,7 @@ export const AddNewBankDialog = () => {
     const token = localStorage.getItem("token");
 
   const response = await axios.post(
-  `${import.meta.env.VITE_URL}/api/bank/add`,
+  `${import.meta.env.VITE_URL}/api/admin/bank/add`,
   {
     bankName: teamManagementData.bankName,
     accountHolder: teamManagementData.accountHolderName, // ✅ match backend field

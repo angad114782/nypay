@@ -37,7 +37,7 @@ export const AddNewUpiDialog = () => {
       formData.append("upiId", teamManagementData.upiId);
       if (image) formData.append("qrImage", image);
 
-      await axios.post(`${import.meta.env.VITE_URL}/api/upi/add`, formData, {
+      await axios.post(`${import.meta.env.VITE_URL}/api/admin/upi/add`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

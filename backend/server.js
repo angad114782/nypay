@@ -40,6 +40,13 @@ app.use("/api/bank", bankRoutes );
 const upiRoutes = require("./routes/upiRoutes");
 app.use("/api/upi", upiRoutes);
 
+const bankRoutes  = require("./routes/adminBankRoutes");
+app.use("/api/admin/bank", bankRoutes );
+
+
+const upiRoutes = require("./routes/adminUpiRoutes");
+app.use("/api/admin/upi", upiRoutes);
+
 app.use("/api/withdraw", require("./routes/withdrawRoutes"));
 
 

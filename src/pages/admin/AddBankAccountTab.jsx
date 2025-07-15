@@ -14,7 +14,7 @@ const AddAccountBankTab = ({ onClose }) => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/bank/list`,
+        `${import.meta.env.VITE_URL}/api/admin/bank/list`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
