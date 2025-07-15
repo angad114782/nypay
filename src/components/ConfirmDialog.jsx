@@ -15,7 +15,7 @@ const ConfirmDialog = ({ buttonLogo, title, description, onClick }) => {
   return (
     <Dialog>
       <DialogTrigger>{buttonLogo}</DialogTrigger>
-      <DialogContent>
+      <DialogContent overlayClassName={"max-w-3xl mx-auto"}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogHeader,
+  DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RiDeleteBin6Line } from "react-icons/ri";
@@ -33,7 +34,10 @@ const AccountSetting = ({ isOpen, onClose }) => {
       {/* <DialogTrigger>
         <DropdownMenuItem>Account Setting</DropdownMenuItem>
       </DialogTrigger> */}
-      <DialogContent className="bg-white max-h-[90vh] overflow-hidden p-0">
+      <DialogContent
+        overlayClassName={"w-full"}
+        className="bg-white max-h-[90vh] overflow-hidden p-0"
+      >
         <DialogHeader className={"hidden"}>
           <DialogTitle>Are you absolutely sure?</DialogTitle>
           <DialogDescription>
@@ -129,7 +133,6 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
           <span className="font-medium text-right break-all">
             {(data.accountHolder || "N/A").toUpperCase()}
           </span>
-
         </div>
         <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Number</span>

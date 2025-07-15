@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
+  DialogOverlay,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -15,7 +16,8 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 
-export const AddNewBankDialog = () => {
+export const AddNewBankDialog = ({ onSuccess }) => {
+  const [open, setOpen] = useState(false);
   const [teamManagementData, setTeamManagementData] = useState({
     accountHolderName: "",
     accountNumber: "",
@@ -36,40 +38,47 @@ export const AddNewBankDialog = () => {
   // };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const token = localStorage.getItem("token");
+    try {
+      const token = localStorage.getItem("token");
 
-  const response = await axios.post(
-  `${import.meta.env.VITE_URL}/api/bank/add`,
-  {
-    bankName: teamManagementData.bankName,
-    accountHolder: teamManagementData.accountHolderName, // ✅ match backend field
-    accountNumber: teamManagementData.accountNumber,
-    ifscCode: teamManagementData.ifscCode,
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+      const response = await axios.post(
+        `${import.meta.env.VITE_URL}/api/bank/add`,
+        {
+          bankName: teamManagementData.bankName,
+          accountHolder: teamManagementData.accountHolderName, // ✅ match backend field
+          accountNumber: teamManagementData.accountNumber,
+          ifscCode: teamManagementData.ifscCode,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-
-    toast.success("Bank added successfully");
-    // console.log("✔ Response:", response.data);
-  } catch (err) {
-    console.error("❌ Error:", err);
-    toast.error(err?.response?.data?.message || "Something went wrong");
-  } finally {
-    setLoading(false);
-  }
-};
+      toast.success("Bank added successfully");
+      onSuccess(); // ✅ Refetch UPI list
+      setOpen(false); // ✅ Close dialog
+      // Reset form
+      setTeamManagementData({
+        accountHolderName: "",
+        accountNumber: "",
+        ifscCode: "",
+        bankName: "",
+      });
+    } catch (err) {
+      console.error("❌ Error:", err);
+      toast.error(err?.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="bg-[#0C42A8] mx-auto w-full py-2 rounded-lg mb-4 text-white">
         Add New Bank Details
       </DialogTrigger>
