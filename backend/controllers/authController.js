@@ -288,18 +288,24 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
+// controllers/authController.js
 exports.logout = async (req, res) => {
   try {
-    // Optional: Track logout time
-    console.log(`User logged out: ${req.user._id} at ${new Date()}`);
+    if (req.user?._id) {
+      console.log(`✅ User logged out: ${req.user._id} at ${new Date()}`);
+    } else {
+      console.log(`⚠️ Logout: Token received but user not found (maybe deleted)`);
+    }
 
-    // Optional: Invalidate refresh token (if stored in DB)
+    // Optional: Clear refresh tokens or session if used
 
-    res.status(200).json({ message: "Logged out successfully" });
+    return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Logout failed" });
+    console.error("❌ Logout failed:", error.message);
+    return res.status(500).json({ message: "Logout failed" });
   }
 };
+
 exports.changePassword = async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -333,3 +339,84 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+exports.sendResetOtp = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ message: "Email is required" });
+
+  try {
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await Otp.findOneAndUpdate(
+      { email, type: "reset" },
+      {
+        email,
+        otp,
+        type: "reset",
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      },
+      { upsert: true }
+    );
+
+    await sendOtpEmail(email, otp); // or sendOtpWhatsApp if needed
+
+    res.status(200).json({ message: "OTP sent to email" });
+  } catch (err) {
+    console.error("Send Reset OTP Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+exports.verifyResetOtp = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp)
+    return res.status(400).json({ message: "Email and OTP are required" });
+
+  try {
+    const record = await Otp.findOne({ email, type: "reset" });
+
+    if (!record) return res.status(404).json({ message: "OTP not found" });
+    if (record.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (record.expiresAt < Date.now())
+      return res.status(410).json({ message: "OTP expired" });
+
+    res.status(200).json({ message: "OTP verified" });
+  } catch (err) {
+    console.error("Verify OTP Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { email, otp, newPassword, confirmPassword } = req.body;
+
+  if (!email || !otp || !newPassword || !confirmPassword)
+    return res.status(400).json({ message: "All fields are required" });
+
+  if (newPassword !== confirmPassword)
+    return res.status(400).json({ message: "Passwords do not match" });
+
+  try {
+    const record = await Otp.findOne({ email, type: "reset" });
+    if (!record) return res.status(404).json({ message: "OTP not found" });
+    if (record.otp !== otp) return res.status(400).json({ message: "Invalid OTP" });
+    if (record.expiresAt < Date.now())
+      return res.status(410).json({ message: "OTP expired" });
+
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.password = await bcrypt.hash(newPassword, 12);
+    await user.save();
+
+    await Otp.deleteOne({ email, type: "reset" });
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (err) {
+    console.error("Reset Password Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

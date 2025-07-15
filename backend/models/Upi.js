@@ -1,20 +1,12 @@
+// models/Upi.js
 const mongoose = require("mongoose");
 
 const upiSchema = new mongoose.Schema(
   {
-    upiName: {
-      type: String,
-      required: true,
-    },
-    upiId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    status: {
-      type: String,
-      default: "Active",
-    },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    upiName: { type: String, required: true },
+    upiId: { type: String, required: true },
+    status: { type: String, default: "active" }, // Optional
   },
   { timestamps: true }
 );
