@@ -45,9 +45,47 @@ import SuperAdminClientSetup from "../super admin/SuperAdminClientSetup";
 import ClientDetails from "../super admin/ClientDetails";
 import SuperAdminBannerSlider from "../super admin/SuperAdminBannerSlider";
 import { FaLandmark } from "react-icons/fa";
+import { toast } from "sonner";
+import { useAuth } from "@/utils/AuthContext";
+import axios from "axios";
 
 const Dashboard = () => {
   const { tab } = useParams();
+  const { setIsLoggedIn } = useAuth();
+  const [logoutLoading, setLogoutLoading] = useState(false);
+
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        alert("You're already logged out");
+        setLogoutLoading(false);
+        return;
+      }
+
+      await axios.post(
+        `${import.meta.env.VITE_URL}/api/auth/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("userProfile");
+      setIsLoggedIn(false);
+      navigate("/login");
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error", error);
+      toast.error("Logout failed");
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isMessageCounterDialogOpen, setIsMessageCounterDialogOpen] =
@@ -106,18 +144,6 @@ const Dashboard = () => {
     return tabMap[tab] || tab || "dashboard";
   };
 
-  // const getCurrentTab = () => {
-  //   const pathSegments = location.pathname.split("/");
-  //   if (pathSegments.includes("super-admin")) {
-  //     return (
-  //       pathSegments[pathSegments.indexOf("super-admin") + 1] || "dashboard"
-  //     );
-  //   } else if (pathSegments.includes("admin")) {
-  //     return pathSegments[pathSegments.indexOf("admin") + 1] || "dashboard";
-  //   }
-  //   return "dashboard";
-  // };
-
   const [activeTab, setActiveTab] = useState(getCurrentTab());
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -129,16 +155,18 @@ const Dashboard = () => {
   // Fixed handleTabChange to accept both main tab and sub-tab
   const handleTabChange = (mainTab, subTab = null) => {
     setActiveTab(mainTab);
-    const basePath = isSuperAdmin ? "/super-admin" : "/admin";
-    navigate(`${basePath}/${mainTab?.toLowerCase()}`, {
-      state: { subTab },
-    });
+
+    if (mainTab !== "LogOut") {
+      const basePath = isSuperAdmin ? "/super-admin" : "/admin";
+      navigate(`${basePath}/${mainTab?.toLowerCase()}`, {
+        state: { subTab },
+      });
+    }
 
     if (window.innerWidth < 768) {
       setIsMobileMenuOpen(false);
     }
   };
-
   // Super Admin sidebar items (includes all tabs)
   const superAdminSidebarItems = [
     {
@@ -241,8 +269,8 @@ const Dashboard = () => {
                   >
                     Cancel
                   </Button>
-                  <Button onClick={() => handleLogout()} variant="destructive">
-                    Logout
+                  <Button onClick={handleLogout} variant="destructive">
+                    {logoutLoading ? "Loading ..." : "Logout"}
                   </Button>
                 </div>
               </CardContent>
