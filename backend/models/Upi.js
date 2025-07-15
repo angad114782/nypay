@@ -1,4 +1,3 @@
-// models/Upi.js
 const mongoose = require("mongoose");
 
 const upiSchema = new mongoose.Schema(
@@ -6,7 +5,8 @@ const upiSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     upiName: { type: String, required: true },
     upiId: { type: String, required: true },
-    status: { type: String, default: "active" }, // Optional
+    qrImage: { type: String }, // 🆕 new field
+    status: { type: String, enum: ["active", "inactive"], default: "active" },
   },
   { timestamps: true }
 );

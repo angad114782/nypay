@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
 import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export const AddNewBankDialog = () => {
   const [teamManagementData, setTeamManagementData] = useState({
@@ -33,26 +35,38 @@ export const AddNewBankDialog = () => {
   //   }));
   // };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    // Prepare final payload
-    const payload = {
-      accountHolderName: teamManagementData.accountHolderName,
-      accountNumber: teamManagementData.accountNumber,
-      ifscCode: teamManagementData.ifscCode,
-      bankName: teamManagementData.bankName,
-    };
+  try {
+    const token = localStorage.getItem("token");
 
-    console.log("Submitting data to backend:", payload);
+  const response = await axios.post(
+  `${import.meta.env.VITE_URL}/api/bank/add`,
+  {
+    bankName: teamManagementData.bankName,
+    accountHolder: teamManagementData.accountHolderName, // ✅ match backend field
+    accountNumber: teamManagementData.accountNumber,
+    ifscCode: teamManagementData.ifscCode,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
 
-    // Simulate API
-    setTimeout(() => {
-      setLoading(false);
-      alert("Submitted successfully!");
-    }, 1000);
-  };
+
+    toast.success("Bank added successfully");
+    // console.log("✔ Response:", response.data);
+  } catch (err) {
+    console.error("❌ Error:", err);
+    toast.error(err?.response?.data?.message || "Something went wrong");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Dialog>
@@ -92,7 +106,7 @@ export const AddNewBankDialog = () => {
                   onChange={(e) =>
                     setTeamManagementData({
                       ...teamManagementData,
-                      accountHolderName,
+                      accountHolderName: e.target.value,
                     })
                   }
                   placeholder="Enter Account Holder Name"

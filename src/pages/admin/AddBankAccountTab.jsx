@@ -1,87 +1,50 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AddAccountBankTabList } from "./AccountSetting";
 import { AddNewBankDialog } from "./AddNewBankDialog";
-
-const data = [
-  {
-    bankName: "Bank of America",
-    accountNumber: "1234567890",
-    holderName: "John Doe",
-    ifscCode: "BOFAUS3N",
-    accountHolderName: "John Doe",
-    createdAt: "2023-10-01",
-  },
-  {
-    bankName: "Chase Bank",
-    accountNumber: "0987654321",
-    holderName: "Jane Smith",
-    ifscCode: "CHASUS33",
-    accountHolderName: "Jane Smith",
-    createdAt: "2023-10-02",
-  },
-  {
-    bankName: "Wells Fargo",
-    accountNumber: "1122334455",
-    holderName: "Alice Johnson",
-    ifscCode: "WFBIUS6S",
-    accountHolderName: "Alice Johnson",
-    createdAt: "2023-10-03",
-  },
-  {
-    bankName: "Citibank",
-    accountNumber: "5566778899",
-    holderName: "Bob Brown",
-    ifscCode: "CITIUS33",
-    accountHolderName: "Bob Brown",
-    createdAt: "2023-10-04",
-  },
-  {
-    bankName: "PNC Bank",
-    accountNumber: "2233445566",
-    holderName: "Charlie Davis",
-    ifscCode: "PNCCUS33",
-    accountHolderName: "Charlie Davis",
-    createdAt: "2023-10-05",
-  },
-  {
-    bankName: "Capital One",
-    accountNumber: "3344556677",
-    holderName: "Diana Prince",
-    ifscCode: "CAPLUS33",
-    accountHolderName: "Diana Prince",
-    createdAt: "2023-10-06",
-  },
-  {
-    bankName: "TD Bank",
-    accountNumber: "4455667788",
-    holderName: "Ethan Hunt",
-    ifscCode: "TDUS33N",
-    accountHolderName: "Ethan Hunt",
-    createdAt: "2023-10-07",
-  },
-  {
-    bankName: "US Bank",
-    accountNumber: "55667788990",
-    holderName: "Fiona Gallagher",
-    ifscCode: "USBKUS33",
-    accountHolderName: "Fiona Gallagher",
-    createdAt: "2023-10-08",
-  },
-];
+import axios from "axios";
+import { toast } from "sonner";
 
 const AddAccountBankTab = ({ onClose }) => {
+  const [banks, setBanks] = useState([]);
   const [selectedAccountNumber, setSelectedAccountNumber] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchBankData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/bank/list`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setBanks(res.data.banks || []);
+    } catch (error) {
+      console.error("❌ Fetch Error:", error);
+      toast.error("Failed to fetch bank details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBankData();
+  }, []);
 
   const handleSelect = (id) => {
     setSelectedAccountNumber(id);
-    // Optional: send `id` to backend here
     console.log("Selected Account Number:", id);
   };
+
   return (
     <>
       <div>
-        <div className="flex justify-between  flex-col">
-          <AddNewBankDialog />
+        <div className="flex justify-between flex-col">
+          <AddNewBankDialog onSuccess={fetchBankData} />
           <button
             onClick={onClose}
             className="bg-[#0C42A8] mx-auto w-full py-2 rounded-lg mb-4 text-white"
@@ -90,11 +53,17 @@ const AddAccountBankTab = ({ onClose }) => {
           </button>
         </div>
 
-        <AddAccountBankTabList
-          data={data}
-          selectedAccountNumber={selectedAccountNumber}
-          onSelect={handleSelect}
-        />
+        {loading ? (
+          <p className="text-center text-gray-500">Loading banks...</p>
+        ) : banks.length === 0 ? (
+          <p className="text-center text-gray-500">No banks added yet</p>
+        ) : (
+          <AddAccountBankTabList
+            data={banks}
+            selectedAccountNumber={selectedAccountNumber}
+            onSelect={handleSelect}
+          />
+        )}
       </div>
     </>
   );

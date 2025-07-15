@@ -1,4 +1,7 @@
 import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { useEffect, useRef, useState } from "react";
+
 import {
   Dialog,
   DialogContent,
@@ -7,7 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Camera } from "lucide-react";
-import { useRef, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import Logo from "/asset/logo.png";
@@ -39,6 +41,62 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
     }
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      const fetchProfile = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          setFormData({
+            fullName: res.data.name || "",
+            contactNo: res.data.phone || "",
+            email: res.data.email || "",
+          });
+
+          if (res.data.profilePic) {
+            setSelectedImage(`${import.meta.env.VITE_URL}/${res.data.profilePic}`);
+          } else {
+            setSelectedImage(Logo);
+          }
+        } catch (err) {
+          console.error("❌ Failed to fetch profile", err);
+        }
+      };
+
+      fetchProfile();
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      const data = new FormData();
+      data.append("name", formData.fullName);
+      data.append("phone", formData.contactNo);
+      data.append("email", formData.email);
+      if (imageFile) data.append("profilePic", imageFile);
+
+      await axios.put(`${import.meta.env.VITE_URL}/api/auth/me/update`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("✅ Profile updated successfully");
+      onClose();
+    } catch (err) {
+      console.error("❌ Update error:", err.response?.data || err.message);
+      alert("❌ Failed to update profile");
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[525px] p-0 bg-white text-black overflow-hidden">
@@ -60,7 +118,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
               <div className="relative">
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gray-100">
                   <img
-                    src={Logo || ""}
+                    src={selectedImage || Logo}
                     alt="Profile"
                     className="w-full h-full object-cover"
                   />
@@ -84,7 +142,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
                 <Label className="text-gray-800 font-medium">Full Name</Label>

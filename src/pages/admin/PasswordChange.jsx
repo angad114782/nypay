@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock } from "lucide-react";
 import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export const PasswordChangeDialog = ({ isOpen, onClose }) => {
   const [passwordData, setPasswordData] = useState({
@@ -17,50 +19,51 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
     newPassword: "",
     confirmPassword: "",
   });
+
   const [loading, setLoading] = useState(false);
 
-  //   const handleSubmit = async (e) => {
-  //     e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const { oldPassword, newPassword, confirmPassword } = passwordData;
 
-  //     const { oldPassword, newPassword, confirmPassword } = passwordData;
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      toast.error("❌ All fields are required");
+      return;
+    }
 
-  //     if (!oldPassword || !newPassword || !confirmPassword) {
-  //       toast.error("All fields are required");
-  //       return;
-  //     }
+    if (newPassword !== confirmPassword) {
+      toast.error("❌ Passwords do not match");
+      return;
+    }
 
-  //     if (newPassword !== confirmPassword) {
-  //       toast.error("New passwords do not match");
-  //       return;
-  //     }
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-  //     try {
-  //       setLoading(true);
-  //       const token = localStorage.getItem("token");
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/auth/change-password`,
+        {
+          oldPassword,
+          newPassword,
+          confirmPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-  //       const response = await fetch(`${import.meta.env.VITE_URL}/change-password`, {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //         body: JSON.stringify({ oldPassword, newPassword }),
-  //       });
-
-  //       const data = await response.json();
-
-  //       if (!response.ok) {
-  //         throw new Error(data.message || "Password change failed");
-  //       }
-
-  //       toast.success(data.message || "Password changed successfully");
-  //       onClose();
-  //     } catch (err: any) {
-  //       toast.error(err.message || "Something went wrong");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+      toast.success("✅ Password changed successfully");
+      onClose();
+    } catch (err) {
+      console.error("❌ Update error:", err.response?.data || err.message);
+      toast.error("❌ Failed to change password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -68,11 +71,9 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
         <DialogTitle className="hidden" />
         <DialogDescription className="hidden" />
 
-        {/* Header with gradient */}
         <div className="h-24 bg-gradient-to-r from-[#8AAA08] to-[#15CA5280]" />
 
         <div className="px-6">
-          {/* Lock Icon */}
           <div className="flex items-center justify-center -mt-12 mb-6">
             <div className="bg-white rounded-full p-4 shadow-lg">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
@@ -81,7 +82,6 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Title */}
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-gray-800">
               Change Password
@@ -89,11 +89,7 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
             <p className="text-gray-600">Please enter your password details</p>
           </div>
 
-          {/* Form */}
-          <form
-            //   onSubmit={handleSubmit}
-            className="space-y-6"
-          >
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div>
                 <Label className="text-gray-800 font-medium">

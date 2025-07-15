@@ -127,8 +127,9 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
         <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Holder Name</span>
           <span className="font-medium text-right break-all">
-            {data.accountHolderName.toUpperCase()}
+            {(data.accountHolder || "N/A").toUpperCase()}
           </span>
+
         </div>
         <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Number</span>
@@ -145,7 +146,16 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect }) => {
         <div className="flex items-center justify-between text-[14px]">
           <span className="font-light min-w-[120px]">Account Added On</span>
           <span className="font-medium text-right break-all">
-            {data.createdAt}
+            {data?.createdAt
+              ? new Date(data.createdAt).toLocaleString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
+              : "N/A"}
           </span>
         </div>
       </div>

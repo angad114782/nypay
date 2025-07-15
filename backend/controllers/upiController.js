@@ -12,11 +12,12 @@ const createUpi = async (req, res) => {
     if (exists) {
       return res.status(400).json({ message: "This UPI ID already exists for your account" });
     }
-
+const qrImage = req.file ? `/uploads/upi_qr/${req.file.filename}` : null;
     const newUpi = await Upi.create({
       userId: req.user._id,
       upiName,
       upiId,
+      qrImage,
     });
 
     res.status(201).json({ message: "UPI added successfully", upi: newUpi });
@@ -37,7 +38,6 @@ const listUpis = async (req, res) => {
 };
 
 
-// Update UPI
 const updateUpi = async (req, res) => {
   try {
     const { id } = req.params;
@@ -50,12 +50,18 @@ const updateUpi = async (req, res) => {
     if (upiId) upi.upiId = upiId;
     if (status) upi.status = status;
 
+    // ✅ Handle optional new image upload
+    if (req.file) {
+      upi.qrImage = `/uploads/upi_qr/${req.file.filename}`;
+    }
+
     await upi.save();
     res.json({ message: "UPI updated", upi });
   } catch (error) {
-    res.status(500).json({ message: "Failed to update UPI", error });
+    res.status(500).json({ message: "Failed to update UPI", error: error.message });
   }
 };
+
 
 
 // Delete UPI

@@ -12,10 +12,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, PaperclipIcon, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
+import axios from "axios";
 
 export const AddNewUpiDialog = () => {
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
+  const [open, setOpen] = useState(false);
 
   const [teamManagementData, setTeamManagementData] = useState({
     upiHolderName: "",
@@ -24,46 +26,49 @@ export const AddNewUpiDialog = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const handleRoleChange = (role) => {
-    setTeamManagementData((prev) => ({
-      ...prev,
-      roles: {
-        ...prev.roles,
-        [role]: !prev.roles[role],
-      },
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Prepare final payload
-    const payload = {
-      upiHolderName: teamManagementData.upiHolderName,
-      upiId: teamManagementData.upiId,
-    };
+    try {
+      const token = localStorage.getItem("token");
+      const formData = new FormData();
+      formData.append("upiName", teamManagementData.upiHolderName);
+      formData.append("upiId", teamManagementData.upiId);
+      if (image) formData.append("qrImage", image);
 
-    console.log("Submitting data to backend:", payload);
+      await axios.post(`${import.meta.env.VITE_URL}/api/upi/add`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    // Simulate API
-    setTimeout(() => {
+      alert("✅ UPI added successfully");
+
+      // Reset form
+      setTeamManagementData({ upiHolderName: "", upiId: "" });
+      setImage(null);
+      fileInputRef.current.value = "";
+      setOpen(false);
+    } catch (error) {
+      console.error("❌ UPI Add Error:", error);
+      alert("❌ Failed to add UPI");
+    } finally {
       setLoading(false);
-      alert("Submitted successfully!");
-    }, 1000);
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger className="bg-[#0C42A8] mx-auto w-full py-2 rounded-lg mb-4 text-white">
         Add New UPI Details
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] bg-white text-black p-0 overflow-hidden">
-        <DialogTitle className={"hidden"}></DialogTitle>
-        <DialogDescription className={"hidden"}></DialogDescription>
+        <DialogTitle className="hidden" />
+        <DialogDescription className="hidden" />
         <div className="h-24 bg-gradient-to-r relative from-[#8AAA08] -z-20 to-[#15CA5280]" />
         <div className="px-6">
-          {/* Lock Icon */}
           <div className="flex items-center justify-center -mt-12 mb-6">
             <div className="bg-white rounded-full p-4 shadow-lg">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
@@ -72,18 +77,14 @@ export const AddNewUpiDialog = () => {
             </div>
           </div>
 
-          {/* Title */}
           <div className="text-center absolute top-3 left-3 mb-8">
-            <h2 className="text-2xl font-bold text-white">
-              Add New Upi Details
-            </h2>
+            <h2 className="text-2xl font-bold text-white">Add New UPI Details</h2>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div>
-                <Label className="text-gray-800 font-medium">Panel Name</Label>
+                <Label className="text-gray-800 font-medium">UPI Name</Label>
                 <Input
                   type="text"
                   name="upiHolderName"
@@ -94,7 +95,7 @@ export const AddNewUpiDialog = () => {
                       upiHolderName: e.target.value,
                     })
                   }
-                  placeholder="Enter team member name"
+                  placeholder="Enter UPI name"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
                 />
               </div>
@@ -111,7 +112,7 @@ export const AddNewUpiDialog = () => {
                       upiId: e.target.value,
                     })
                   }
-                  placeholder="Enter required user ID"
+                  placeholder="Enter UPI ID"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
                 />
               </div>
@@ -121,14 +122,14 @@ export const AddNewUpiDialog = () => {
                   Upload UPI QR Code Image
                 </Label>
 
-                {/* Trigger Upload Button */}
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     className="bg-gray-100 text-black hover:bg-gray-200 border items-center justify-start border-gray-300 flex-1"
                   >
-                    <PaperclipIcon /> {image ? image.name : "Upload Image"}
+                    <PaperclipIcon className="mr-2" />
+                    {image ? image.name : "Upload Image"}
                   </Button>
 
                   {image && (
@@ -138,8 +139,7 @@ export const AddNewUpiDialog = () => {
                       className="p-2 hover:text-red-500"
                       onClick={() => {
                         setImage(null);
-                        if (fileInputRef.current)
-                          fileInputRef.current.value = "";
+                        fileInputRef.current.value = "";
                       }}
                       title="Remove Image"
                     >
@@ -148,7 +148,6 @@ export const AddNewUpiDialog = () => {
                   )}
                 </div>
 
-                {/* Hidden input */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -156,13 +155,10 @@ export const AddNewUpiDialog = () => {
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files[0];
-                    if (file) {
-                      setImage(file);
-                    }
+                    if (file) setImage(file);
                   }}
                 />
 
-                {/* Drag-and-drop area */}
                 <div
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={(e) => {
@@ -178,6 +174,7 @@ export const AddNewUpiDialog = () => {
                 </div>
               </div>
             </div>
+
             <DialogFooter className="pb-6 px-0">
               <div className="flex gap-3 w-full">
                 <DialogClose asChild>
@@ -188,15 +185,14 @@ export const AddNewUpiDialog = () => {
                     Cancel
                   </Button>
                 </DialogClose>
-                <DialogClose asChild>
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-                    disabled={loading}
-                  >
-                    {loading ? "Submitting..." : "Submit"}
-                  </Button>
-                </DialogClose>
+
+                <Button
+                  type="submit"
+                  className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+                  disabled={loading}
+                >
+                  {loading ? "Submitting..." : "Submit"}
+                </Button>
               </div>
             </DialogFooter>
           </form>
