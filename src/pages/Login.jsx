@@ -151,10 +151,9 @@ function Login() {
         const data = await response.json();
         if (response.ok) {
           localStorage.setItem("token", data.token);
-          toast.success("Logged In Successfully");
           setIsLoggedIn(true);
           refreshUserProfile(); // ADD THIS LINE
-          navigate("/");
+          toast.success("Logged In Successfully");
         } else alert(data.message || "Invalid OTP");
       } catch (err) {
         alert("Failed to verify OTP");
@@ -255,7 +254,6 @@ function Login() {
       {step === 1 && (
         <div className="min-h-[80%] flex flex-col">
           <div className="bgt-blue px-3 min-h-[260px] sm:min-h-[220px] flex justify-center items-center relative flex-shrink-0">
-
             <button
               className="p-4 mb-7 backBtn absolute top-0 left-0 z-2"
               onClick={handleBack}

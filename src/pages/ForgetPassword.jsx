@@ -23,7 +23,10 @@ function ForgotPassword() {
 
     try {
       setLoading(true);
-      const res = await axios.post(`${import.meta.env.VITE_URL}/api/auth/send-reset-otp`, { email });
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/auth/send-reset-otp`,
+        { email }
+      );
       toast.success(res.data.message || "OTP sent to email");
       setStep(2);
     } catch (err) {
@@ -40,7 +43,10 @@ function ForgotPassword() {
 
     try {
       setLoading(true);
-      const res = await axios.post(`${import.meta.env.VITE_URL}/api/auth/verify-reset-otp`, { email, otp });
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/auth/verify-reset-otp`,
+        { email, otp }
+      );
       toast.success(res.data.message || "OTP verified");
       setStep(3);
     } catch (err) {
@@ -49,7 +55,6 @@ function ForgotPassword() {
       setLoading(false);
     }
   };
-
   // Step 3: Reset Password
   const handleNewPassword = async (e) => {
     e.preventDefault();
@@ -62,12 +67,20 @@ function ForgotPassword() {
 
     try {
       setLoading(true);
-      await axios.post(`${import.meta.env.VITE_URL}/api/auth/reset-password`, {
-        email,
-        otp,
-        newPassword,
-        confirmPassword,
-      });
+      await axios.post(
+        `${import.meta.env.VITE_URL}/api/auth/reset-password`,
+        {
+          email,
+          otp,
+          newPassword,
+          confirmPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       toast.success("✅ New password set successfully!");
       navigate("/login");
     } catch (err) {
@@ -88,7 +101,11 @@ function ForgotPassword() {
       {step === 1 && (
         <div className="flex flex-col min-h-screen">
           <div className="bgt-blue px-3 py-6 flex justify-center items-center relative">
-            <button onClick={() => navigate(-1)} disabled={loading} className="absolute left-4 top-4">
+            <button
+              onClick={() => navigate(-1)}
+              disabled={loading}
+              className="absolute left-4 top-4"
+            >
               <ArrowLeft className="text-white" />
             </button>
             <img src={logonew} alt="Logo" className="max-w-[200px]" />
@@ -107,7 +124,11 @@ function ForgotPassword() {
               disabled={loading}
             />
             {error && <p className="text-red-500 mb-2">{error}</p>}
-            <Button onClick={handleSendOtp} disabled={loading} className="w-full bg-[#0C42A8]">
+            <Button
+              onClick={handleSendOtp}
+              disabled={loading}
+              className="w-full bg-[#0C42A8]"
+            >
               {loading ? "Sending..." : "Send OTP"}
             </Button>
           </div>
@@ -151,7 +172,9 @@ function ForgotPassword() {
             className="absolute top-5 left-4 size-6 text-white cursor-pointer"
           />
           <div className="bg-white p-5 rounded-xl shadow-md w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4 text-center">Set New Password</h3>
+            <h3 className="text-lg font-semibold mb-4 text-center">
+              Set New Password
+            </h3>
             <form onSubmit={handleNewPassword} className="space-y-4">
               <input
                 type="password"
@@ -170,7 +193,12 @@ function ForgotPassword() {
               <Button type="submit" className="w-full bg-[#0C42A8]">
                 {loading ? "Updating..." : "Submit"}
               </Button>
-              <Button type="button" variant="outline" onClick={handleCancelNewPassword} className="w-full">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancelNewPassword}
+                className="w-full"
+              >
                 Cancel
               </Button>
             </form>

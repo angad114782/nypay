@@ -149,9 +149,10 @@ function Register() {
         if (res.ok) {
           localStorage.setItem("token", data.token);
           setIsLoggedIn(true);
-          refreshUserProfile(); // ADD THIS LINE
-          setStep(3);
+          refreshUserProfile();
           toast.success("OTP verified successfully");
+          setStep(3); // ✅ This is needed
+          // navigate("/");
         } else {
           toast.error(data?.message || "Invalid OTP");
           setErrors((prev) => ({ ...prev, otp: true }));

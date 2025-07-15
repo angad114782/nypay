@@ -1,23 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Notification from "./pages/Notification";
-import Id from "./pages/Id";
-import Passbook from "./pages/Passbook";
-import Banking from "./pages/Banking";
-import Dashboard from "./pages/admin/AdminDashboard";
+import { useEffect, useState } from "react";
+import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "./components/theme-provider";
-import MyProfile from "./pages/MyProfile";
-import ClientDetails from "./pages/super admin/ClientDetails";
-import Splashscreen from "./pages/Splashscreen";
-import RulesPage from "./pages/Rules";
-import ProtectedRoute from "./utils/ProtectedRoute";
+import Banking from "./pages/Banking";
 import ChangePassword from "./pages/ChangePassword";
 import ForgotPassword from "./pages/ForgetPassword";
-import { ToastContainer } from "react-toastify";
+import Home from "./pages/Home";
+import Id from "./pages/Id";
+import Login from "./pages/Login";
+import MyProfile from "./pages/MyProfile";
+import Notification from "./pages/Notification";
+import Passbook from "./pages/Passbook";
+import Register from "./pages/Register";
+import RulesPage from "./pages/Rules";
+import Splashscreen from "./pages/Splashscreen";
+import Dashboard from "./pages/admin/AdminDashboard";
+import ClientDetails from "./pages/super admin/ClientDetails";
+import {
+  AdminRoute,
+  ClientRoute,
+  MixedRoute,
+  PublicRoute,
+  SuperAdminRoute,
+} from "./utils/ProtectedRoute";
+
+// Import all route protection components
 
 function App() {
   const [loading, setLoading] = useState(() => {
@@ -40,105 +47,183 @@ function App() {
 
   return (
     <>
-      <ToastContainer position="top-center" />
       <Toaster position="top-center" richColors />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
+        {/* Public Routes - Only accessible when NOT logged in */}
         <Route
-          path="/notification"
+          path="/register"
           element={
-            <ProtectedRoute>
-              <Notification />
-            </ProtectedRoute>
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
           }
         />
         <Route
-          path="/my-profile"
+          path="/login"
           element={
-            <ProtectedRoute>
-              <MyProfile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/change-password"
-          element={
-            <ProtectedRoute>
-              <ChangePassword />
-            </ProtectedRoute>
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
           }
         />
         <Route
           path="/forgot-password"
           element={
-            // <ProtectedRoute>
-            <ForgotPassword />
-            // </ProtectedRoute>
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
           }
         />
-        <Route path="/id" element={<Id />} />
+        {/* Mixed Routes - Accessible to everyone OR specific roles */}
+        <Route
+          path="/rules"
+          element={
+            <MixedRoute
+              allowPublic={true}
+              allowedRoles={["user", "admin", "super-admin"]}
+            >
+              <RulesPage />
+            </MixedRoute>
+          }
+        />
+
+        {/* Client Routes - Only for users with role "user" */}
+
+        <Route
+          path="/"
+          element={
+            <MixedRoute allowPublic={true} allowedRoles={["user"]}>
+              <Home />
+            </MixedRoute>
+          }
+        />
+
+        <Route
+          path="/notification"
+          element={
+            <ClientRoute>
+              <Notification />
+            </ClientRoute>
+          }
+        />
+        <Route
+          path="/my-profile"
+          element={
+            <ClientRoute>
+              <MyProfile />
+            </ClientRoute>
+          }
+        />
+        <Route
+          path="/change-password"
+          element={
+            <ClientRoute>
+              <ChangePassword />
+            </ClientRoute>
+          }
+        />
+        <Route
+          path="/id"
+          element={
+            <ClientRoute>
+              <Id />
+            </ClientRoute>
+          }
+        />
         <Route
           path="/banking"
           element={
-            <ProtectedRoute>
+            <ClientRoute>
               <Banking />
-            </ProtectedRoute>
+            </ClientRoute>
           }
         />
-        <Route path="/passbook" element={<Passbook />} />
-        <Route path="/rules" element={<RulesPage />} />
+        <Route
+          path="/passbook"
+          element={
+            <ClientRoute>
+              <Passbook />
+            </ClientRoute>
+          }
+        />
 
-        {/* Regular Admin Routes */}
+        {/* Admin Routes - Only for users with role "admin" */}
         <Route
           path="/admin"
           element={
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <div id="adminDashboard">
-                <Dashboard />
-              </div>
-            </ThemeProvider>
+            <AdminRoute>
+              <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+                <div id="adminDashboard">
+                  <Dashboard />
+                </div>
+              </ThemeProvider>
+            </AdminRoute>
           }
         />
         <Route
           path="/admin/:tab"
           element={
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <div id="adminDashboard">
-                <Dashboard />
-              </div>
-            </ThemeProvider>
+            <AdminRoute>
+              <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+                <div id="adminDashboard">
+                  <Dashboard />
+                </div>
+              </ThemeProvider>
+            </AdminRoute>
           }
         />
 
-        {/* Super Admin Routes */}
+        {/* Super Admin Routes - Only for users with role "super-admin" */}
         <Route
           path="/super-admin"
           element={
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <div id="superAdminDashboard">
-                <Dashboard />
-              </div>
-            </ThemeProvider>
+            <SuperAdminRoute>
+              <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+                <div id="superAdminDashboard">
+                  <Dashboard />
+                </div>
+              </ThemeProvider>
+            </SuperAdminRoute>
           }
         />
         <Route
           path="/super-admin/:tab"
           element={
-            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-              <div id="superAdminDashboard">
-                <Dashboard />
-              </div>
-            </ThemeProvider>
+            <SuperAdminRoute>
+              <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+                <div id="superAdminDashboard">
+                  <Dashboard />
+                </div>
+              </ThemeProvider>
+            </SuperAdminRoute>
           }
         />
 
+        {/* Client Details - Accessible to both admin and super-admin */}
+        <Route
+          path="/client-details"
+          element={
+            <SuperAdminRoute>
+              <ClientDetails />
+            </SuperAdminRoute>
+          }
+        />
+
+        {/* 404 Route */}
         <Route
           path="*"
           element={
             <div className="min-h-screen flex justify-center items-center w-full">
-              <span className="text-gray-600">404 - Page Not Found</span>
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
+                <p className="text-gray-600 mb-6">Page Not Found</p>
+                <button
+                  onClick={() => window.history.back()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  Go Back
+                </button>
+              </div>
             </div>
           }
         />
