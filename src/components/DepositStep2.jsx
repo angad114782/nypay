@@ -399,6 +399,7 @@ const handleSubmitDeposit = async () => {
 
         {depositMethod === "upi" ? (
           <>
+          
             {/* QR & UPI ID */}
             <div className="bgt-grey5 rounded-[10px] mt-3 p-3 text-center text-black">
               <button onClick={handleQrDownload}>
