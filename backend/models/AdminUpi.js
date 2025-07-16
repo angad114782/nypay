@@ -2,7 +2,11 @@ const mongoose = require("mongoose");
 
 const adminUpiSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "Admin", required: true },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     upiName: { type: String, required: true },
     upiId: { type: String, required: true },
     qrImage: { type: String }, // 🆕 new field

@@ -9,7 +9,10 @@ exports.addBank = async (req, res) => {
     }
 
     // ✅ Set all existing banks for this user to inactive
-    await Bank.updateMany({ userId: req.user._id }, { $set: { status: "inactive" } });
+    await Bank.updateMany(
+      { userId: req.user._id },
+      { $set: { status: "inactive" } }
+    );
 
     // ✅ Create new active bank
     const newBank = new Bank({
@@ -29,11 +32,11 @@ exports.addBank = async (req, res) => {
   }
 };
 
-
-
 exports.getBanks = async (req, res) => {
   try {
-    const banks = await Bank.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    const banks = await Bank.find({ userId: req.user._id }).sort({
+      createdAt: -1,
+    });
     res.status(200).json({ banks });
   } catch (err) {
     console.error("Get Banks Error:", err);
@@ -41,11 +44,13 @@ exports.getBanks = async (req, res) => {
   }
 };
 
-
 // Edit bank details
 exports.updateBank = async (req, res) => {
   try {
-    const bank = await Bank.findOne({ _id: req.params.id, userId: req.user._id });
+    const bank = await Bank.findOne({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
     if (!bank) return res.status(404).json({ message: "Bank not found" });
 
     const { bankName, accountHolder, accountNumber, ifscCode } = req.body;
@@ -66,15 +71,20 @@ exports.updateBank = async (req, res) => {
 // Delete bank
 exports.deleteBank = async (req, res) => {
   try {
-    const bank = await Bank.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    if (!bank) return res.status(404).json({ message: "Bank not found or already deleted" });
+    const bank = await Bank.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
+    if (!bank)
+      return res
+        .status(404)
+        .json({ message: "Bank not found or already deleted" });
     res.status(200).json({ message: "Bank deleted" });
   } catch (error) {
     console.error("Delete Bank Error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.setActiveBank = async (req, res) => {
   try {
@@ -103,7 +113,7 @@ exports.setActiveBank = async (req, res) => {
 
 exports.getActiveBankForUser = async (req, res) => {
   try {
-    const bank = await Bank.findOne({ userId: null, status: "active" }); // Admin Bank
+    const bank = await Bank.findOne({ status: "active" }); // Admin Bank
     if (!bank) return res.status(404).json({ message: "No active bank found" });
     res.json({ bank });
   } catch (error) {
