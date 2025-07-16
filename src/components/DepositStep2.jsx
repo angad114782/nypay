@@ -4,7 +4,9 @@ import { IoCopy, IoCopyOutline } from "react-icons/io5";
 import Tesseract from "tesseract.js";
 import { Progress } from "./ui/progress";
 
-  import axios from "axios";
+import axios from "axios";
+import CopyButton from "./CopyButton";
+import { toast } from "sonner";
 const upiAccounts = [
   {
     upiId: "demoupil1232@ybl",
@@ -225,46 +227,86 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
   const [copiedField, setCopiedField] = useState(null);
   const [ocrProgress, setOcrProgress] = useState(0);
   const [editableUtr, setEditableUtr] = useState("");
+  const [bankDetails, setBankDetails] = useState({});
+  const [upiDetails, setUpiDetails] = useState({});
 
-
-
-const handleSubmitDeposit = async () => {
-  if (!editableUtr || editableUtr.length < 6) {
-    return alert("Please enter a valid UTR or Transaction ID.");
-  }
-
-  if (!screenshot) {
-    return alert("Please upload a payment screenshot.");
-  }
-
-  const formData = new FormData();
-  formData.append("amount", depositAmount);
-  formData.append("paymentMethod", depositMethod);
-  formData.append("utr", editableUtr);
-  formData.append("screenshot", screenshot);
-
-  try {
+  const fetchBankDetails = async () => {
     const token = localStorage.getItem("token");
-    const res = await axios.post(`${import.meta.env.VITE_URL}/api/deposit`, formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/admin/bank/active-bank`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    alert(res.data.message);
-    goNext(); // move to next step
-  } catch (err) {
-    console.error("Deposit Error:", err);
-    alert(err?.response?.data?.message || "Deposit failed");
-  }
-};
+      setBankDetails(res.data.bank);
+    } catch (error) {
+      console.error("Failed to fetch bank details:", error);
+    }
+  };
+  const fetchUpiDetails = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/admin/upi/active-upi`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res, "upires");
+      setUpiDetails(res.data.upi);
+    } catch (error) {
+      console.error("Failed to fetch upi details:", error);
+    }
+  };
 
+  useEffect(() => {
+    fetchBankDetails();
+    fetchUpiDetails();
+  }, []);
+
+  const handleSubmitDeposit = async () => {
+    if (!editableUtr || editableUtr.length < 6) {
+      return alert("Please enter a valid UTR or Transaction ID.");
+    }
+
+    if (!screenshot) {
+      return alert("Please upload a payment screenshot.");
+    }
+
+    const formData = new FormData();
+    formData.append("amount", depositAmount);
+    formData.append("paymentMethod", depositMethod);
+    formData.append("utr", editableUtr);
+    formData.append("screenshot", screenshot);
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/deposit`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(res.data.message);
+      goNext(); // move to next step
+    } catch (err) {
+      console.error("Deposit Error:", err);
+      toast.error(err?.response?.data?.message || "Deposit failed");
+    }
+  };
 
   const handleCopy = (value, field) => {
     navigator.clipboard.writeText(value);
     setCopiedField(field);
-    setTimeout(() => setCopiedField(null), 1200);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 1500); // reset after 1.5s
   };
 
   const handleUpload = async (e) => {
@@ -316,17 +358,19 @@ const handleSubmitDeposit = async () => {
     document.body.removeChild(link);
   };
 
-  const selectedUpi = upiAccounts[0];
   useEffect(() => {
     if (extractedData) {
       setEditableUtr(
-        extractedData.utr ||
+        (
+          extractedData.utr ||
           extractedData.transactionId ||
           extractedData.referenceNumber ||
           ""
+        ).replace(/\s+/g, "")
       );
     }
   }, [extractedData]);
+
   return (
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full mb-4 relative overflow-hidden max-w-3xl">
       {/* Header */}
@@ -404,16 +448,16 @@ const handleSubmitDeposit = async () => {
             <div className="bgt-grey5 rounded-[10px] mt-3 p-3 text-center text-black">
               <button onClick={handleQrDownload}>
                 <img
-                  src={selectedUpi.qrCode}
+                  src={`${import.meta.env.VITE_URL}${upiDetails?.qrImage}`}
                   alt="QR Code"
                   className="w-40 h-40 mx-auto"
                 />
               </button>
 
               <p className="text-xl font-medium">Scan QR Code</p>
-              <p className="text-sm text-gray-700 mt-1">{selectedUpi.upiId}</p>
+              <p className="text-sm text-gray-700 mt-1">{upiDetails?.upiId}</p>
               <button
-                onClick={() => handleCopy(selectedUpi.upiId)}
+                onClick={() => handleCopy(upiDetails.upiId)}
                 className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-light rounded-full px-3 py-1 mt-2 flex items-center gap-1 mx-auto"
               >
                 <FaCopy /> {copySuccess ? "Copied!" : "Copy UPI"}
@@ -449,20 +493,11 @@ const handleSubmitDeposit = async () => {
                     Account Holder Name
                   </span>
                   <span className="font-medium text-right break-all flex items-center gap-1">
-                    Test Name
-                    <button
-                      onClick={() =>
-                        handleCopy("Test Name", "accountHolderName")
-                      }
-                      className="ml-1 text-white hover:text-yellow-400"
-                      title="Copy"
-                    >
-                      {copiedField === "accountHolderName" ? (
-                        <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                      ) : (
-                        <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                      )}
-                    </button>
+                    {bankDetails.accountHolder}
+                    <CopyButton
+                      textToCopy={bankDetails.accountHolder}
+                      title="Copy AccountHolder Name"
+                    />
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[14px]">
@@ -470,20 +505,11 @@ const handleSubmitDeposit = async () => {
                     Account Number
                   </span>
                   <span className="font-medium text-right break-all flex items-center gap-1">
-                    324343424342434
-                    <button
-                      onClick={() =>
-                        handleCopy("324343424342434", "accountNumber")
-                      }
-                      className="ml-1 text-white hover:text-yellow-400"
-                      title="Copy"
-                    >
-                      {copiedField === "accountNumber" ? (
-                        <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                      ) : (
-                        <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                      )}
-                    </button>
+                    {bankDetails.accountNumber}
+                    <CopyButton
+                      textToCopy={bankDetails.accountNumber}
+                      title="Copy Account Number"
+                    />
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[14px]">
@@ -491,18 +517,11 @@ const handleSubmitDeposit = async () => {
                     IFSC Code
                   </span>
                   <span className="font-medium text-right break-all flex items-center gap-1">
-                    TEST123456
-                    <button
-                      onClick={() => handleCopy("TEST123456", "ifscCode")}
-                      className="ml-1 text-white hover:text-yellow-400"
-                      title="Copy"
-                    >
-                      {copiedField === "ifscCode" ? (
-                        <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                      ) : (
-                        <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                      )}
-                    </button>
+                    {bankDetails.ifscCode}
+                    <CopyButton
+                      textToCopy={bankDetails.ifscCode}
+                      title="Copy IFSC Code"
+                    />
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[14px]">
@@ -510,18 +529,11 @@ const handleSubmitDeposit = async () => {
                     Bank Name
                   </span>
                   <span className="font-medium text-right break-all flex items-center gap-1">
-                    Test Bank
-                    <button
-                      onClick={() => handleCopy("Test Bank", "bankName")}
-                      className="ml-1 text-white hover:text-yellow-400"
-                      title="Copy"
-                    >
-                      {copiedField === "bankName" ? (
-                        <IoCopy className="text-[#D4D0F0] text-[15px]" />
-                      ) : (
-                        <IoCopyOutline className="text-[#D4D0F0] text-[15px]" />
-                      )}
-                    </button>
+                    {bankDetails.bankName}
+                    <CopyButton
+                      textToCopy={bankDetails.bankName}
+                      title="Copy Bank Name"
+                    />
                   </span>
                 </div>
               </div>
@@ -579,13 +591,12 @@ const handleSubmitDeposit = async () => {
         <div className="bg-white h-0.5 w-56 my-4 mx-auto"></div>
 
         {/* Submit Button */}
-      <button
-  className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
-  onClick={handleSubmitDeposit}
->
-  Submit
-</button>
-
+        <button
+          className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
+          onClick={handleSubmitDeposit}
+        >
+          Submit
+        </button>
       </div>
     </div>
   );

@@ -3,11 +3,23 @@ const Deposit = require("../models/Deposit");
 exports.createDeposit = async (req, res) => {
   try {
     const { amount, paymentMethod, utr } = req.body;
-    const screenshotPath = req.file?.path;
+    const screenshotPath = req.file
+      ? `/uploads/upi_qr/${req.file.filename}`
+      : null;
 
     if (!amount || !paymentMethod || !utr || !screenshotPath) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    const newDeposit = new Deposit({
+      userId: req.user._id,
+      amount,
+      paymentMethod,
+      utr,
+      screenshot: screenshotPath,
+    });
+
+    await newDeposit.save();
 
     // Save deposit to database logic here (example)
     res.status(201).json({

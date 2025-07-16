@@ -4,6 +4,7 @@ import WithdrawHomeList from "./WithdrawHomeList";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
 
 import axios from "axios";
+import { toast } from "sonner";
 
 function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
   const [withdrawMethod, setWithdrawMethod] = useState("upi");
@@ -11,6 +12,7 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
   const [resetKey, setResetKey] = useState(0);
   const [bankList, setBankList] = useState([]);
   const [upiList, setUpiList] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchBankList = async () => {
     try {
@@ -47,26 +49,66 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
     console.log("Selected card:", cardData); // For debugging
   };
 
+  // API call to submit withdrawal request
+  const requestWithdraw = async (withdrawalData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        `${import.meta.env.VITE_URL}/api/withdraw/request`,
+        withdrawalData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error("Withdraw request failed:", error);
+      throw error;
+    }
+  };
+
   // Handle form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedCard) {
       alert("Please select a payment method");
       return;
     }
 
-    // Prepare data to send to backend
-    const withdrawalData = {
-      method: withdrawMethod,
-      selectedAccount: selectedCard,
-      amount: withdrawAmount,
-    };
+    setIsLoading(true);
 
-    console.log("Withdrawal data to send:", withdrawalData);
+    try {
+      // Prepare data to send to backend
+      const withdrawalData = {
+        amount: withdrawAmount,
+        withdrawMethod: withdrawMethod,
+        selectedAccount: selectedCard,
+      };
 
-    // Here make API call
-    // sendToBackend(withdrawalData);
-
-    goNext();
+      console.log("Withdrawal data to send:", withdrawalData);
+      const response = await requestWithdraw(withdrawalData);
+      if (response.success) {
+        toast.success("Withdrawal request submitted successfully!");
+        goNext();
+      } else {
+        toast.error(response.message || "Failed to submit withdrawal request");
+      }
+    } catch (error) {
+      if (error.response) {
+        const errorMessage =
+          error.response.data.message || "Server error occurred";
+        toast.error(`Error: ${errorMessage}`);
+      } else if (error.request) {
+        toast.error("Network error. Please check your connection.");
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -187,10 +229,13 @@ function WithdrawStep2({ goNext, onClose, withdrawAmount }) {
 
         {/* Submit Button */}
         <button
-          className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5 mb-4"
+          className={`bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5 mb-4 ${
+            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          Submit
+          {isLoading ? "Processing..." : "Submit"}
         </button>
       </div>
     </div>
