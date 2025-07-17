@@ -51,7 +51,32 @@ export const GlobalProvider = ({ children }) => {
     localStorage.removeItem("userProfile"); // Clear cache
     setRefreshTrigger((prev) => !prev);
   };
+  const [allCreateIDList, setAllCreateIdList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch existing slider images
+  const fetchSliders = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/panels/panel`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res, "ygxebuygzenw");
+      setAllCreateIdList(res.data.panels);
+    } catch (err) {
+      console.error("Error fetching id card:", err);
+      toast.error("Failed to load id card");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSliders();
+  }, []);
   const myIdCardData = [
     {
       logoSrc: "Logo-Exchages.png",
@@ -97,64 +122,64 @@ export const GlobalProvider = ({ children }) => {
     },
   ];
 
-  const allCreateIDList = [
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Asia)",
-      type: "Asia Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (D247)",
-      type: "D247 Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Diamond)",
-      type: "Diamond Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Diamond99)",
-      type: "Diamond99 Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (King)",
-      type: "King Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Lotusbook)",
-      type: "Lotusbook Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Lotusexch)",
-      type: "Lotusexch Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-    {
-      logo: "Logo-Exchages.png",
-      title: "Go Exchange (Radhe)",
-      type: "Radhe Type",
-      subtitle: "gomatch9.com",
-      buttonText: "Create",
-    },
-  ];
+  // const allCreateIDList = [
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Asia)",
+  //     type: "Asia Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (D247)",
+  //     type: "D247 Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Diamond)",
+  //     type: "Diamond Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Diamond99)",
+  //     type: "Diamond99 Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (King)",
+  //     type: "King Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Lotusbook)",
+  //     type: "Lotusbook Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Lotusexch)",
+  //     type: "Lotusexch Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  //   {
+  //     logo: "Logo-Exchages.png",
+  //     title: "Go Exchange (Radhe)",
+  //     type: "Radhe Type",
+  //     subtitle: "gomatch9.com",
+  //     buttonText: "Create",
+  //   },
+  // ];
 
   return (
     <GlobalContext.Provider

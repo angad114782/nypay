@@ -5,7 +5,7 @@ exports.createDeposit = async (req, res) => {
   try {
     const { amount, paymentMethod, utr } = req.body;
     const screenshotPath = req.file
-      ? `/uploads/upi_qr/${req.file.filename}`
+      ? `/uploads/deposits/${req.file.filename}`
       : null;
 
     if (!amount || !paymentMethod || !utr || !screenshotPath) {
@@ -39,7 +39,6 @@ exports.createDeposit = async (req, res) => {
   }
 };
 
-
 exports.getAllDeposits = async (req, res) => {
   try {
     const deposits = await Deposit.find()
@@ -54,9 +53,7 @@ exports.getAllDeposits = async (req, res) => {
       paymentType: dep.paymentMethod,
       utr: dep.utr,
       // 🔥 Convert filename into full URL
-      screenshotUrl: dep.screenshot
-        ? `${req.protocol}://${req.get("host")}/uploads/${dep.screenshot}`
-        : null,
+      screenshotUrl: dep.screenshot,
       entryDate: new Date(dep.createdAt).toLocaleString(),
       status: dep.status,
       remark: dep.remark || "",
@@ -69,7 +66,6 @@ exports.getAllDeposits = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 
 // ✅ Separate: Update Status Only
 exports.updateDepositStatus = async (req, res) => {
@@ -87,7 +83,9 @@ exports.updateDepositStatus = async (req, res) => {
     deposit.status = status;
     await deposit.save();
 
-    res.status(200).json({ success: true, message: "Status updated successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     console.error("Status Update Error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
@@ -106,7 +104,9 @@ exports.updateDepositRemark = async (req, res) => {
     deposit.remark = remark || "";
     await deposit.save();
 
-    res.status(200).json({ success: true, message: "Remark updated successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Remark updated successfully" });
   } catch (err) {
     console.error("Remark Update Error:", err);
     res.status(500).json({ success: false, message: "Server Error" });

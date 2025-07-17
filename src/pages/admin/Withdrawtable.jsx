@@ -20,9 +20,9 @@ import WithdrawLogo from "/asset/Group 48095823.png";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
-  { label: "User Name", value: "userName" },
+  // { label: "User Name", value: "userName" },
   { label: "Amount", value: "amount" },
-  { label: "Payment Type", value: "paymentType" },
+  { label: "Payment Type", value: "withdrawMethod" },
 ];
 
 const STATUS_OPTIONS = [
@@ -53,6 +53,8 @@ const WithdrawTable = ({ data }) => {
     filteredData,
     totalPages,
   } = useTableFilter({ data, initialColumn: "userName" });
+  console.log(paginatedData, "paginatedData");
+  console.log(filteredData, "filteredData");
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -66,7 +68,7 @@ const WithdrawTable = ({ data }) => {
         [
           "S.No",
           "Profile Name",
-          "User Name",
+          // "User Name",
           "Amount",
           "Payment Type",
           "Details",
@@ -80,7 +82,7 @@ const WithdrawTable = ({ data }) => {
       body: filteredData.map((item, idx) => [
         idx + 1,
         item.profileName,
-        item.userName,
+        // item.userName,
         item.amount,
         item.paymentType,
         `Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`,
@@ -100,7 +102,7 @@ const WithdrawTable = ({ data }) => {
       filteredData.map((item, idx) => ({
         "S.No": idx + 1,
         "Profile Name": item.profileName,
-        "User Name": item.userName,
+        // "User Name": item.userName,
         Amount: item.amount,
         "Payment Type": item.paymentType,
         Details: `Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`,
@@ -144,7 +146,7 @@ const WithdrawTable = ({ data }) => {
           <TableRow>
             <TableHead className="w-[100px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
-            <TableHead>User Name</TableHead>
+            {/* <TableHead>User Name</TableHead> */}
             <TableHead>Amount</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
@@ -159,20 +161,20 @@ const WithdrawTable = ({ data }) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map((item, index) => (
+          {paginatedData?.map((item, index) => (
             <TableRow key={item.id}>
               {/* S.No with copy all */}
               <TableCell className="w-[100px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nDetails - Name: ${item.details.name}, Account: ${item.details.accountNumber}, IFSC: ${item.details.IFSCCode}, Bank: ${item.details.bankName}`}
+                    textToCopy={`ProfileName - ${item.profileName}\nAmount - ${item.amount}\nDetails - Name: ${item.selectedAccount.accountHolder}, Account: ${item.selectedAccount.accountNumber}, IFSC: ${item.selectedAccount.IFSCCode}, Bank: ${item.selectedAccount.bankName}`}
                     title="Copy User Name, Amount, Details"
                   />
                 </div>
               </TableCell>
               <TableCell>{item.profileName}</TableCell>
-              <TableCell>
+              {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
                   <CopyButton
@@ -180,7 +182,7 @@ const WithdrawTable = ({ data }) => {
                     title="Copy username"
                   />
                 </div>
-              </TableCell>
+              </TableCell> */}
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}
@@ -190,51 +192,83 @@ const WithdrawTable = ({ data }) => {
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.paymentType}</TableCell>
+              <TableCell>{item.withdrawMethod}</TableCell>
               <TableCell>
-                <div className="flex flex-col">
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.name}
-                    <CopyButton
-                      textToCopy={item.details.name}
-                      title="Copy name"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.accountNumber}
-                    <CopyButton
-                      textToCopy={item.details.accountNumber}
-                      title="Copy Account Number"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.IFSCCode}
-                    <CopyButton
-                      textToCopy={item.details.IFSCCode}
-                      title="Copy IFSC Code"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-1">
-                    {item.details.bankName}
-                    <CopyButton
-                      textToCopy={item.details.bankName}
-                      title="Copy Bank Name"
-                    />
-                  </div>
-                  <div className="justify-center items-center flex bg-gray-200 rounded-sm ">
-                    <CopyButton
-                      textToCopy={`Name: ${item.details.name}\nAccount: ${item.details.accountNumber}\nIFSC: ${item.details.IFSCCode}\nBank: ${item.details.bankName}`}
-                      title="Copy Bank All Details"
-                    />
-                  </div>
-                </div>
+                {item.withdrawMethod === "bank" ? (
+                  <>
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.accountHolder}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.accountHolder}
+                          title="Copy name"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.accountNumber}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.accountNumber}
+                          title="Copy Account Number"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.ifscCode}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.ifscCode}
+                          title="Copy IFSC Code"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.bankName}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.bankName}
+                          title="Copy Bank Name"
+                        />
+                      </div>
+                      <div className="justify-center items-center flex bg-gray-200 rounded-sm ">
+                        <CopyButton
+                          textToCopy={`Name: ${item.selectedAccount.accountHolder}\nAccount: ${item.selectedAccount.accountNumber}\nIFSC: ${item.selectedAccount.ifscCode}\nBank: ${item.selectedAccount.bankName}`}
+                          title="Copy Bank All Details"
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.upiId}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.upiId}
+                          title="Copy upi id"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-1">
+                        {item.selectedAccount.upiName}
+                        <CopyButton
+                          textToCopy={item.selectedAccount.upiName}
+                          title="Copy upi name"
+                        />
+                      </div>
+
+                      <div className="justify-center items-center flex bg-gray-200 rounded-sm ">
+                        <CopyButton
+                          textToCopy={`UpiId: ${item.selectedAccount.upiId}\nUpiName: ${item.selectedAccount.upiName}`}
+                          title="Copy UPI All Details"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
               <TableCell>{item.status}</TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
                 {item.withdrawDate || "N/A"}
-                {/* <ScreenshotProof url={logo} utr={item.utr} /> */}
+                {/* {new Date(
+                  item.selectedAccount.createdAt || "N/A"
+                ).toLocaleString()} */}
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
@@ -256,7 +290,7 @@ const WithdrawTable = ({ data }) => {
       </Table>
 
       <div className="lg:hidden block">
-        {paginatedData.map((item) => (
+        {paginatedData?.map((item) => (
           <TransactionCard key={item.id} transaction={item} />
         ))}
       </div>
@@ -305,9 +339,9 @@ export const TransactionCard = ({ transaction }) => {
                 title="Copy profile name"
               />
             </div>
-            <p className="text-sm dark:text-white text-white">
+            {/* <p className="text-sm dark:text-white text-white">
               {transaction.userName}
-            </p>
+            </p> */}
           </div>
         </div>
         <div className="text-right">
@@ -338,59 +372,90 @@ export const TransactionCard = ({ transaction }) => {
         <CreditCard className="w-4 h-4 text-black" />
         <span className="text-sm text-black">Payment Type</span>
         <span className="ml-auto text-sm text-black">
-          {transaction.paymentType}
+          {transaction.withdrawMethod}
         </span>
       </div>
 
       {/* Bank Details */}
-      <div className=" flex justify-between  m-2  ">
-        <div className="flex items-start gap-2 mb-1">
-          <Hash className="w-4 h-4 text-black" />
-          <span className="text-sm  text-black">Bank Details</span>
+      {transaction.withdrawMethod === "bank" ? (
+        <div className=" flex justify-between  m-2  ">
+          <div className="flex items-start gap-2 mb-1">
+            <Hash className="w-4 h-4 text-black" />
+            <span className="text-sm  text-black">Bank Details</span>
+          </div>
+          <div className="space-y-1  ">
+            <div className="flex items-center ">
+              {/* <span className="text-sm text-gray-600">Name:</span> */}
+              <span className="text-sm text-black text-right ml-auto">
+                {transaction.selectedAccount.accountHolder}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.accountHolder}
+                title="Copy Account Holder name"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              {/* <span className="text-sm text-gray-600">Account:</span> */}
+              <span className="text-sm text-black ml-auto">
+                {transaction.selectedAccount.accountNumber}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.accountNumber}
+                title="Copy Account Number"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              {/* <span className="text-sm text-gray-600">IFSC:</span> */}
+              <span className="text-sm text-black ml-auto">
+                {transaction.selectedAccount.ifscCode}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.ifscCode}
+                title="Copy IFSC Code"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              {/* <span className="text-sm text-gray-600">Bank:</span> */}
+              <span className="text-sm text-black ml-auto">
+                {transaction.selectedAccount.bankName}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.bankName}
+                title="Copy Bank Name"
+              />
+            </div>
+          </div>
         </div>
-        <div className="space-y-1  ">
-          <div className="flex items-center ">
-            {/* <span className="text-sm text-gray-600">Name:</span> */}
-            <span className="text-sm text-black text-right ml-auto">
-              {transaction.details.name}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.name}
-              title="Copy Account Holder name"
-            />
+      ) : (
+        <div className=" flex justify-between  m-2  ">
+          <div className="flex items-start gap-2 mb-1">
+            <Hash className="w-4 h-4 text-black" />
+            <span className="text-sm  text-black">UPI Details</span>
           </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">Account:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.accountNumber}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.accountNumber}
-              title="Copy Account Number"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">IFSC:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.IFSCCode}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.IFSCCode}
-              title="Copy IFSC Code"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            {/* <span className="text-sm text-gray-600">Bank:</span> */}
-            <span className="text-sm text-black ml-auto">
-              {transaction.details.bankName}
-            </span>
-            <CopyButton
-              textToCopy={transaction.details.bankName}
-              title="Copy Bank Name"
-            />
+          <div className="space-y-1  ">
+            <div className="flex items-center ">
+              {/* <span className="text-sm text-gray-600">Name:</span> */}
+              <span className="text-sm text-black text-right ml-auto">
+                {transaction.selectedAccount.upiId}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.upiId}
+                title="Copy upi id"
+              />
+            </div>
+            <div className="flex items-center gap-1">
+              {/* <span className="text-sm text-gray-600">Account:</span> */}
+              <span className="text-sm text-black ml-auto">
+                {transaction.selectedAccount.upiName}
+              </span>
+              <CopyButton
+                textToCopy={transaction.selectedAccount.upiName}
+                title="Copy upi name"
+              />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Parent IP */}
       <div className="flex items-center p-2 gap-2">

@@ -12,7 +12,7 @@ export const useTableFilter = ({ data, initialColumn = "profileName" }) => {
     setCurrentPage(1);
   }, [entries, search, searchColumn]);
 
-  const filteredData = data.filter((item) => {
+  const filteredData = data?.filter((item) => {
     const matchesColumn = item[searchColumn]
       ?.toString()
       .toLowerCase()
@@ -26,8 +26,8 @@ export const useTableFilter = ({ data, initialColumn = "profileName" }) => {
     return matchesColumn && matchesStatus && matchesDate;
   });
 
-  const totalPages = Math.ceil(filteredData.length / entries);
-  const paginatedData = filteredData.slice(
+  const totalPages = Math.ceil(filteredData?.length / entries);
+  const paginatedData = filteredData?.slice(
     (currentPage - 1) * entries,
     currentPage * entries
   );
