@@ -22,7 +22,7 @@ import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
-  { label: "User Name", value: "userName" },
+  // { label: "User Name", value: "userName" },
   { label: "Amount", value: "amount" },
   { label: "UTR", value: "utr" },
 ];
@@ -54,7 +54,7 @@ const DepositTable = ({ data }) => {
     paginatedData,
     filteredData,
     totalPages,
-  } = useTableFilter({ data, initialColumn: "userName" });
+  } = useTableFilter({ data, initialColumn: "profileName" });
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -67,7 +67,7 @@ const DepositTable = ({ data }) => {
         [
           "S.No",
           "Profile Name",
-          "User Name",
+          // "User Name",
           "Amount",
           "Payment Type",
           "UTR",
@@ -80,7 +80,7 @@ const DepositTable = ({ data }) => {
       body: filteredData.map((item, idx) => [
         idx + 1,
         item.profileName,
-        item.userName,
+        // item.userName,
         item.amount,
         item.paymentType,
         item.utr,
@@ -99,7 +99,7 @@ const DepositTable = ({ data }) => {
       filteredData.map((item, idx) => ({
         "S.No": idx + 1,
         "Profile Name": item.profileName,
-        "User Name": item.userName,
+        // "User Name": item.userName,
         Amount: item.amount,
         "Payment Type": item.paymentType,
         UTR: item.utr,
@@ -141,7 +141,7 @@ const DepositTable = ({ data }) => {
           <TableRow>
             <TableHead className="w-[100px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
-            <TableHead>User Name</TableHead>
+            {/* <TableHead>User Name</TableHead> */}
             <TableHead>Amount</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>UTR</TableHead>
@@ -169,7 +169,7 @@ const DepositTable = ({ data }) => {
                 </div>
               </TableCell>
               <TableCell>{item.profileName}</TableCell>
-              <TableCell>
+              {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
                   <CopyButton
@@ -177,7 +177,7 @@ const DepositTable = ({ data }) => {
                     title="Copy User Name"
                   />
                 </div>
-              </TableCell>
+              </TableCell> */}
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}
@@ -195,7 +195,10 @@ const DepositTable = ({ data }) => {
               <TableCell>{item.status}</TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
-                <ScreenshotProof url={logo} utr={item.utr} />
+                <ScreenshotProof
+                  url={`${import.meta.env.VITE_URL}${item.screenshotUrl}`}
+                  utr={item.utr}
+                />
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
@@ -266,9 +269,9 @@ export const TransactionCard = ({ transaction }) => {
                 title="Copy profile name"
               />
             </div>
-            <p className="text-sm dark:text-white text-white">
+            {/* <p className="text-sm dark:text-white text-white">
               {transaction.userName}
-            </p>
+            </p> */}
           </div>
         </div>
         <div className=" flex flex-col gap-1">
@@ -334,8 +337,10 @@ export const TransactionCard = ({ transaction }) => {
       {/* Action Buttons */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <ScreenshotProof url={transaction.screenshotUrl} utr={transaction.utr} />
-
+          <ScreenshotProof
+            url={`${import.meta.env.VITE_URL}${transaction.screenshotUrl}`}
+            utr={transaction.utr}
+          />
 
           <Copy className={"h-6 w-6"} />
         </div>

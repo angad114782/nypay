@@ -15,7 +15,9 @@ const createPanel = async (req, res) => {
     });
 
     await newPanel.save();
-    res.status(201).json({ message: "Panel created successfully", panel: newPanel });
+    res
+      .status(201)
+      .json({ message: "Panel created successfully", panel: newPanel });
   } catch (err) {
     console.error("Create Panel Error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
@@ -27,9 +29,9 @@ const getAllPanels = async (req, res) => {
   try {
     const panels = await Panel.find().sort({ createdAt: -1 });
 
-    const fullPanels = panels.map(panel => ({
+    const fullPanels = panels.map((panel) => ({
       ...panel._doc,
-      logoUrl: panel.logo ? `${req.protocol}://${req.get("host")}/uploads/panels/${panel.logo}` : null
+      logoUrl: panel.logo ? `/uploads/panels/${panel.logo}` : null,
     }));
 
     res.json({ success: true, panels: fullPanels });
@@ -52,7 +54,9 @@ const updatePanel = async (req, res) => {
 
     const updatedPanel = {
       ...panel._doc,
-      logoUrl: panel.logo ? `${req.protocol}://${req.get("host")}/uploads/panels/${panel.logo}` : null,
+      logoUrl: panel.logo
+        ? `${req.protocol}://${req.get("host")}/uploads/panels/${panel.logo}`
+        : null,
     };
 
     res.json({ success: true, panel: updatedPanel });

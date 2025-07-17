@@ -14,7 +14,11 @@ exports.requestWithdraw = async (req, res) => {
 
     await newWithdraw.save();
 
-    res.status(201).json({ success: true, message: "Withdraw request submitted", withdraw: newWithdraw });
+    res.status(201).json({
+      success: true,
+      message: "Withdraw request submitted",
+      withdraw: newWithdraw,
+    });
   } catch (error) {
     console.error("Withdraw Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -25,9 +29,27 @@ exports.requestWithdraw = async (req, res) => {
 exports.getAllWithdraws = async (req, res) => {
   try {
     const withdraws = await Withdraw.find().populate("userId", "name email");
-    res.status(200).json({ success: true, withdraws });
+    const formatted = withdraws.map((dep) => ({
+      id: dep._id,
+      profileName: dep.userId?.name || "N/A",
+      userName: dep.userId?.email || "N/A",
+      amount: dep.amount,
+      paymentType: dep.paymentMethod,
+      selectedAccount: dep.selectedAccount,
+      withdrawMethod: dep.withdrawMethod,
+      // utr: dep.utr,
+      // 🔥 Convert filename into full URL
+      // screenshotUrl: dep.screenshot,
+      entryDate: new Date(dep.createdAt).toLocaleString(),
+      status: dep.status,
+      remark: dep.remark || "",
+      parentIp: dep.userId?.lastLoginIp || "N/A",
+    }));
+    res.status(200).json({ success: true, data: formatted });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to fetch withdraws" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch withdraws" });
   }
 };
 
@@ -37,11 +59,19 @@ exports.updateWithdrawStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const updated = await Withdraw.findByIdAndUpdate(id, { status }, { new: true });
+    const updated = await Withdraw.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
 
-    res.status(200).json({ success: true, message: "Status updated", withdraw: updated });
+    res
+      .status(200)
+      .json({ success: true, message: "Status updated", withdraw: updated });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update status" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update status" });
   }
 };
 
@@ -51,10 +81,18 @@ exports.updateWithdrawRemark = async (req, res) => {
     const { id } = req.params;
     const { remark } = req.body;
 
-    const updated = await Withdraw.findByIdAndUpdate(id, { remark }, { new: true });
+    const updated = await Withdraw.findByIdAndUpdate(
+      id,
+      { remark },
+      { new: true }
+    );
 
-    res.status(200).json({ success: true, message: "Remark updated", withdraw: updated });
+    res
+      .status(200)
+      .json({ success: true, message: "Remark updated", withdraw: updated });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update remark" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to update remark" });
   }
 };

@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
+import { toast } from "sonner";
 
 const ScreenshotProof = ({ url, utr }) => {
   // Download image handler
   const handleDownload = () => {
     const link = document.createElement("a");
-    link.href = url; // Use the imported logo
+    link.href = url;
     link.download = `Proof-${utr}.jpg`;
     document.body.appendChild(link);
     link.click();
@@ -31,7 +32,7 @@ const ScreenshotProof = ({ url, utr }) => {
       }
 
       // Use the same image source as displayed
-      const imageUrl = url; // Use local asset instead of external URL
+      const imageUrl = url;
 
       // Fetch the image
       const response = await fetch(imageUrl);
@@ -50,7 +51,7 @@ const ScreenshotProof = ({ url, utr }) => {
       // Write to clipboard
       await navigator.clipboard.write([clipboardItem]);
 
-      alert("Image copied to clipboard!");
+      toast.success("Image copied to clipboard!");
     } catch (err) {
       console.error("Copy failed:", err);
 
@@ -59,7 +60,7 @@ const ScreenshotProof = ({ url, utr }) => {
         await copyImageFallback();
       } catch (fallbackErr) {
         console.error("Fallback copy failed:", fallbackErr);
-        alert(
+        toast.error(
           "Failed to copy image. Your browser may not support this feature."
         );
       }
@@ -70,7 +71,7 @@ const ScreenshotProof = ({ url, utr }) => {
   const copyImageFallback = async () => {
     return new Promise((resolve, reject) => {
       const img = new Image();
-      img.crossOrigin = "anonymous"; // Handle CORS
+      img.crossOrigin = "anonymous";
 
       img.onload = async () => {
         try {
@@ -89,7 +90,7 @@ const ScreenshotProof = ({ url, utr }) => {
                   [blob.type]: blob,
                 });
                 await navigator.clipboard.write([clipboardItem]);
-                alert("Image copied to clipboard!");
+                toast.success("Image copied to clipboard!");
                 resolve();
               } else {
                 reject(new Error("Clipboard API not available"));
@@ -117,9 +118,9 @@ const ScreenshotProof = ({ url, utr }) => {
         <Camera className={"h-6 w-6 block lg:hidden"} />
         <div className="hidden lg:block">Proof</div>
       </DialogTrigger>
-      <DialogContent className="p-0 w-full bg-[#8AAA08] max-w-2xl overflow-hidden">
+      <DialogContent className="p-0 w-full bg-[#8AAA08] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogDescription className={"hidden"}></DialogDescription>
-        <DialogHeader className="pt-2">
+        <DialogHeader className="pt-2 flex-shrink-0">
           <DialogTitle className="flex items-center justify-around">
             <div className="mt-2 border-2 p-2 rounded-lg">Proof Image</div>
             <div className="flex gap-2 mt-2">
@@ -128,11 +129,18 @@ const ScreenshotProof = ({ url, utr }) => {
             </div>
           </DialogTitle>
         </DialogHeader>
-        <img
-          src={url} // Use the same source as the copy function
-          className="h-full w-full"
-          alt="Proof"
-        />
+
+        {/* Image container with proper constraints */}
+        <div className="flex-1 overflow-auto min-h-0">
+          <div className="w-full h-full flex items-center justify-center">
+            <img
+              src={url}
+              className="max-w-full max-h-full object-contain"
+              alt="Proof"
+              style={{ maxHeight: "calc(90vh - 120px)" }} // Account for header height
+            />
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

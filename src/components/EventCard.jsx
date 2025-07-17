@@ -1,11 +1,15 @@
-import React from 'react'
+import React from "react";
 
-function EventCard({onclick, eventImg}) {
+function EventCard({ onclick, eventImg }) {
   return (
     <button onClick={onclick}>
-        <img src={`/asset/${eventImg}`} alt="event"  className='min-w-[196px] h-auto'/>
+      <img
+        src={`${import.meta.env.VITE_URL}${eventImg.imageUrl}`}
+        alt="event"
+        className="min-w-[196px] h-auto aspect-square rounded-lg object-cover"
+      />
     </button>
-  )
+  );
 }
 
-export default EventCard
+export default EventCard;

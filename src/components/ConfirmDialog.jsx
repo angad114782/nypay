@@ -21,7 +21,9 @@ const ConfirmDialog = ({ buttonLogo, title, description, onClick }) => {
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button onClick={onClick}>Done</Button>
+          <DialogClose asChild>
+            <Button onClick={onClick}>Done</Button>
+          </DialogClose>
           <DialogClose asChild>
             <Button>Cancel</Button>
           </DialogClose>

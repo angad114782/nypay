@@ -17,17 +17,23 @@ const DepositWithdrawal = ({ onTabChange }) => {
 
   useEffect(() => {
     const fetchDeposits = async () => {
-      const res = await axios.get(`${import.meta.env.VITE_URL}/api/deposit/admin/deposits`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/deposit/admin/deposits`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setDepositData(res.data.data);
     };
     fetchDeposits();
 
     const fetchWithdraws = async () => {
-      const res = await axios.get(`${import.meta.env.VITE_URL}/api/withdraw/admin/withdraws`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/withdraws`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setwithdrawData(res.data.data);
     };
     fetchWithdraws();
