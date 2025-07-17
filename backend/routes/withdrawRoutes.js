@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
 const withdrawController = require("../controllers/withdrawController");
-const { protect } = require("../middlewares/auth");
+const { protect, adminOnly } = require("../middlewares/auth");
 
 router.post("/request", protect, withdrawController.requestWithdraw);
-router.get("/all", protect, withdrawController.getAllWithdraws); // optionally use adminOnly middleware
-router.put("/status/:id", protect, withdrawController.updateWithdrawStatus); // optionally adminOnly
+router.get("/admin/withdraws", protect, adminOnly, withdrawController.getAllWithdraws);
+
+router.put("/admin/status/:withdrawId", protect, adminOnly, withdrawController.updateWithdrawStatus); // update status
+router.put("/admin/remark/:withdrawId", protect, adminOnly, withdrawController.updateWithdrawRemark); // update remark
 
 module.exports = router;

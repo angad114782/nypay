@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, PaperclipIcon, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
+import axios from "axios";
 
 export const AddNewPanelDialog = () => {
   const [image, setImage] = useState(null);
@@ -42,28 +43,48 @@ export const AddNewPanelDialog = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
 
-    // Prepare final payload
-    const payload = {
-      profileName: teamManagementData.profileName,
-      userId: teamManagementData.userId,
-      password: teamManagementData.password,
-      roles: Object.keys(teamManagementData.roles).filter(
-        (role) => teamManagementData.roles[role]
-      ),
-    };
+  try {
+    const formData = new FormData();
+    formData.append("profileName", teamManagementData.profileName);
+    formData.append("userId", teamManagementData.userId);
+    formData.append("password", teamManagementData.password);
+    formData.append(
+      "roles",
+      JSON.stringify(
+        Object.keys(teamManagementData.roles).filter(
+          (role) => teamManagementData.roles[role]
+        )
+      )
+    );
 
-    console.log("Submitting data to backend:", payload);
+    if (image) {
+      formData.append("logo", image); 
+    }
 
-    // Simulate API
-    setTimeout(() => {
-      setLoading(false);
-      alert("Submitted successfully!");
-    }, 1000);
-  };
+  const res = await axios.post(
+  `${import.meta.env.VITE_URL}/api/panels/panel`,
+  formData,
+  {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+
+    },
+  }
+);
+
+    alert("Panel created successfully!");
+  } catch (error) {
+    console.error("Submit Error:", error);
+    alert("Failed to submit panel.");
+  }
+
+  setLoading(false);
+};
 
   return (
     <Dialog>
@@ -106,7 +127,7 @@ export const AddNewPanelDialog = () => {
                       profileName: e.target.value,
                     })
                   }
-                  placeholder="Enter team member name"
+                  placeholder="Enter Panel Name"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
                 />
               </div>
@@ -115,7 +136,7 @@ export const AddNewPanelDialog = () => {
                 <Label className="text-gray-800 font-medium">Panel Link</Label>
                 <Input
                   type="text"
-                  name="teamUserId"
+                  name="userId"
                   value={teamManagementData.userId}
                   onChange={(e) =>
                     setTeamManagementData({
@@ -123,7 +144,7 @@ export const AddNewPanelDialog = () => {
                       userId: e.target.value,
                     })
                   }
-                  placeholder="Enter required user ID"
+                  placeholder="Enter Panel Link"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
                 />
               </div>

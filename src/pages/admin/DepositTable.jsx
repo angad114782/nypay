@@ -334,7 +334,8 @@ export const TransactionCard = ({ transaction }) => {
       {/* Action Buttons */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <ScreenshotProof url={logo} utr={transaction.utr} />
+          <ScreenshotProof url={transaction.screenshotUrl} utr={transaction.utr} />
+
 
           <Copy className={"h-6 w-6"} />
         </div>

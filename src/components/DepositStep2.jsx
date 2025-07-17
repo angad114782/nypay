@@ -7,13 +7,7 @@ import { Progress } from "./ui/progress";
 import axios from "axios";
 import CopyButton from "./CopyButton";
 import { toast } from "sonner";
-const upiAccounts = [
-  {
-    upiId: "demoupil1232@ybl",
-    qrCode: "/asset/qr.png",
-    amount: 5000,
-  },
-];
+
 
 const paymentModes = [
   {

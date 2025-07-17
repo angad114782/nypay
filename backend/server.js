@@ -47,9 +47,15 @@ app.use("/api/admin/bank", adminBankRoutes );
 const adminUpiRoutes = require("./routes/adminUpiRoutes");
 app.use("/api/admin/upi", adminUpiRoutes);
 
-app.use("/api/withdraw", require("./routes/withdrawRoutes"));
+const withdrawRoutes = require("./routes/withdrawRoutes");
+app.use("/api/withdraw", withdrawRoutes);
+
+const panelRoutes = require("./routes/panelRoutes");
+app.use("/api/panels", panelRoutes);
 
 
+const sliderRoutes = require("./routes/sliderRoutes");
+app.use("/api/slider", sliderRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
