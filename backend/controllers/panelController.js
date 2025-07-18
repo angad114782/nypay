@@ -44,23 +44,34 @@ const getAllPanels = async (req, res) => {
 const updatePanel = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const { profileName, userId, password, roles } = req.body;
+    const updates = {};
 
+    if (profileName) updates.profileName = profileName;
+    if (userId) updates.userId = userId;
+    if (password) {
+      // updates.password = await bcrypt.hash(password, 10);
+      updates.password = password;
+    }
+    if (roles) {
+      updates.roles = JSON.parse(roles);
+    }
     if (req.file) {
       updates.logo = req.file.filename;
     }
 
-    const panel = await Panel.findByIdAndUpdate(id, updates, { new: true });
+    const panel = await Panel.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
 
     const updatedPanel = {
       ...panel._doc,
-      logoUrl: panel.logo
-        ? `${req.protocol}://${req.get("host")}/uploads/panels/${panel.logo}`
-        : null,
+      logoUrl: panel.logo ? `/uploads/panels/${panel.logo}` : null,
     };
 
     res.json({ success: true, panel: updatedPanel });
   } catch (err) {
+    console.error("Update Panel Error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };

@@ -21,7 +21,7 @@ import axios from "axios";
 import { Copy, KeyRound, SquarePen, Trash2Icon, User } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AddNewPanelDialog } from "./AddNewPanelDialog";
+import AddOrEditPanelDialog from "./AddOrEditPanelDialog";
 
 const AddRemovePanel = () => {
   const [entries, setEntries] = useState(10);
@@ -51,6 +51,33 @@ const AddRemovePanel = () => {
       fetchPanels();
     } catch (err) {
       console.error("❌ Failed to delete Panels", err);
+    }
+  };
+  const togglePanelStatus = async (id, checked) => {
+    // Immediate UI update
+    setData((prev) =>
+      prev.map((item) =>
+        item._id === id ? { ...item, isActive: checked } : item
+      )
+    );
+    try {
+      await axios.patch(
+        `${import.meta.env.VITE_URL}/api/panels/panel/toggle/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(
+        `Panel ${checked ? "activated" : "deactivated"} successfully`
+      );
+    } catch (err) {
+      console.error("❌ Failed to toggle Panel status", err);
+      // Revert on failure
+      setData((prev) =>
+        prev.map((item) =>
+          item._id === id ? { ...item, isActive: !checked } : item
+        )
+      );
+      toast.error("Unable to change panel status");
     }
   };
 
@@ -100,7 +127,7 @@ const AddRemovePanel = () => {
           </Select>
           <span className="text-sm text-gray-700">entries</span>
         </div>
-        <AddNewPanelDialog fetchPanels={fetchPanels} />
+        <AddOrEditPanelDialog fetchPanels={fetchPanels} />
       </div>
       <Table className="hidden lg:table w-full">
         <TableCaption>A list of your request list.</TableCaption>
@@ -110,6 +137,7 @@ const AddRemovePanel = () => {
             <TableHead>Logo</TableHead>
             <TableHead>Panel Name</TableHead>
             <TableHead>Panel Link</TableHead>
+            <TableHead className={"text-center"}>Acivate/Deactivate</TableHead>
             <TableHead className="text-center rounded-tr-lg">Action</TableHead>
           </TableRow>
         </TableHeader>
@@ -166,7 +194,14 @@ const AddRemovePanel = () => {
                   />
                 </div>
               </TableCell>
-
+              <TableCell className={"align-middle"}>
+                <div className="flex justify-center items-center gap-1">
+                  <Switch
+                    checked={item.isActive}
+                    onCheckedChange={(val) => togglePanelStatus(item._id, val)}
+                  />
+                </div>
+              </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-2 items-center justify-around">
                   <ConfirmDialog
@@ -176,7 +211,11 @@ const AddRemovePanel = () => {
                     description={"Are you sure you want to delete this panel?."}
                   />
 
-                  <SquarePen />
+                  {/* <SquarePen /> */}
+                  <AddOrEditPanelDialog
+                    fetchPanels={fetchPanels}
+                    panel={item}
+                  />
                 </div>
               </TableCell>
             </TableRow>
@@ -190,6 +229,8 @@ const AddRemovePanel = () => {
             key={item._id}
             deletePanels={deletePanels}
             transaction={item}
+            fetchPanels={fetchPanels}
+            togglePanelStatus={togglePanelStatus}
           />
         ))}
       </div>
@@ -237,7 +278,12 @@ const AddRemovePanel = () => {
 export default AddRemovePanel;
 
 // Card component for mobile view
-const TransactionCard = ({ transaction, deletePanels }) => {
+const TransactionCard = ({
+  transaction,
+  deletePanels,
+  fetchPanels,
+  togglePanelStatus,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -260,8 +306,11 @@ const TransactionCard = ({ transaction, deletePanels }) => {
       {/* Header */}
       <div className="flex bg-[#8AAA08]    items-center justify-between p-2 ">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-[#D00FD3] rounded-full flex items-center justify-center dark:text-white text-white font-semibold">
-            <img src={transaction?.logoUrl} alt="" />
+          <div className="w-10 h-10 bg-[#D00FD3] rounded-full object-cover flex items-center justify-center dark:text-white text-white font-semibold">
+            <img
+              src={`${import.meta.env.VITE_URL}${transaction?.logoUrl}`}
+              className="rounded-full w-full h-full object-cover"
+            />
             {/* {transaction.userName?.charAt(0)} */}
           </div>
           <div>
@@ -340,7 +389,8 @@ const TransactionCard = ({ transaction, deletePanels }) => {
             description={"Are you sure you want to delete this panel?."}
           />
           {/* <ScreenshotProof url={logo} utr={transaction.utr} /> */}
-          <SquarePen className="w-6 h-6" />
+          <AddOrEditPanelDialog fetchPanels={fetchPanels} panel={transaction} />
+          {/* <SquarePen className="w-6 h-6" /> */}
           <Copy className={"h-6 w-6"} />
         </div>
         <div className="flex  gap-2">
@@ -348,7 +398,7 @@ const TransactionCard = ({ transaction, deletePanels }) => {
             Activate/Deactivate
             <Switch
               checked={transaction.isActive}
-              // onCheckedChange={(val) => handleBlockToggleFn(item.id, val)}
+              onCheckedChange={(val) => togglePanelStatus(transaction._id, val)}
             />
           </div>
         </div>

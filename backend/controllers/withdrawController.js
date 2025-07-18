@@ -57,8 +57,11 @@ exports.getAllWithdraws = async (req, res) => {
 
 exports.updateWithdrawalStatus = async (req, res) => {
   try {
-    const { withdrawalId } = req.params;
-    let { status } = req.body;
+    const { id } = req.params;
+    const { status } = req.body;
+    console.log(id, "id");
+    console.log(status, "status");
+
 
     console.log("📥 Incoming status:", status, "for withdrawalId:", withdrawalId);
 

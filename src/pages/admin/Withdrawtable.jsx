@@ -1,6 +1,3 @@
-
-import axios from "axios";
-import { toast } from "sonner"; 
 import CopyButton from "@/components/CopyButton";
 import {
   Table,
@@ -15,11 +12,14 @@ import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Copy, CreditCard, Hash, MapPin, MessageSquare } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import WithdrawLogo from "/asset/Group 48095823.png";
+import axios from "axios";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -30,13 +30,12 @@ const COLUMN_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { label: "All", value: "all" },
-  { label: "Completed", value: "Completed" },
-  { label: "Pending", value: "Pending" },
-  { label: "Failed", value: "Failed" },
-  { label: "Rejected", value: "Rejected" },
+  { label: "Pending", value: "pending" },
+  { label: "Approved", value: "approved" },
+  { label: "Rejected", value: "rejected" },
 ];
 
-const WithdrawTable = ({ data }) => {
+const WithdrawTable = ({ data, fetchWithdraws }) => {
   const {
     entries,
     setEntries,
@@ -56,41 +55,6 @@ const WithdrawTable = ({ data }) => {
     filteredData,
     totalPages,
   } = useTableFilter({ data, initialColumn: "userName" });
-  // console.log(paginatedData, "paginatedData");
-  // console.log(filteredData, "filteredData");
-
-
-  const handleAction = async (withdrawalId, type) => {
-    try {
-      let url = "";
-      let data = {};
-
-      if (type === "approve") {
-        url = `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${withdrawalId}`;
-        data = { status: "approved" };
-      } else if (type === "reject") {
-        url = `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${withdrawalId}`;
-        data = { status: "rejected" };
-      } else if (type === "remark") {
-        const remark = prompt("Enter remark:");
-        if (!remark) return;
-        url = `${import.meta.env.VITE_URL}/api/withdraw/admin/remark/${withdrawalId}`;
-        data = { remark };
-      }
-
-      const res = await axios.patch(url, data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      toast.success(res.data.message || `${type}d successfully`);
-      window.location.reload(); // ✅ or manually refresh list
-    } catch (err) {
-      toast.error("❌ " + (err.response?.data?.message || "Something went wrong"));
-    }
-  };
-
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -153,7 +117,41 @@ const WithdrawTable = ({ data }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "table.xlsx");
   };
+  // 1) Helpers at top of WithdrawTable
+  const token = localStorage.getItem("token");
 
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Withdrawal ${newStatus}`); // e.g. “Withdrawal Completed”
+      fetchWithdraws(); // or refetch data
+      console.log(res, "updateStatus");
+    } catch (err) {
+      console.error("Status update failed", err);
+      toast.error("Unable to update status.");
+    }
+  };
+
+  const updateRemark = async (id) => {
+    const remark = prompt("Enter remark for this withdrawal:");
+    if (remark == null) return; // user cancelled
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/remark/${id}`,
+        { remark },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Remark saved");
+      fetchWithdraws();
+    } catch (err) {
+      console.error("Remark update failed", err);
+      toast.error("Unable to save remark.");
+    }
+  };
   return (
     <>
       {/*  */}
@@ -187,7 +185,7 @@ const WithdrawTable = ({ data }) => {
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
             <TableHead>Entry Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className={"text-center"}>Status</TableHead>
             <TableHead>Remark</TableHead>
             <TableHead>Withdraw Date</TableHead>
             <TableHead className="text-center">Action</TableHead>
@@ -298,7 +296,9 @@ const WithdrawTable = ({ data }) => {
                 )}
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
-              <TableCell>{item.status}</TableCell>
+              <TableCell className={"align-middle text-center"}>
+                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              </TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
                 {item.withdrawDate || "N/A"}
@@ -309,39 +309,23 @@ const WithdrawTable = ({ data }) => {
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
                   <button
-                    onClick={() => handleAction(item._id, "approve")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-green-100 text-green-700 hover:bg-green-200"
-                      }`}
+                    onClick={() => updateStatus(item.id, "approved")}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
                   >
                     Approve
                   </button>
-
                   <button
-                    onClick={() => handleAction(item._id, "reject")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-red-100 text-red-700 hover:bg-red-200"
-                      }`}
+                    onClick={() => updateStatus(item.id, "rejected")}
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
                   >
                     Reject
                   </button>
-
                   <button
-                    onClick={() => handleAction(item._id, "remark")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                      : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                      }`}
+                    onClick={() => updateRemark(item.id)}
+                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
                   >
                     Remark
                   </button>
-
-
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -352,7 +336,12 @@ const WithdrawTable = ({ data }) => {
 
       <div className="lg:hidden block">
         {paginatedData?.map((item) => (
-          <TransactionCard key={item.id} transaction={item} handleAction={handleAction}/>
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            updateStatus={updateStatus}
+            updateRemark={updateRemark}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -367,7 +356,11 @@ const WithdrawTable = ({ data }) => {
 
 export default WithdrawTable;
 
-export const TransactionCard = ({ transaction, handleAction }) => {
+export const TransactionCard = ({
+  transaction,
+  updateStatus,
+  updateRemark,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -548,41 +541,25 @@ export const TransactionCard = ({ transaction, handleAction }) => {
           {/* Placeholder for Screenshot/UTR actions */}
           <Copy className="h-6 w-6" />
         </div>
-        <div className="flex  gap-2">
+        <div className="flex gap-2">
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "approve")}
-            disabled={transaction.status !== "pending"}
-            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-green-500 hover:bg-green-600 text-white"
-              }`}
+            onClick={() => updateStatus(transaction.id, "approved")}
+            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
-
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "reject")}
-            disabled={transaction.status !== "pending"}
-            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-red-500 hover:bg-red-600 text-white"
-              }`}
+            onClick={() => updateStatus(transaction.id, "rejected")}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Reject
           </button>
-
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "remark")}
-            disabled={transaction.status !== "pending"}
-            className={`px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-yellow-500 hover:bg-yellow-600 text-white"
-              }`}
+            onClick={() => updateRemark(transaction.id)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Remark
           </button>
-
-
         </div>
       </div>
     </div>
