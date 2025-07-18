@@ -4,7 +4,6 @@ const createGameId = async (req, res) => {
   try {
     const userId = req.user._id;
     const { username, password, gameName, gameLogo, gameUrl, type } = req.body;
-console.log("📥 API Data Received:", { username, password, gameName, gameLogo, gameUrl, type });
 
 
     if (!username || !password || !gameName || !gameLogo || !gameUrl) {
