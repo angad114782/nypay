@@ -1,17 +1,36 @@
 const UserGameId = require("../models/UserGameId");
 
-// ✅ 1. Create Game ID
 const createGameId = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { username, password } = req.body;
-    if (!username || !password)
-      return res.status(400).json({ success: false, message: "Username and password required" });
+    const { username, password, gameName, gameLogo, gameUrl, type } = req.body;
+console.log("📥 API Data Received:", { username, password, gameName, gameLogo, gameUrl, type });
 
-    const newGameId = new UserGameId({ userId, username, password });
+
+    if (!username || !password || !gameName || !gameLogo || !gameUrl) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields (username, password, gameName, gameLogo, gameUrl) are required",
+      });
+    }
+
+    const newGameId = new UserGameId({
+      userId,
+      username,
+      password,
+      type,
+      gameName,
+      gameLogo,
+      gameUrl,
+    });
+
     await newGameId.save();
 
-    res.status(201).json({ success: true, message: "Game ID created", gameId: newGameId });
+    res.status(201).json({
+      success: true,
+      message: "Game ID created",
+      gameId: newGameId,
+    });
   } catch (error) {
     console.error("❌ Create Error:", error);
     res.status(500).json({ success: false, message: "Server Error" });
