@@ -40,10 +40,10 @@ function MyId() {
         {filteredCards.map((card, index) => (
           <MyIdCard
             key={index}
-            logo={`asset/${card.logoSrc}`}
+            logo={`${card.gameLogo}`}
             username={card.username}
             password={card.password}
-            site={card.gameURL}
+            site={card.gameUrl}
             gameName={card.gameName}
             onCopyUsername={() => handleCopy(card.username)}
             onCopyPassword={() => handleCopy(card.password)}
