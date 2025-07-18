@@ -70,7 +70,6 @@ function Header() {
               <WalletBalance
                 padBal="py-[4px]"
                 bal={walletBalance}
-                onClick={() => navigate("/wallet")}
               />
             </div>
           )}

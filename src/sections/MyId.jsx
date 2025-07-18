@@ -66,6 +66,7 @@ function MyId() {
             logo={card.gameLogo} 
             username={card.username}
             password={card.password}
+            status={card.status}
             site={card.gameUrl}
             gameName={card.gameName}
             onDepositClick={() => handlePanelDeposit(card)}

@@ -1,4 +1,6 @@
 const Withdraw = require("../models/Withdraw");
+const User = require("../models/User");
+
 
 // ✅ Create withdraw request
 exports.requestWithdraw = async (req, res) => {
@@ -28,7 +30,7 @@ exports.requestWithdraw = async (req, res) => {
 // ✅ Get all withdraws
 exports.getAllWithdraws = async (req, res) => {
   try {
-    const withdraws = await Withdraw.find().populate("userId", "name email");
+    const withdraws = await Withdraw.find().sort({ createdAt: -1 }).populate("userId", "name email");
     const formatted = withdraws.map((dep) => ({
       id: dep._id,
       profileName: dep.userId?.name || "N/A",
@@ -53,46 +55,85 @@ exports.getAllWithdraws = async (req, res) => {
   }
 };
 
-// ✅ Update withdraw status only
-exports.updateWithdrawStatus = async (req, res) => {
+exports.updateWithdrawalStatus = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const { withdrawalId } = req.params;
+    let { status } = req.body;
 
-    const updated = await Withdraw.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
+    console.log("📥 Incoming status:", status, "for withdrawalId:", withdrawalId);
 
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated", withdraw: updated });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to update status" });
+    // 🔁 Normalize status
+    const statusMap = {
+      pending: "Pending",
+      approve: "Approved",
+      approved: "Approved",
+      completed: "Approved",
+      reject: "Rejected",
+      rejected: "Rejected",
+      rejact: "Rejected",
+      rejacted: "Rejected",
+    };
+
+    status = statusMap[status?.toLowerCase()] || null;
+
+    if (!status) {
+      console.log("❌ Invalid status input");
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const withdrawal = await Withdraw.findById(withdrawalId);
+    if (!withdrawal) {
+      console.log("❌ Withdrawal not found for ID:", withdrawalId);
+      return res.status(404).json({ message: "Withdrawal not found" });
+    }
+
+    // ✅ Deduct wallet on first approval only
+    if (status === "Approved" && withdrawal.status !== "Approved") {
+      const user = await User.findById(withdrawal.userId);
+      if (!user) {
+        console.log("❌ User not found for withdrawal:", withdrawal.userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      if ((user.wallet || 0) < withdrawal.amount) {
+        console.log("❌ Insufficient wallet balance");
+        return res.status(400).json({ message: "Insufficient wallet balance" });
+      }
+
+      user.wallet -= withdrawal.amount;
+      await user.save();
+      console.log("💸 Wallet deducted. New balance:", user.wallet);
+    } else {
+      console.log("⚠️ Wallet not deducted. Already approved or not valid for deduction.");
+    }
+
+    // 💾 Update withdrawal status
+    withdrawal.status = status;
+    await withdrawal.save();
+
+    console.log("✅ Withdrawal status updated:", status);
+    res.status(200).json({ success: true, message: "Status updated successfully" });
+  } catch (err) {
+    console.error("🔥 Withdrawal Status Update Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
-// ✅ Update withdraw remark only
-exports.updateWithdrawRemark = async (req, res) => {
+// 📝 Admin: Update Withdrawal Remark Only
+exports.updateWithdrawalRemark = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { withdrawalId } = req.params;
     const { remark } = req.body;
+    const withdrawal = await Withdraw.findById(withdrawalId);
 
-    const updated = await Withdraw.findByIdAndUpdate(
-      id,
-      { remark },
-      { new: true }
-    );
+    if (!withdrawal) return res.status(404).json({ message: "Withdrawal not found" });
 
-    res
-      .status(200)
-      .json({ success: true, message: "Remark updated", withdraw: updated });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Failed to update remark" });
+    withdrawal.remark = remark || "";
+    await withdrawal.save();
+
+    res.status(200).json({ success: true, message: "Remark updated successfully" });
+  } catch (err) {
+    console.error("Remark Update Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

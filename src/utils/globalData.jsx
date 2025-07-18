@@ -47,6 +47,27 @@ export const GlobalProvider = ({ children }) => {
     fetchUserProfile();
   }, [token, refreshTrigger, retryCount]);
 
+  useEffect(() => {
+  const fetchWalletBalance = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_URL}/api/deposit/wallet/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const formatted = Number(res.data.balance || 0).toLocaleString("en-IN");
+      setWalletBalance(formatted);
+    } catch (err) {
+      console.error("❌ Failed to fetch wallet balance:", err);
+      setWalletBalance("0");
+    }
+  };
+
+  if (token) {
+    fetchWalletBalance();
+  }
+}, [token, refreshTrigger]);
+
+
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile"); // Clear cache
     setRefreshTrigger((prev) => !prev);
@@ -64,7 +85,7 @@ export const GlobalProvider = ({ children }) => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(res, "ygxebuygzenw");
+      // console.log(res, "ygxebuygzenw");
       setAllCreateIdList(res.data.panels);
     } catch (err) {
       console.error("Error fetching id card:", err);
@@ -75,7 +96,7 @@ export const GlobalProvider = ({ children }) => {
   };
 
   const [myIdCardData, setMyIdCardData] = useState([]);
-  console.log(myIdCardData);
+  // console.log(myIdCardData);
   const fetchPanels = async () => {
     try {
       const res = await axios.get(
@@ -86,7 +107,7 @@ export const GlobalProvider = ({ children }) => {
       );
       setMyIdCardData(res?.data?.gameIds);
     } catch (err) {
-      console.error("❌ Failed to load Panels", err);
+      // console.error("❌ Failed to load Panels", err);
     }
   };
   // const myIdCardData = [
@@ -197,19 +218,20 @@ export const GlobalProvider = ({ children }) => {
     fetchPanels();
   }, []);
   return (
-    <GlobalContext.Provider
-      value={{
-        walletBalance,
-        setWalletBalance,
-        userProfile,
-        setUserProfile,
-        refreshUserProfile,
-        loadingProfile,
-        myIdCardData,
-        allCreateIDList,
-      }}
-    >
-      {children}
-    </GlobalContext.Provider>
+  <GlobalContext.Provider
+  value={{
+    walletBalance,
+    setWalletBalance,
+    userProfile,
+    setUserProfile,
+    refreshUserProfile,
+    loadingProfile,
+    myIdCardData,
+    allCreateIDList,
+  }}
+>
+  {children}
+</GlobalContext.Provider>
+
   );
 };

@@ -36,11 +36,15 @@ const createGameId = async (req, res) => {
   }
 };
 
-// ✅ 2. Get All Game IDs of Logged-in User
 const getMyGameIds = async (req, res) => {
   try {
     const userId = req.user._id;
-    const gameIds = await UserGameId.find({ userId }).sort({ createdAt: -1 });
+
+    const gameIds = await UserGameId.find({
+      userId,                // ✅ Only this user's IDs
+      isBlocked: { $ne: true }, // ✅ Not blocked
+    }).sort({ createdAt: -1 });
+
     res.status(200).json({ success: true, gameIds });
   } catch (error) {
     console.error("❌ Fetch Error:", error);
@@ -48,16 +52,31 @@ const getMyGameIds = async (req, res) => {
   }
 };
 
+// ✅ Admin: Get all Game ID requests
+const getAllGameIdRequests = async (req, res) => {
+  try {
+    const gameIds = await UserGameId.find()
+      .populate("userId", "name email phone") // optional: show user info
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, gameIds });
+  } catch (error) {
+    console.error("❌ Admin Fetch Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+
 const updateGameId = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, remark } = req.body;
+    const { username, password } = req.body;
 
     const updated = await UserGameId.findByIdAndUpdate(
       id,
       {
-        ...(status && { status }),
-        ...(remark && { remark }),
+        ...(username && { username }),
+        ...(password && { password }),
       },
       { new: true }
     );
@@ -66,12 +85,13 @@ const updateGameId = async (req, res) => {
       return res.status(404).json({ success: false, message: "Game ID not found" });
     }
 
-    res.json({ success: true, message: "Game ID updated", gameId: updated });
+    res.json({ success: true, message: "Username/Password updated", gameId: updated });
   } catch (err) {
     console.error("❌ Error updating Game ID:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
 
 // 2. Delete Game ID
@@ -149,6 +169,7 @@ const blockGameId = async (req, res) => {
 module.exports = {
   createGameId,
   getMyGameIds,
+  getAllGameIdRequests,
   updateGameId,
   deleteGameId,
   changeGameIdStatus,

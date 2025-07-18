@@ -1,3 +1,6 @@
+
+import axios from "axios";
+import { toast } from "sonner"; // or your preferred toast library
 import CopyButton from "@/components/CopyButton";
 import {
   Table,
@@ -55,6 +58,41 @@ const DepositTable = ({ data }) => {
     filteredData,
     totalPages,
   } = useTableFilter({ data, initialColumn: "profileName" });
+
+
+
+  const handleAction = async (depositId, type) => {
+    try {
+      let url = "";
+      let data = {};
+
+      if (type === "approve") {
+        url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
+        data = { status: "approved" };
+      } else if (type === "reject") {
+        url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
+        data = { status: "rejected" }; // make sure lowercase matches backend check
+      } else if (type === "remark") {
+        const remark = prompt("Enter remark:");
+        if (!remark) return;
+        url = `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${depositId}`;
+        data = { remark };
+      }
+
+      const res = await axios.patch(url, data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      toast.success(res.data.message || `${type}d successfully`);
+      window.location.reload();
+    } catch (err) {
+      toast.error("❌ " + (err.response?.data?.message || "Something went wrong"));
+    }
+  };
+
+
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -202,15 +240,40 @@ const DepositTable = ({ data }) => {
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button
+                    onClick={() => handleAction(item._id, "approve")}
+                    disabled={item.status !== "pending"}
+                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
+                      }`}
+                  >
                     Approve
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+
+                  <button
+                    onClick={() => handleAction(item._id, "reject")}
+                    disabled={item.status !== "pending"}
+                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-red-100 text-red-700 hover:bg-red-200"
+                      }`}
+                  >
                     Reject
                   </button>
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
+
+                  <button
+                    onClick={() => handleAction(item._id, "remark")}
+                    disabled={item.status !== "pending"}
+                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
+                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                      }`}
+                  >
                     Remark
                   </button>
+
+
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -221,9 +284,14 @@ const DepositTable = ({ data }) => {
 
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
-          <TransactionCard key={item.id} transaction={item} />
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            handleAction={handleAction} // ✅ pass it here
+          />
         ))}
       </div>
+
       {/* Pagination Controls */}
       <Pagination
         currentPage={currentPage}
@@ -237,7 +305,7 @@ const DepositTable = ({ data }) => {
 export default DepositTable;
 
 // Card component for mobile view
-export const TransactionCard = ({ transaction }) => {
+export const TransactionCard = ({ transaction, handleAction }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -345,15 +413,40 @@ export const TransactionCard = ({ transaction }) => {
           <Copy className={"h-6 w-6"} />
         </div>
         <div className="flex  gap-2">
-          <button className="flex-1 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-light">
+          <button
+            onClick={() => handleAction(transaction._id || transaction.id, "approve")}
+            disabled={transaction.status !== "pending"}
+            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600 text-white"
+              }`}
+          >
             Approve
           </button>
-          <button className="flex-1 bg-red-500 hover:bg-red-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
+
+          <button
+            onClick={() => handleAction(transaction._id || transaction.id, "reject")}
+            disabled={transaction.status !== "pending"}
+            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-red-500 hover:bg-red-600 text-white"
+              }`}
+          >
             Reject
           </button>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
+
+          <button
+            onClick={() => handleAction(transaction._id || transaction.id, "remark")}
+            disabled={transaction.status !== "pending"}
+            className={`px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-yellow-500 hover:bg-yellow-600 text-white"
+              }`}
+          >
             Remark
           </button>
+
+
         </div>
       </div>
     </div>
