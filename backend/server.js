@@ -57,5 +57,9 @@ app.use("/api/panels", panelRoutes);
 const sliderRoutes = require("./routes/sliderRoutes");
 app.use("/api/slider", sliderRoutes);
 
+
+const userGameIdRoutes = require("./routes/userGameIdRoutes");
+app.use("/api/game", userGameIdRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
