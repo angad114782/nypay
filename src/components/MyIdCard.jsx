@@ -8,6 +8,7 @@ const MyIdCard = ({
   logo,
   username,
   password,
+  status,
   site,
   onDepositClick,
   onWithdrawClick,
@@ -72,6 +73,7 @@ const MyIdCard = ({
                 <div className="flex items-center gap-3">
                   <span className="text-base">{password}</span>
                   <CopyButton textToCopy={password} title="Copy Password" />
+                  <span className="text-base">{status}</span>
                 </div>
               </div>
 

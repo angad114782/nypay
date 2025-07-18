@@ -67,30 +67,82 @@ exports.getAllDeposits = async (req, res) => {
   }
 };
 
-// ✅ Separate: Update Status Only
 exports.updateDepositStatus = async (req, res) => {
   try {
     const { depositId } = req.params;
-    const { status } = req.body;
+    let { status } = req.body;
 
-    if (!["pending", "approved", "rejected"].includes(status)) {
+    // Log input
+    console.log("📥 Incoming status:", status, "for depositId:", depositId);
+
+    // 🔁 Normalize status input
+    const statusMap = {
+      pending: "Pending",
+      approve: "Approved",
+      approved: "Approved",
+      completed: "Approved",
+      reject: "Rejected",
+      rejected: "Rejected",
+      rejact: "Rejected",
+      rejacted: "Rejected",
+    };
+
+    status = statusMap[status?.toLowerCase()] || null;
+
+    if (!status) {
+      console.log("❌ Invalid status input");
       return res.status(400).json({ message: "Invalid status" });
     }
 
     const deposit = await Deposit.findById(depositId);
-    if (!deposit) return res.status(404).json({ message: "Deposit not found" });
+    if (!deposit) {
+      console.log("❌ Deposit not found for ID:", depositId);
+      return res.status(404).json({ message: "Deposit not found" });
+    }
 
+    // ✅ Only update wallet if this is the first approval
+    if (status === "Approved" && deposit.status !== "Approved") {
+      const user = await User.findById(deposit.userId);
+      if (!user) {
+        console.log("❌ User not found for deposit:", deposit.userId);
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log("💰 Before wallet:", user.wallet);
+      user.wallet = (user.wallet || 0) + deposit.amount;
+      await user.save();
+      console.log("✅ Wallet updated to:", user.wallet);
+    } else {
+      console.log("⚠️ Wallet not updated. Either already approved or not an 'approved' request.");
+    }
+
+    // 💾 Update deposit status
     deposit.status = status;
     await deposit.save();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated successfully" });
+    console.log("✅ Deposit status updated:", status);
+    res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
-    console.error("Status Update Error:", err);
+    console.error("🔥 Status Update Error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+
+
+// For user dashboard
+exports.getMyWalletBalance = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json({ success: true, balance: user.wallet || 0 });
+  } catch (err) {
+    console.error("Wallet Fetch Error:", err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
 
 // ✅ Separate: Update Remark Only
 exports.updateDepositRemark = async (req, res) => {

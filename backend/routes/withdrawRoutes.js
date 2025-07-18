@@ -11,17 +11,9 @@ router.get(
   withdrawController.getAllWithdraws
 );
 
-router.put(
-  "/admin/status/:id",
-  protect,
-  adminOnly,
-  withdrawController.updateWithdrawStatus
-); // update status
-router.put(
-  "/admin/remark/:id",
-  protect,
-  adminOnly,
-  withdrawController.updateWithdrawRemark
-); // update remark
+
+router.patch("/admin/status/:withdrawalId", protect, adminOnly, withdrawController.updateWithdrawalStatus); // update status
+router.patch("/admin/remark/:withdrawalId", protect, adminOnly, withdrawController.updateWithdrawalRemark); // update remark
+
 
 module.exports = router;

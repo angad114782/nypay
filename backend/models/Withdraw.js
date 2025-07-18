@@ -5,7 +5,7 @@ const withdrawSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   withdrawMethod: { type: String, enum: ["upi", "bank"], required: true },
   selectedAccount: { type: Object, required: true },
-  status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
   remark: { type: String, default: "" }, // ✅ Add this line
   createdAt: { type: Date, default: Date.now },
 });
