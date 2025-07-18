@@ -4,9 +4,24 @@ const withdrawController = require("../controllers/withdrawController");
 const { protect, adminOnly } = require("../middlewares/auth");
 
 router.post("/request", protect, withdrawController.requestWithdraw);
-router.get("/admin/withdraws", protect, adminOnly, withdrawController.getAllWithdraws);
+router.get(
+  "/admin/withdraws",
+  protect,
+  adminOnly,
+  withdrawController.getAllWithdraws
+);
 
-router.put("/admin/status/:withdrawId", protect, adminOnly, withdrawController.updateWithdrawStatus); // update status
-router.put("/admin/remark/:withdrawId", protect, adminOnly, withdrawController.updateWithdrawRemark); // update remark
+router.put(
+  "/admin/status/:id",
+  protect,
+  adminOnly,
+  withdrawController.updateWithdrawStatus
+); // update status
+router.put(
+  "/admin/remark/:id",
+  protect,
+  adminOnly,
+  withdrawController.updateWithdrawRemark
+); // update remark
 
 module.exports = router;

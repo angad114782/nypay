@@ -28,11 +28,9 @@ import {
   User,
 } from "lucide-react";
 import React, { useState } from "react";
-// import { AddNewPanelDialog } from "./AddNewPanelDialog";
 import logo from "/asset/gpay.png";
 import CopyButton from "@/components/CopyButton";
 import { Button } from "@/components/ui/button";
-import { AddNewPanelDialog } from "../admin/AddNewPanelDialog";
 import { useNavigate } from "react-router-dom";
 
 const data = [

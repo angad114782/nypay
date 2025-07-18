@@ -12,11 +12,14 @@ import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Copy, CreditCard, Hash, MapPin, MessageSquare } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import WithdrawLogo from "/asset/Group 48095823.png";
+import axios from "axios";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -27,13 +30,12 @@ const COLUMN_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { label: "All", value: "all" },
-  { label: "Completed", value: "Completed" },
-  { label: "Pending", value: "Pending" },
-  { label: "Failed", value: "Failed" },
-  { label: "Rejected", value: "Rejected" },
+  { label: "Pending", value: "pending" },
+  { label: "Approved", value: "approved" },
+  { label: "Rejected", value: "rejected" },
 ];
 
-const WithdrawTable = ({ data }) => {
+const WithdrawTable = ({ data, fetchWithdraws }) => {
   const {
     entries,
     setEntries,
@@ -53,8 +55,6 @@ const WithdrawTable = ({ data }) => {
     filteredData,
     totalPages,
   } = useTableFilter({ data, initialColumn: "userName" });
-  console.log(paginatedData, "paginatedData");
-  console.log(filteredData, "filteredData");
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -117,7 +117,41 @@ const WithdrawTable = ({ data }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "table.xlsx");
   };
+  // 1) Helpers at top of WithdrawTable
+  const token = localStorage.getItem("token");
 
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Withdrawal ${newStatus}`); // e.g. “Withdrawal Completed”
+      fetchWithdraws(); // or refetch data
+      console.log(res, "updateStatus");
+    } catch (err) {
+      console.error("Status update failed", err);
+      toast.error("Unable to update status.");
+    }
+  };
+
+  const updateRemark = async (id) => {
+    const remark = prompt("Enter remark for this withdrawal:");
+    if (remark == null) return; // user cancelled
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/remark/${id}`,
+        { remark },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Remark saved");
+      fetchWithdraws();
+    } catch (err) {
+      console.error("Remark update failed", err);
+      toast.error("Unable to save remark.");
+    }
+  };
   return (
     <>
       {/*  */}
@@ -151,7 +185,7 @@ const WithdrawTable = ({ data }) => {
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
             <TableHead>Entry Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className={"text-center"}>Status</TableHead>
             <TableHead>Remark</TableHead>
             <TableHead>Withdraw Date</TableHead>
             <TableHead className="text-center">Action</TableHead>
@@ -262,7 +296,9 @@ const WithdrawTable = ({ data }) => {
                 )}
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
-              <TableCell>{item.status}</TableCell>
+              <TableCell className={"align-middle text-center"}>
+                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              </TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
                 {item.withdrawDate || "N/A"}
@@ -272,13 +308,22 @@ const WithdrawTable = ({ data }) => {
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button
+                    onClick={() => updateStatus(item.id, "approved")}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                  >
                     Approve
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+                  <button
+                    onClick={() => updateStatus(item.id, "rejected")}
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                  >
                     Reject
                   </button>
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
+                  <button
+                    onClick={() => updateRemark(item.id)}
+                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
+                  >
                     Remark
                   </button>
                 </div>
@@ -291,7 +336,12 @@ const WithdrawTable = ({ data }) => {
 
       <div className="lg:hidden block">
         {paginatedData?.map((item) => (
-          <TransactionCard key={item.id} transaction={item} />
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            updateStatus={updateStatus}
+            updateRemark={updateRemark}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -306,7 +356,11 @@ const WithdrawTable = ({ data }) => {
 
 export default WithdrawTable;
 
-export const TransactionCard = ({ transaction }) => {
+export const TransactionCard = ({
+  transaction,
+  updateStatus,
+  updateRemark,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -488,13 +542,22 @@ export const TransactionCard = ({ transaction }) => {
           <Copy className="h-6 w-6" />
         </div>
         <div className="flex gap-2">
-          <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs">
+          <button
+            onClick={() => updateStatus(transaction.id, "approved")}
+            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Approve
           </button>
-          <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs">
+          <button
+            onClick={() => updateStatus(transaction.id, "rejected")}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Reject
           </button>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs">
+          <button
+            onClick={() => updateRemark(transaction.id)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Remark
           </button>
         </div>

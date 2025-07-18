@@ -14,28 +14,27 @@ const DepositWithdrawal = ({ onTabChange }) => {
   const [depositData, setDepositData] = useState([]);
   const [withdrawData, setwithdrawData] = useState([]);
   const token = localStorage.getItem("token");
-
+  const fetchDeposits = async () => {
+    const res = await axios.get(
+      `${import.meta.env.VITE_URL}/api/deposit/admin/deposits`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setDepositData(res.data.data);
+  };
+  const fetchWithdraws = async () => {
+    const res = await axios.get(
+      `${import.meta.env.VITE_URL}/api/withdraw/admin/withdraws`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    setwithdrawData(res.data.data);
+  };
   useEffect(() => {
-    const fetchDeposits = async () => {
-      const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/deposit/admin/deposits`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setDepositData(res.data.data);
-    };
     fetchDeposits();
 
-    const fetchWithdraws = async () => {
-      const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/withdraw/admin/withdraws`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setwithdrawData(res.data.data);
-    };
     fetchWithdraws();
   }, []);
 
@@ -56,10 +55,10 @@ const DepositWithdrawal = ({ onTabChange }) => {
           <TabsTrigger value="withdrawal">Withdrawal</TabsTrigger>
         </TabsList>
         <TabsContent value="deposit">
-          <DepositTable data={depositData} />
+          <DepositTable data={depositData} fetchDeposits={fetchDeposits} />
         </TabsContent>
         <TabsContent value="withdrawal">
-          <WithdrawTable data={withdrawData} />
+          <WithdrawTable data={withdrawData} fetchWithdraws={fetchWithdraws} />
         </TabsContent>
       </Tabs>
     </>

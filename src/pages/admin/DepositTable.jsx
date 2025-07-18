@@ -19,7 +19,8 @@ import TableFilterBar from "./TableFilters";
 import logo1 from "/asset/Arrow 1.png";
 import logo from "/asset/gpay.png";
 import { useTableFilter } from "@/hooks/AdminTableFilterHook";
-
+import { toast } from "sonner";
+import axios from "axios";
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
   // { label: "User Name", value: "userName" },
@@ -29,13 +30,12 @@ const COLUMN_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { label: "All", value: "all" },
-  { label: "Completed", value: "Completed" },
-  { label: "Pending", value: "Pending" },
-  { label: "Failed", value: "Failed" },
-  { label: "Rejected", value: "Rejected" },
+  { label: "Pending", value: "pending" },
+  { label: "Approved", value: "approved" },
+  { label: "Rejected", value: "rejected" },
 ];
 
-const DepositTable = ({ data }) => {
+const DepositTable = ({ data, fetchDeposits }) => {
   const {
     entries,
     setEntries,
@@ -113,7 +113,41 @@ const DepositTable = ({ data }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "table.xlsx");
   };
+  // 1) Helpers at top of WithdrawTable
+  const token = localStorage.getItem("token");
 
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const res = await axios.put(
+        `${import.meta.env.VITE_URL}/api/deposit/admin/status/${id}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Deposit ${newStatus}`); // e.g. “Withdrawal Completed”
+      fetchDeposits(); // or refetch data
+      console.log(res, "updateStatus");
+    } catch (err) {
+      console.error("Status update failed", err);
+      toast.error("Unable to update status.");
+    }
+  };
+
+  const updateRemark = async (id) => {
+    const remark = prompt("Enter remark for this deposit:");
+    if (remark == null) return; // user cancelled
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${id}`,
+        { remark },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Remark saved");
+      fetchDeposits();
+    } catch (err) {
+      console.error("Remark update failed", err);
+      toast.error("Unable to save remark.");
+    }
+  };
   return (
     <>
       <TableFilterBar
@@ -202,13 +236,22 @@ const DepositTable = ({ data }) => {
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button
+                    onClick={() => updateStatus(item.id, "approved")}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                  >
                     Approve
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+                  <button
+                    onClick={() => updateStatus(item.id, "rejected")}
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                  >
                     Reject
                   </button>
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
+                  <button
+                    onClick={() => updateRemark(item.id)}
+                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
+                  >
                     Remark
                   </button>
                 </div>
@@ -221,7 +264,12 @@ const DepositTable = ({ data }) => {
 
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
-          <TransactionCard key={item.id} transaction={item} />
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            updateStatus={updateStatus}
+            updateRemark={updateRemark}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -237,7 +285,11 @@ const DepositTable = ({ data }) => {
 export default DepositTable;
 
 // Card component for mobile view
-export const TransactionCard = ({ transaction }) => {
+export const TransactionCard = ({
+  transaction,
+  updateStatus,
+  updateRemark,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -345,13 +397,22 @@ export const TransactionCard = ({ transaction }) => {
           <Copy className={"h-6 w-6"} />
         </div>
         <div className="flex  gap-2">
-          <button className="flex-1 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-light">
+          <button
+            onClick={() => updateStatus(transaction.id, "approved")}
+            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Approve
           </button>
-          <button className="flex-1 bg-red-500 hover:bg-red-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
+          <button
+            onClick={() => updateStatus(transaction.id, "rejected")}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Reject
           </button>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
+          <button
+            onClick={() => updateRemark(transaction.id)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Remark
           </button>
         </div>

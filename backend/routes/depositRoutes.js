@@ -5,7 +5,7 @@ const {
   createDeposit,
   getAllDeposits,
   updateDepositStatus,
-  updateDepositRemark
+  updateDepositRemark,
 } = require("../controllers/depositController");
 const upload = require("../config/multerConfig");
 const { protect, adminOnly } = require("../middlewares/auth");
@@ -22,9 +22,19 @@ router.post(
 router.get("/admin/deposits", protect, adminOnly, getAllDeposits);
 
 // ✅ Update Status
-router.patch("/admin/status/:depositId", protect, adminOnly, updateDepositStatus);
+router.patch(
+  "/admin/status/:depositId",
+  protect,
+  adminOnly,
+  updateDepositStatus
+);
 
 // ✅ Update Remark
-router.patch("/admin/remark/:depositId", protect, adminOnly, updateDepositRemark);
+router.patch(
+  "/admin/remark/:depositId",
+  protect,
+  adminOnly,
+  updateDepositRemark
+);
 
 module.exports = router;

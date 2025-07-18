@@ -58,6 +58,8 @@ exports.updateWithdrawStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+    console.log(id, "id");
+    console.log(status, "status");
 
     const updated = await Withdraw.findByIdAndUpdate(
       id,
