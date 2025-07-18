@@ -24,7 +24,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 app.use(express.json());
-
+app.get('/', (req, res) => {
+  res.send('✅ nypay API is up and running');
+});
 // Routes
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/auth", authRoutes);
