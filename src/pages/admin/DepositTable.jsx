@@ -1,4 +1,3 @@
-
 import axios from "axios";
 import { toast } from "sonner"; // or your preferred toast library
 import CopyButton from "@/components/CopyButton";
@@ -22,6 +21,7 @@ import TableFilterBar from "./TableFilters";
 import logo1 from "/asset/Arrow 1.png";
 import logo from "/asset/gpay.png";
 import { useTableFilter } from "@/hooks/AdminTableFilterHook";
+import { Badge } from "@/components/ui/badge";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -38,7 +38,7 @@ const STATUS_OPTIONS = [
   { label: "Rejected", value: "Rejected" },
 ];
 
-const DepositTable = ({ data }) => {
+const DepositTable = ({ data, fetchDeposits }) => {
   const {
     entries,
     setEntries,
@@ -59,40 +59,70 @@ const DepositTable = ({ data }) => {
     totalPages,
   } = useTableFilter({ data, initialColumn: "profileName" });
 
+  const token = localStorage.getItem("token");
 
-
-  const handleAction = async (depositId, type) => {
+  const updateStatus = async (id, newStatus) => {
     try {
-      let url = "";
-      let data = {};
-
-      if (type === "approve") {
-        url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
-        data = { status: "approved" };
-      } else if (type === "reject") {
-        url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
-        data = { status: "rejected" }; // make sure lowercase matches backend check
-      } else if (type === "remark") {
-        const remark = prompt("Enter remark:");
-        if (!remark) return;
-        url = `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${depositId}`;
-        data = { remark };
-      }
-
-      const res = await axios.patch(url, data, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      toast.success(res.data.message || `${type}d successfully`);
-      window.location.reload();
+      const res = await axios.put(
+        `${import.meta.env.VITE_URL}/api/deposit/admin/status/${id}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Deposit ${newStatus}`); // e.g. “Withdrawal Completed”
+      fetchDeposits(); // or refetch data
+      console.log(res, "updateStatus");
     } catch (err) {
-      toast.error("❌ " + (err.response?.data?.message || "Something went wrong"));
+      console.error("Status update failed", err);
+      toast.error("Unable to update status.");
     }
   };
 
+  const updateRemark = async (id) => {
+    const remark = prompt("Enter remark for this withdrawal:");
+    if (remark == null) return; // user cancelled
+    try {
+      await axios.put(
+        `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${id}`,
+        { remark },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Remark saved");
+      fetchDeposits();
+    } catch (err) {
+      console.error("Remark update failed", err);
+      toast.error("Unable to save remark.");
+    }
+  };
+  // const handleAction = async (depositId, type) => {
+  //   try {
+  //     let url = "";
+  //     let data = {};
 
+  //     if (type === "approve") {
+  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
+  //       data = { status: "approved" };
+  //     } else if (type === "reject") {
+  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
+  //       data = { status: "rejected" }; // make sure lowercase matches backend check
+  //     } else if (type === "remark") {
+  //       const remark = prompt("Enter remark:");
+  //       if (!remark) return;
+  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${depositId}`;
+  //       data = { remark };
+  //     }
+
+  //     const res = await axios.patch(url, data, {
+  //       headers: {
+  //         Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //       },
+  //     });
+
+  //     toast.success(res.data.message || `${type}d successfully`);
+  //     window.location.reload();
+  //   } catch (err) {
+  //     toast.error("❌ " + (err.response?.data?.message || "Something went wrong"));
+  //   }
+  // };
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -184,7 +214,7 @@ const DepositTable = ({ data }) => {
             <TableHead>Payment Type</TableHead>
             <TableHead>UTR</TableHead>
             <TableHead>Entry Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className={"text-center"}>Status</TableHead>
             <TableHead>Remark</TableHead>
             <TableHead>Image</TableHead>
             <TableHead className="text-center">Action</TableHead>
@@ -230,7 +260,9 @@ const DepositTable = ({ data }) => {
                 </div>
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
-              <TableCell>{item.status}</TableCell>
+              <TableCell className={"align-middle text-center"}>
+                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              </TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
                 <ScreenshotProof
@@ -241,39 +273,23 @@ const DepositTable = ({ data }) => {
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
                   <button
-                    onClick={() => handleAction(item._id, "approve")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-green-100 text-green-700 hover:bg-green-200"
-                      }`}
+                    onClick={() => updateStatus(item.id, "approved")}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
                   >
                     Approve
                   </button>
-
                   <button
-                    onClick={() => handleAction(item._id, "reject")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-red-100 text-red-700 hover:bg-red-200"
-                      }`}
+                    onClick={() => updateStatus(item.id, "rejected")}
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
                   >
                     Reject
                   </button>
-
                   <button
-                    onClick={() => handleAction(item._id, "remark")}
-                    disabled={item.status !== "pending"}
-                    className={`px-2 py-1 rounded text-xs font-semibold transition ${item.status !== "pending"
-                        ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                      }`}
+                    onClick={() => updateRemark(item.id)}
+                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
                   >
                     Remark
                   </button>
-
-
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -287,7 +303,8 @@ const DepositTable = ({ data }) => {
           <TransactionCard
             key={item.id}
             transaction={item}
-            handleAction={handleAction} // ✅ pass it here
+            updateStatus={updateStatus}
+            updateRemark={updateRemark}
           />
         ))}
       </div>
@@ -305,7 +322,11 @@ const DepositTable = ({ data }) => {
 export default DepositTable;
 
 // Card component for mobile view
-export const TransactionCard = ({ transaction, handleAction }) => {
+export const TransactionCard = ({
+  transaction,
+  updateStatus,
+  updateRemark,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -414,39 +435,23 @@ export const TransactionCard = ({ transaction, handleAction }) => {
         </div>
         <div className="flex  gap-2">
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "approve")}
-            disabled={transaction.status !== "pending"}
-            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-green-500 hover:bg-green-600 text-white"
-              }`}
+            onClick={() => updateStatus(transaction.id, "approved")}
+            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
-
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "reject")}
-            disabled={transaction.status !== "pending"}
-            className={`flex-1 px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-red-500 hover:bg-red-600 text-white"
-              }`}
+            onClick={() => updateStatus(transaction.id, "rejected")}
+            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Reject
           </button>
-
           <button
-            onClick={() => handleAction(transaction._id || transaction.id, "remark")}
-            disabled={transaction.status !== "pending"}
-            className={`px-2 py-1 rounded-full text-[10px] font-light ${transaction.status !== "pending"
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-yellow-500 hover:bg-yellow-600 text-white"
-              }`}
+            onClick={() => updateRemark(transaction.id)}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Remark
           </button>
-
-
         </div>
       </div>
     </div>

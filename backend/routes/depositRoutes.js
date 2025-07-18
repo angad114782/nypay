@@ -27,12 +27,10 @@ router.get("/wallet/balance", protect, getMyWalletBalance); // 🆕
 // 🔵 Get All Deposits
 router.get("/admin/deposits", protect, adminOnly, getAllDeposits);
 
-
 // 🔄 Update Deposit Status (approve/reject)
-router.patch("/admin/status/:depositId", protect, adminOnly, updateDepositStatus);
+router.put("/admin/status/:id", protect, adminOnly, updateDepositStatus);
 
 // 📝 Update Deposit Remark
-router.patch("/admin/remark/:depositId", protect, adminOnly, updateDepositRemark);
-
+router.put("/admin/remark/:id", protect, adminOnly, updateDepositRemark);
 
 module.exports = router;
