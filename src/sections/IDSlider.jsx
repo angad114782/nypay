@@ -32,7 +32,7 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
         {myIdCardData.map((card, index) => (
           <ExCard
             key={index}
-            logo={card.logoSrc}
+            logo={card.gameLogo}
             logoName={card.gameName}
             username={card.username}
             onclickwithdraw={() => handlePanelWithdraw(card)}

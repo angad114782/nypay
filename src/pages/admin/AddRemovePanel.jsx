@@ -1,3 +1,5 @@
+import ConfirmDialog from "@/components/ConfirmDialog";
+import CopyButton from "@/components/CopyButton";
 import {
   Select,
   SelectContent,
@@ -15,47 +17,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import axios from "axios";
 import { Copy, KeyRound, SquarePen, Trash2Icon, User } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AddNewPanelDialog } from "./AddNewPanelDialog";
-import logo from "/asset/gpay.png";
-import CopyButton from "@/components/CopyButton";
 
-const data = [
-  {
-    id: 11,
-    logo: logo,
-    panelName: "qewdawsdas",
-    panelLink: "www.google.com",
-    isActivate: true,
-  },
-];
 const AddRemovePanel = () => {
   const [entries, setEntries] = useState(10);
-  const [search, setSearch] = useState("");
-  const [searchColumn, setSearchColumn] = useState("profileName");
   const [currentPage, setCurrentPage] = useState(1);
-  const [status, setStatus] = useState("all");
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [data, setData] = useState([]);
+  const token = localStorage.getItem("token");
 
-  const handleCopy = (text) => {
-    navigator.clipboard.writeText(text);
+  const fetchPanels = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/panels/panel`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setData(res.data.panels);
+    } catch (err) {
+      console.error("❌ Failed to load Panels", err);
+    }
+  };
+  const deletePanels = async (id, userId) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_URL}/api/panels/panel/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      toast.success(`Panel ${userId} deleted successfully`);
+      fetchPanels();
+    } catch (err) {
+      console.error("❌ Failed to delete Panels", err);
+    }
   };
 
-  //   // Enhanced filter logic
-  //   const filteredData = data?.filter((item) => {
-  //     const matchesColumn = item[searchColumn]
-  //       ?.toString()
-  //       .toLowerCase()
-  //       .includes(search.toLowerCase());
-  //     const matchesStatus = status === "all" ? true : item.status === status;
-  //     const from = dateRange.from ? new Date(dateRange.from) : null;
-  //     const to = dateRange.to ? new Date(dateRange.to) : null;
-  //     const matchesDate =
-  //       (!from || new Date(item.entryDate) >= from) &&
-  //       (!to || new Date(item.entryDate) <= to);
-  //     return matchesColumn && matchesStatus && matchesDate;
-  //   });
+  useEffect(() => {
+    fetchPanels();
+  }, []);
 
   // Pagination logic
   const totalPages = Math.ceil(data.length / entries);
@@ -70,10 +71,9 @@ const AddRemovePanel = () => {
     setCurrentPage(page);
   };
 
-  // Reset to first page when entries/search/searchColumn changes
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [entries, search, searchColumn]);
+  }, [entries]);
 
   return (
     <>
@@ -100,7 +100,7 @@ const AddRemovePanel = () => {
           </Select>
           <span className="text-sm text-gray-700">entries</span>
         </div>
-        <AddNewPanelDialog />
+        <AddNewPanelDialog fetchPanels={fetchPanels} />
       </div>
       <Table className="hidden lg:table w-full">
         <TableCaption>A list of your request list.</TableCaption>
@@ -115,13 +115,13 @@ const AddRemovePanel = () => {
         </TableHeader>
         <TableBody>
           {paginatedData.map((item, index) => (
-            <TableRow key={item.id}>
+            <TableRow key={item._id}>
               {/* S.No with copy all */}
               <TableCell className="w-[100px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Panel Name - ${item.panelName}\nPanel Link - ${item.panelLink}`}
+                    textToCopy={`Panel Name - ${item.profileName}\nPanel Link - ${item.userId}`}
                     title="Copy Panel Name,Panel Link"
                   />
                 </div>
@@ -129,14 +129,18 @@ const AddRemovePanel = () => {
               {/* <TableCell>{item.profileName}</TableCell> */}
               <TableCell>
                 <div className="flex items-center gap-1">
-                  <img src={item.logo} className="h-10 w-10" alt="" />
+                  <img
+                    src={`${import.meta.env.VITE_URL}${item?.logoUrl}`}
+                    className="h-10 w-10 rounded-sm"
+                    alt=""
+                  />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.panelName}
+                  {item.profileName}
                   <CopyButton
-                    textToCopy={item.panelName}
+                    textToCopy={item.profileName}
                     title="Copy Panel Name"
                   />
                 </div>
@@ -145,19 +149,19 @@ const AddRemovePanel = () => {
                 <div className="flex justify-start items-center gap-1">
                   <a
                     href={
-                      item.panelLink.startsWith("http")
-                        ? item.panelLink
-                        : `https://${item.panelLink}`
+                      item?.userId.startsWith("http")
+                        ? item.userId
+                        : `https://${item.userId}`
                     }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer truncate max-w-32"
-                    title={item.panelLink}
+                    title={item.userId}
                   >
-                    {item.panelLink}
+                    {item.userId}
                   </a>
                   <CopyButton
-                    textToCopy={item.panelLink}
+                    textToCopy={item.userId}
                     title="Copy Panel Link"
                   />
                 </div>
@@ -165,7 +169,13 @@ const AddRemovePanel = () => {
 
               <TableCell className="text-center align-middle">
                 <div className="flex gap-2 items-center justify-around">
-                  <Trash2Icon />
+                  <ConfirmDialog
+                    onClick={() => deletePanels(item._id, item.userId)}
+                    buttonLogo={<Trash2Icon />}
+                    title={"Delete Panel"}
+                    description={"Are you sure you want to delete this panel?."}
+                  />
+
                   <SquarePen />
                 </div>
               </TableCell>
@@ -176,7 +186,11 @@ const AddRemovePanel = () => {
 
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
-          <TransactionCard key={item.id} transaction={item} />
+          <TransactionCard
+            key={item._id}
+            deletePanels={deletePanels}
+            transaction={item}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -223,7 +237,7 @@ const AddRemovePanel = () => {
 export default AddRemovePanel;
 
 // Card component for mobile view
-const TransactionCard = ({ transaction }) => {
+const TransactionCard = ({ transaction, deletePanels }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -247,16 +261,16 @@ const TransactionCard = ({ transaction }) => {
       <div className="flex bg-[#8AAA08]    items-center justify-between p-2 ">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 bg-[#D00FD3] rounded-full flex items-center justify-center dark:text-white text-white font-semibold">
-            <img src={transaction.logo} alt="" />
+            <img src={transaction?.logoUrl} alt="" />
             {/* {transaction.userName?.charAt(0)} */}
           </div>
           <div>
             <div className="flex items-center gap-1">
               <h3 className="text-sm dark:text-white text-white font-bold">
-                {transaction.panelName}
+                {transaction.profileName}
               </h3>
               <CopyButton
-                textToCopy={transaction.panelName}
+                textToCopy={transaction.profileName}
                 title="Copy Panel Name"
               />
             </div>
@@ -272,13 +286,13 @@ const TransactionCard = ({ transaction }) => {
             <span className="text-sm text-black ">Panel Name</span>
           </div>
 
-          <span className="text-sm  ml-auto">{transaction.panelName}</span>
+          <span className="text-sm  ml-auto">{transaction.profileName}</span>
           <CopyButton
-            textToCopy={transaction.panelName}
+            textToCopy={transaction.profileName}
             title="Copy Panel Name"
           />
           <button
-            onClick={() => handleCopy(transaction.panelLink)}
+            onClick={() => handleCopy(transaction.userId)}
             title="Copy IFSC Code"
             className="ml-1 p-1 hover:bg-gray-200 rounded"
           >
@@ -293,24 +307,21 @@ const TransactionCard = ({ transaction }) => {
 
           <a
             href={
-              transaction.panelLink.startsWith("http")
-                ? transaction.panelLink
-                : `https://${transaction.panelLink}`
+              transaction.userId.startsWith("http")
+                ? transaction.userId
+                : `https://${transaction.userId}`
             }
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm ml-auto text-blue-600 hover:text-blue-800 underline cursor-pointer truncate max-w-32"
-            title={transaction.panelLink}
+            title={transaction.userId}
           >
-            {transaction.panelLink}
+            {transaction.userId}
           </a>
 
-          <CopyButton
-            textToCopy={transaction.panelLink}
-            title="Copy Panel Link"
-          />
+          <CopyButton textToCopy={transaction.userId} title="Copy Panel Link" />
           <button
-            onClick={() => handleCopy(transaction.panelLink)}
+            onClick={() => handleCopy(transaction.userId)}
             title="Copy Panel Link"
             className="ml-1 p-1 hover:bg-gray-200 rounded"
           >
@@ -322,7 +333,12 @@ const TransactionCard = ({ transaction }) => {
       {/* Action Buttons */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <Trash2Icon className="h-6 w-6 text-red-500" />
+          <ConfirmDialog
+            onClick={() => deletePanels(transaction._id, transaction.userId)}
+            buttonLogo={<Trash2Icon />}
+            title={"Delete Panel"}
+            description={"Are you sure you want to delete this panel?."}
+          />
           {/* <ScreenshotProof url={logo} utr={transaction.utr} /> */}
           <SquarePen className="w-6 h-6" />
           <Copy className={"h-6 w-6"} />
@@ -331,7 +347,7 @@ const TransactionCard = ({ transaction }) => {
           <div className="flex items-center justify-center text-xs gap-1">
             Activate/Deactivate
             <Switch
-              checked={transaction.isActivate}
+              checked={transaction.isActive}
               // onCheckedChange={(val) => handleBlockToggleFn(item.id, val)}
             />
           </div>

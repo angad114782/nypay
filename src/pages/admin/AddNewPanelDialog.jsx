@@ -13,8 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Lock, PaperclipIcon, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
-export const AddNewPanelDialog = () => {
+export const AddNewPanelDialog = ({ fetchPanels }) => {
   const [image, setImage] = useState(null);
   const fileInputRef = useRef(null);
   const [teamManagementData, setTeamManagementData] = useState({
@@ -43,55 +44,57 @@ export const AddNewPanelDialog = () => {
     }));
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const formData = new FormData();
-    formData.append("profileName", teamManagementData.profileName);
-    formData.append("userId", teamManagementData.userId);
-    formData.append("password", teamManagementData.password);
-    formData.append(
-      "roles",
-      JSON.stringify(
-        Object.keys(teamManagementData.roles).filter(
-          (role) => teamManagementData.roles[role]
+    try {
+      const formData = new FormData();
+      formData.append("profileName", teamManagementData.profileName);
+      formData.append("userId", teamManagementData.userId);
+      formData.append("password", teamManagementData.password);
+      formData.append(
+        "roles",
+        JSON.stringify(
+          Object.keys(teamManagementData.roles).filter(
+            (role) => teamManagementData.roles[role]
+          )
         )
-      )
-    );
+      );
 
-    if (image) {
-      formData.append("logo", image); 
+      if (image) {
+        formData.append("logo", image);
+      }
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/panels/panel`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      toast.success("Panel created successfully!");
+      fetchPanels();
+    } catch (error) {
+      console.error("Submit Error:", error);
+      toast.error("Failed to submit panel.");
     }
 
-  const res = await axios.post(
-  `${import.meta.env.VITE_URL}/api/panels/panel`,
-  formData,
-  {
-    headers: {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-
-    },
-  }
-);
-
-    alert("Panel created successfully!");
-  } catch (error) {
-    console.error("Submit Error:", error);
-    alert("Failed to submit panel.");
-  }
-
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   return (
     <Dialog>
       <DialogTrigger className="bg-[#FAB906] text-black cursor-pointer lg:px-6 px-3 lg:py-2 lg:h-full rounded-lg hover:bg-[#fab940]">
         Add New Panel
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[400px] bg-white text-black p-0 overflow-hidden">
+      <DialogContent
+        overlayClassName={"w-full"}
+        className="sm:max-w-[400px] bg-white text-black p-0 overflow-hidden"
+      >
         <DialogTitle className={"hidden"}></DialogTitle>
         <DialogDescription className={"hidden"}></DialogDescription>
         <div className="h-24 bg-gradient-to-r relative from-[#8AAA08] -z-20 to-[#15CA5280]" />
@@ -221,13 +224,15 @@ const handleSubmit = async (e) => {
                     Cancel
                   </Button>
                 </DialogClose>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-                  disabled={loading}
-                >
-                  {loading ? "Submitting..." : "Submit"}
-                </Button>
+                <DialogClose asChild>
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
+                    disabled={loading}
+                  >
+                    {loading ? "Submitting..." : "Submit"}
+                  </Button>
+                </DialogClose>
               </div>
             </DialogFooter>
           </form>

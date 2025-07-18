@@ -63,7 +63,7 @@ function MyId() {
         {filteredCards.map((card, index) => (
           <MyIdCard
             key={index}
-            logo={card.gameLogo} // assumed full URL from DB
+            logo={card.gameLogo} 
             username={card.username}
             password={card.password}
             site={card.gameUrl}

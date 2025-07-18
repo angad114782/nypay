@@ -74,53 +74,65 @@ export const GlobalProvider = ({ children }) => {
     }
   };
 
-  useEffect(() => {
-    fetchSliders();
-  }, []);
-  const myIdCardData = [
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "kinguser247",
-      password: "king@2024",
-      gameURL: "www.kingexchange247.com",
-      gameName: "King Exchange 247",
-    },
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "zerochampion",
-      password: "zero#pass1",
-      gameURL: "www.zeroexchange.com",
-      gameName: "Zero Exchange",
-    },
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "oneplayerx",
-      password: "one123!@#",
-      gameURL: "www.oneoexchange.com",
-      gameName: "OneO Pro",
-    },
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "twogamer22",
-      password: "two2win$$",
-      gameURL: "www.twoexchange.com",
-      gameName: "TwoX Arena",
-    },
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "tierlegend",
-      password: "tierzone456",
-      gameURL: "www.tierexchange.com",
-      gameName: "Tier Zone",
-    },
-    {
-      logoSrc: "Logo-Exchages.png",
-      username: "leo_strike",
-      password: "strikeLeo@2025",
-      gameURL: "www.tierexchange.com",
-      gameName: "Tier Legends",
-    },
-  ];
+  const [myIdCardData, setMyIdCardData] = useState([]);
+  console.log(myIdCardData);
+  const fetchPanels = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setMyIdCardData(res?.data?.gameIds);
+    } catch (err) {
+      console.error("❌ Failed to load Panels", err);
+    }
+  };
+  // const myIdCardData = [
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "kinguser247",
+  //     password: "king@2024",
+  //     gameURL: "www.kingexchange247.com",
+  //     gameName: "King Exchange 247",
+  //   },
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "zerochampion",
+  //     password: "zero#pass1",
+  //     gameURL: "www.zeroexchange.com",
+  //     gameName: "Zero Exchange",
+  //   },
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "oneplayerx",
+  //     password: "one123!@#",
+  //     gameURL: "www.oneoexchange.com",
+  //     gameName: "OneO Pro",
+  //   },
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "twogamer22",
+  //     password: "two2win$$",
+  //     gameURL: "www.twoexchange.com",
+  //     gameName: "TwoX Arena",
+  //   },
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "tierlegend",
+  //     password: "tierzone456",
+  //     gameURL: "www.tierexchange.com",
+  //     gameName: "Tier Zone",
+  //   },
+  //   {
+  //     logoSrc: "Logo-Exchages.png",
+  //     username: "leo_strike",
+  //     password: "strikeLeo@2025",
+  //     gameURL: "www.tierexchange.com",
+  //     gameName: "Tier Legends",
+  //   },
+  // ];
 
   // const allCreateIDList = [
   //   {
@@ -180,7 +192,10 @@ export const GlobalProvider = ({ children }) => {
   //     buttonText: "Create",
   //   },
   // ];
-
+  useEffect(() => {
+    fetchSliders();
+    fetchPanels();
+  }, []);
   return (
     <GlobalContext.Provider
       value={{
