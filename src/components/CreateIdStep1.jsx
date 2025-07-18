@@ -1,18 +1,49 @@
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import axios from "axios";
+
+import { toast } from "sonner";
+
 
 const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Call onClick with username and password if needed
-    if (onClick) {
-      onClick({ username, password });
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    
+      const token = localStorage.getItem("token");
+    const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/game/create-game-id`, {
+      username,
+      password,
     }
-  };
+  ,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+    if (res.data.success) {
+        toast.success(res.data.message || "Bank details added successfully.");
+      onClose();
+      if (onClick) onClick({ username, password }); // optional callback
+      onClose(); // close the modal
+    } else {
+      alert("❌ Failed to create ID: " + res.data.message);
+    }
+  } catch (err) {
+    console.error("❌ Error:", err);
+    alert("❌ Server Error: " + (err.response?.data?.message || err.message));
+  }
+};
+
 
   return (
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl mb-4 shadow-md  w-full relative overflow-hidden  max-w-3xl">
