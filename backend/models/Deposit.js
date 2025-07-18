@@ -7,7 +7,12 @@ const depositSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ["upi", "bank"], required: true },
   utr: { type: String, required: true },
   screenshot: { type: String },
-  status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" },
+  remark: { type: String, default: "" }, // ✅ Add this line
+  status: {
+    type: String,
+    enum: ["Pending", "Approved", "Rejected"],
+    default: "Pending",
+  },
   createdAt: { type: Date, default: Date.now },
 });
 
