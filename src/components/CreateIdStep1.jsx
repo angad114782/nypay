@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 
-const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo }) => {
+const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo, card }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -17,18 +17,25 @@ const handleSubmit = async (e) => {
   try {
     
       const token = localStorage.getItem("token");
+    
     const res = await axios.post(
-        `${import.meta.env.VITE_URL}/api/game/create-game-id`, {
-      username,
-      password,
-    }
-  ,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+  `${import.meta.env.VITE_URL}/api/game/create-game-id`,
+  {
+    username,
+    password,
+    type: card?.type,
+    gameName: card?.gameName,     // ✅ previously was profileName (wrong)
+    gameLogo: card?.logo,
+    gameUrl: card?.gameUrl,       // ✅ previously was undefined
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+
 
     if (res.data.success) {
         toast.success(res.data.message || "Bank details added successfully.");

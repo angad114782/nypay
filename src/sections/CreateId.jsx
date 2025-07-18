@@ -20,12 +20,19 @@ function CreateId() {
   );
 
   const handleCardClick = (card) => {
-    setSelectedCard({
-      ...card,
-      logo: `${import.meta.env.VITE_URL}${card.logoUrl}`,
-    });
-    setShowPopup(true); // Show the popup
-  };
+
+  setSelectedCard({
+    ...card,
+    logo: `${import.meta.env.VITE_URL}${card.logoUrl}`,
+    gameName: card.profileName, // ✅ assign correctly
+    gameUrl: card.userId,       // ✅ assign correctly
+    type: card.type || "Default Type",
+  });
+
+  setShowPopup(true);
+};
+
+
 
   return (
     <>

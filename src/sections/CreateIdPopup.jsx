@@ -42,12 +42,14 @@ function CreateIdPopup({ cardData, onClose }) {
     <div className="bg-black/25 fixed w-full h-full top-0 left-0 flex items-end justify-center z-[110] px-3">
       {step === 1 && (
         <CreateIdStep1
-          onClick={handleContinue}
-          onClose={onClose}
-          title={cardData?.title}
-          subtitle={cardData?.subtitle}
-          logo={`${cardData?.logo}`}
-        />
+  onClick={handleContinue}
+  onClose={onClose}
+  title={cardData?.profileName}
+  subtitle={cardData?.userId}
+  logo={cardData?.logo}
+  card={cardData} // ✅ full object with all values
+/>
+
       )}
 
       {step === 2 && createModalMessage && (
