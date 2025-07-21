@@ -16,6 +16,7 @@ import RulesPage from "./pages/Rules";
 import Splashscreen from "./pages/Splashscreen";
 import Dashboard from "./pages/admin/AdminDashboard";
 import ClientDetails from "./pages/super admin/ClientDetails";
+import InactiveWarning from "./pages/InactiveWarning";
 import {
   AdminRoute,
   ClientRoute,
@@ -58,6 +59,7 @@ function App() {
             </PublicRoute>
           }
         />
+        <Route path="/inactive-warning" element={<InactiveWarning />} />
         <Route
           path="/login"
           element={

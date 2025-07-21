@@ -64,7 +64,16 @@ function Register() {
   const validateStep1 = () => {
     const nameError = name.trim() === "";
     const phoneError = !/^\d{10,15}$/.test(phone);
-    const emailError = !/\S+@\S+\.\S+/.test(email);
+
+    // If email is empty, create dummy email
+    let finalEmail = email.trim();
+    if (finalEmail === "" && !nameError && !phoneError) {
+      const cleanName = name.trim().replace(/\s+/g, "").toLowerCase();
+      finalEmail = `${cleanName}-${phone.trim()}@demo.com`;
+      setEmail(finalEmail); // update state so it reflects in form if needed
+    }
+
+    const emailError = !/\S+@\S+\.\S+/.test(finalEmail);
     const passwordError =
       password.length < 6 ||
       !/\d/.test(password) ||
@@ -81,6 +90,7 @@ function Register() {
 
     return !(nameError || phoneError || emailError || passwordError);
   };
+
 
   const handleContinue = async () => {
     if (step === 1) {
@@ -221,9 +231,8 @@ function Register() {
 
       {step !== 3 && (
         <button
-          className={`py-3  backBtn ${
-            loading ? "opacity-50 pointer-events-none" : ""
-          }`}
+          className={`py-3  backBtn ${loading ? "opacity-50 pointer-events-none" : ""
+            }`}
           onClick={handleBack}
           disabled={loading}
         >
@@ -270,9 +279,8 @@ function Register() {
       >
         {step === 1 && (
           <div
-            className={`step1 ${
-              loading ? "opacity-75 pointer-events-none" : ""
-            }`}
+            className={`step1 ${loading ? "opacity-75 pointer-events-none" : ""
+              }`}
           >
             <div className="flex justify-center items-center my-2">
               <img src="asset/otp.png" alt="" className="img-fluid" />
@@ -296,20 +304,31 @@ function Register() {
               errors={errors}
               loading={loading}
             />
+
+            {/* ✅ Login Link */}
+            <div className="text-sm text-center text-gray-600 mt-4">
+              Already have an account?{" "}
+              <span
+                onClick={() => navigate("/login")}
+                className="text-blue-600 font-semibold cursor-pointer hover:underline"
+              >
+                Login
+              </span>
+            </div>
           </div>
         )}
 
+
         {step === 2 && (
           <div
-            className={`step2 ${
-              loading ? "opacity-75 pointer-events-none" : ""
-            }`}
+            className={`step2 ${loading ? "opacity-75 pointer-events-none" : ""
+              }`}
           >
             <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
               Verification Code
             </h6>
             <p className="text-lg font-medium ct-grey2 w-4/5">
-              We have sent the verification code to your number
+              We have sent the verification code to your email or number
             </p>
             <OtpInput
               otpValues={otpValues}
@@ -345,9 +364,8 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
-              loading ? "opacity-90 cursor-not-allowed" : ""
-            }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
           >
             {renderButtonContent("Continue")}
           </Button>
@@ -356,9 +374,8 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading || otpValues.some((val) => !val)}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
-              loading ? "opacity-90 cursor-not-allowed" : ""
-            }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
           >
             {renderButtonContent("Confirm")}
           </Button>

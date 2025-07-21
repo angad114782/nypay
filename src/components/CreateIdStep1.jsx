@@ -11,45 +11,43 @@ const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo, card }) => {
   const [password, setPassword] = useState("");
 
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    
+    try {
+
       const token = localStorage.getItem("token");
-    
-    const res = await axios.post(
-  `${import.meta.env.VITE_URL}/api/game/create-game-id`,
-  {
-    username,
-    password,
-    type: card?.type,
-    gameName: card?.gameName,     // ✅ previously was profileName (wrong)
-    gameLogo: card?.logo,
-    gameUrl: card?.gameUrl,       // ✅ previously was undefined
-  },
-  {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-);
+
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/game/create-game-id`,
+        {
+          username,
+          password,
+          type: card?.type,
+          panelId: card?._id, // or wherever the panel ID is coming from
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
 
 
-    if (res.data.success) {
+      if (res.data.success) {
         toast.success(res.data.message || "Bank details added successfully.");
-      onClose();
-      if (onClick) onClick({ username, password }); // optional callback
-      onClose(); // close the modal
-    } else {
-      alert("❌ Failed to create ID: " + res.data.message);
+        onClose();
+        if (onClick) onClick({ username, password }); // optional callback
+        onClose(); // close the modal
+      } else {
+        alert("❌ Failed to create ID: " + res.data.message);
+      }
+    } catch (err) {
+      console.error("❌ Error:", err);
+      alert("❌ Server Error: " + (err.response?.data?.message || err.message));
     }
-  } catch (err) {
-    console.error("❌ Error:", err);
-    alert("❌ Server Error: " + (err.response?.data?.message || err.message));
-  }
-};
+  };
 
 
   return (

@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -5,86 +7,7 @@ import ClientInfoTable from "./ClientInfoTable";
 import CreateIdTable from "./CreateIdTable";
 import QuickActionCards from "./QuickActionCards";
 
-const createIdData = [
-  {
-    id: 1,
-    profileName: "John Doe",
-    userName: "johndoe",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Rejected",
-    remark: "No issues",
-    isBlocked: true,
-    parentIp: "1222:8080",
-  },
-  {
-    id: 2,
-    profileName: "John Doe",
-    userName: "johndoe",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Approved",
-    remark: "No issues",
-    isBlocked: false,
-    parentIp: "1222:8080",
-  },
-  {
-    id: 3,
-    profileName: "John Doe",
-    userName: "jh",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Approved",
-    remark: "No issues",
-    isBlocked: true,
-    parentIp: "1222:8080",
-  },
-  {
-    id: 4,
-    profileName: "John Doe",
-    userName: "johndoe",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Rejected",
-    remark: "No issues",
-    isBlocked: false,
-    parentIp: "1222:8080",
-  },
-  {
-    id: 5,
-    profileName: "John Doe",
-    userName: "jh",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Approved",
-    remark: "No issues",
-    isBlocked: true,
-    parentIp: "1222:8080",
-  },
-  {
-    id: 6,
-    profileName: "John Doe",
-    userName: "johndoe",
-    password: "password123",
-    uniqueId: "1234567890",
-    website: "example.com",
-    createdAt: "2023-10-01",
-    status: "Rejected",
-    remark: "No issues",
-    isBlocked: false,
-    parentIp: "1222:8080",
-  },
-];
+
 
 const withdrawdata = [
   {
@@ -107,6 +30,8 @@ const withdrawdata = [
 ];
 const CreateIdAndClientInfo = ({ onTabChange }) => {
   const location = useLocation();
+
+  const [createIdData, setCreateIdData] = useState([]);
   // Get sub-tab from route state or default to 'createId'
   const initialTab = location.state?.subTab || "createId";
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -117,6 +42,38 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       setActiveTab(location.state.subTab);
     }
   }, [location.state]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_URL}/api/game/admin/all-requests`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Replace this as needed
+          },
+        });
+        const formatted = res.data.gameIds.map((item) => ({
+          id: item._id,
+          userName: item.username,
+          password: item.password,
+          profileName: item.userId?.name || "N/A",                 // ✅ Requesting user name
+          panel: item.panelId?.userId ? item.panelId.userId.startsWith("http")? item.panelId.userId: `https://${item.panelId.userId}`: "N/A", // ✅ Panel URL or fallback
+          createdAt: new Date(item.createdAt).toLocaleDateString(),
+          status: item.status || "Pending",
+          remark: item.remark || "",
+          isBlocked: item.isBlocked || false,
+          parentIp: item.parentIp || "N/A",
+          type: item.type?.join(", ") || "",                       // ✅ Optional: show type if needed
+        }));
+
+        setCreateIdData(formatted);
+      } catch (err) {
+        console.error("❌ Error fetching createIdData", err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <>
       {/* Quick Action Cards */}

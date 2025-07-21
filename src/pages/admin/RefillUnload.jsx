@@ -1,3 +1,6 @@
+import axios from "axios";
+import { toast } from "sonner";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -225,11 +228,61 @@ const unloadData = [
 ];
 const RefillUnload = ({ onTabChange }) => {
   const location = useLocation();
-  // Get sub-tab from route state or default to 'refillID'
   const initialTab = location.state?.subTab || "refillID";
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [depositData, setDepositData] = useState([]);
+  const [withdrawData, setWithdrawData] = useState([]);
 
-  // Update tab when route state changes
+  // ✅ Move fetchData OUTSIDE useEffect
+  const fetchData = async () => {
+    try {
+      const baseURL = import.meta.env.VITE_URL;
+
+      const [deposits, withdrawals] = await Promise.all([
+        fetch(`${baseURL}/api/panel-deposit/all`).then((res) => res.json()),
+        fetch(`${baseURL}/api/panel-withdraw/all`).then((res) => res.json()),
+      ]);
+
+      const transformedDeposits = deposits.map((d) => ({
+        id: d._id,
+        profileName: d.panelId?.profileName || "N/A",
+        userName: d.gameIdInfo?.username || "N/A",
+        password: d.gameIdInfo?.password || "N/A",
+        status: d.status || "Pending",
+        amount: d.amount,
+        entryDate: new Date(d.requestedAt).toLocaleString(),
+        remark: d.remark || "",
+        parentIp: d.parentIp || "—",
+        paymentType: "Panel Deposit",
+        website: d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+      }));
+
+      const transformedWithdrawals = withdrawals.map((w) => ({
+        id: w._id,
+        profileName: w.panelId?.profileName || "N/A",
+        userName: w.userId?.name || "N/A",
+        status: w.status || "Pending",
+        amount: w.amount,
+        withdrawDate: new Date(w.requestedAt).toLocaleString(),
+        entryDate: new Date(w.requestedAt).toLocaleString(),
+        remark: w.remark || "",
+        parentIp: w.parentIp || "—",
+        paymentType: "Panel Withdraw",
+        website: w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+      }));
+
+      setDepositData(transformedDeposits);
+      setWithdrawData(transformedWithdrawals);
+    } catch (err) {
+      console.error("❌ Error fetching panel transactions:", err);
+    }
+  };
+
+  // ✅ Now works correctly
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   useEffect(() => {
     if (location.state?.subTab) {
       setActiveTab(location.state.subTab);
@@ -238,7 +291,6 @@ const RefillUnload = ({ onTabChange }) => {
 
   return (
     <>
-      {/* Quick Action Cards */}
       <QuickActionCards onTabChange={onTabChange} />
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
       <Tabs
@@ -251,11 +303,12 @@ const RefillUnload = ({ onTabChange }) => {
           <TabsTrigger value="refillID">Refill ID</TabsTrigger>
           <TabsTrigger value="unloadID">Unload ID</TabsTrigger>
         </TabsList>
+
         <TabsContent value="refillID">
-          <RefillUnloadTable data={data} />
+          <RefillUnloadTable data={depositData} fetchData={fetchData} />
         </TabsContent>
         <TabsContent value="unloadID">
-          <RefillUnloadTable type={"unload"} data={unloadData} />
+          <RefillUnloadTable type="unload" data={withdrawData} fetchData={fetchData} />
         </TabsContent>
       </Tabs>
     </>
@@ -263,3 +316,4 @@ const RefillUnload = ({ onTabChange }) => {
 };
 
 export default RefillUnload;
+

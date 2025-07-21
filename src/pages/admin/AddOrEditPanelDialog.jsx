@@ -21,14 +21,7 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
     profileName: "",
     userId: "",
     password: "",
-    roles: {
-      admin: false,
-      deposit: false,
-      manager: false,
-      withdrawal: false,
-      auditor: false,
-      createID: false,
-    },
+    type: []
   });
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -40,22 +33,13 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
         profileName: panel.profileName || "",
         userId: panel.userId || "",
         password: "",
-        roles: {
-          admin: panel.roles?.includes("admin"),
-          deposit: panel.roles?.includes("deposit"),
-          manager: panel.roles?.includes("manager"),
-          withdrawal: panel.roles?.includes("withdrawal"),
-          auditor: panel.roles?.includes("auditor"),
-          createID: panel.roles?.includes("createID"),
-        },
+        type: panel.type || "",
       });
       setImage(null);
     }
   }, [panel, isEdit]);
 
-  function handleRoleToggle(role) {
-    setForm((f) => ({ ...f, roles: { ...f.roles, [role]: !f.roles[role] } }));
-  }
+
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -65,10 +49,7 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
     payload.append("profileName", form.profileName);
     payload.append("userId", form.userId);
     if (!isEdit || form.password) payload.append("password", form.password);
-    payload.append(
-      "roles",
-      JSON.stringify(Object.keys(form.roles).filter((r) => form.roles[r]))
-    );
+    payload.append("type", JSON.stringify(form.type));
     if (image) payload.append("logo", image);
 
     try {
@@ -103,10 +84,9 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
     <Dialog>
       {
         <DialogTrigger
-          className={`${
-            !isEdit &&
+          className={`${!isEdit &&
             "bg-[#FAB906] text-black cursor-pointer lg:px-6 px-3 lg:py-2 lg:h-full rounded-lg hover:bg-[#fab940]"
-          }`}
+            }`}
         >
           {isEdit ? <SquarePen /> : "Add New Panel"}
         </DialogTrigger>
@@ -158,36 +138,45 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
                 className="mt-2 bg-gray-100 border-0 focus:bg-white"
               />
             </div>
-
             <div>
-              <Label className="text-gray-800 font-medium">
-                {isEdit ? "New Password (optional)" : "Password"}
-              </Label>
-              <Input
-                type="password"
-                value={form.password}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, password: e.target.value }))
-                }
-                placeholder={isEdit ? "•••••• (leave blank to keep)" : ""}
-                className="mt-2 bg-gray-100 border-0 focus:bg-white"
-              />
-            </div>
-
-            <div>
-              <Label className="text-gray-800 font-medium">Roles</Label>
+              <Label className="text-gray-800 font-medium">Type</Label>
               <div className="flex flex-wrap gap-2 mt-2">
-                {Object.keys(form.roles).map((role) => (
-                  <label key={role} className="inline-flex items-center gap-1">
-                    <input
-                      type="checkbox"
-                      checked={form.roles[role]}
-                      onChange={() => handleRoleToggle(role)}
-                    />
-                    <span className="text-sm capitalize">{role}</span>
-                  </label>
-                ))}
+                {[
+                  "Asia Type",
+                  "D247 Type",
+                  "Diamond Type",
+                  "Diamond99 Type",
+                  "King Type",
+                  "Lotusbook Type",
+                  "Lotusexch Type",
+                  "Radhe Type",
+                ].map((typeOption) => {
+                  const isSelected = form.type === typeOption;
+
+                  return (
+                    <label
+                      key={typeOption}
+                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border 
+          ${isSelected ? "bg-blue-600 text-white border-blue-600" : "bg-gray-100 text-gray-800 border-gray-300"}`}
+                    >
+                      <input
+                        type="radio"
+                        name="panelType"
+                        value={typeOption}
+                        checked={isSelected}
+                        onChange={(e) => {
+                          setForm((f) => ({ ...f, type: e.target.value }));
+                        }}
+                        className="hidden"
+                      />
+                      <span className="text-sm capitalize">{typeOption}</span>
+                      {isSelected && <span className="text-white text-sm">✔️</span>}
+                    </label>
+                  );
+                })}
               </div>
+
+
             </div>
 
             <div>
@@ -256,8 +245,8 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
                         ? "Updating..."
                         : "Submitting..."
                       : isEdit
-                      ? "Update"
-                      : "Submit"}
+                        ? "Update"
+                        : "Submit"}
                   </Button>
                 </DialogClose>
               </div>

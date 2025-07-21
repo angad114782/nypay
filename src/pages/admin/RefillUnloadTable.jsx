@@ -1,3 +1,6 @@
+import axios from "axios";
+import { toast } from "sonner";
+
 import CopyButton from "@/components/CopyButton";
 import {
   Table,
@@ -33,8 +36,31 @@ const STATUS_OPTIONS = [
   { label: "Failed", value: "Failed" },
   { label: "Rejected", value: "Rejected" },
 ];
+const handleAction = async (id, actionType) => {
+  try {
+    const baseURL = import.meta.env.VITE_URL;
+    const token = localStorage.getItem("token"); // adjust if you're using sessionStorage or context
 
-const RefillUnloadTable = ({ data, type }) => {
+    const res = await axios.patch(
+      `${baseURL}/api/panel-deposit/${id}/status`,
+      { status: actionType },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    toast.success(`${actionType} successfully!`);
+    fetchData(); // 👈 refetch updated data
+  } catch (err) {
+    console.error("Action Error:", err.response?.data || err.message);
+    toast.error(err.response?.data?.error || "Action failed. Please try again.");
+  }
+};
+
+
+const RefillUnloadTable = ({ data, type, fetchData }) => {
   const {
     entries,
     setEntries,
@@ -197,12 +223,19 @@ const RefillUnloadTable = ({ data, type }) => {
               {type === "unload" && <TableCell>{item.withdrawDate}</TableCell>}
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button
+                    onClick={() => handleAction(item.id, "Approved")}
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                  >
                     Approve
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+                  <button
+                    onClick={() => handleAction(item.id, "Rejected")}
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                  >
                     Reject
                   </button>
+
                   <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
                     Remark
                   </button>
@@ -252,9 +285,8 @@ export const TransactionCard = ({ transaction, type }) => {
       <div className="flex bg-[#8AAA08]    items-center justify-between p-2 ">
         <div className="flex items-center gap-2">
           <div
-            className={`w-10 h-10 ${
-              type === "unload" ? "bg-[#4F6DE4]" : "bg-[#FB680F]"
-            } rounded-full flex items-center justify-center dark:text-white text-white font-semibold`}
+            className={`w-10 h-10 ${type === "unload" ? "bg-[#4F6DE4]" : "bg-[#FB680F]"
+              } rounded-full flex items-center justify-center dark:text-white text-white font-semibold`}
           >
             <img src={logonew} alt="" />
           </div>

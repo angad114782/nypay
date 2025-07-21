@@ -1,6 +1,6 @@
 const Deposit = require("../models/Deposit");
 const User = require("../models/User");
-
+const Passbook = require("../models/Passbook");
 exports.createDeposit = async (req, res) => {
   try {
     const { amount, paymentMethod, utr } = req.body;
@@ -22,7 +22,16 @@ exports.createDeposit = async (req, res) => {
 
     await newDeposit.save();
 
-    // Save deposit to database logic here (example)
+    // 🧾 Create Passbook Entry (pending deposit request)
+    await Passbook.create({
+      userId: req.user._id,
+      type: "deposit",
+      direction: "credit",
+      amount,
+      balance: (await User.findById(req.user._id)).wallet || 0, // wallet unchanged yet
+      description: `Deposit of ₹${amount} requested via ${paymentMethod} (UTR: ${utr})`,
+    });
+
     res.status(201).json({
       message: "Deposit submitted successfully",
       data: {
@@ -38,7 +47,6 @@ exports.createDeposit = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
-
 exports.getAllDeposits = async (req, res) => {
   try {
     const deposits = await Deposit.find()
@@ -70,18 +78,54 @@ exports.getAllDeposits = async (req, res) => {
 exports.updateDepositStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    let { status } = req.body;
 
-    await Deposit.findByIdAndUpdate(id, { status }, { new: true });
+    // 🔁 Normalize status input
+    const statusMap = {
+      pending: "Pending",
+      approve: "Approved",
+      approved: "Approved",
+      completed: "Approved",
+      reject: "Rejected",
+      rejected: "Rejected",
+      rejact: "Rejected",
+      rejacted: "Rejected",
+    };
 
-    res
-      .status(200)
-      .json({ success: true, message: "Status updated successfully" });
+    status = statusMap[status?.toLowerCase()] || null;
+
+    if (!status) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const deposit = await Deposit.findById(id);
+    if (!deposit) {
+      return res.status(404).json({ message: "Deposit not found" });
+    }
+
+    // ✅ Only update wallet if this is the first approval
+    if (status === "Approved" && deposit.status !== "Approved") {
+      const user = await User.findById(deposit.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.wallet = (user.wallet || 0) + deposit.amount;
+      await user.save();
+    } else {
+    }
+
+    // 💾 Update deposit status
+    deposit.status = status;
+    await deposit.save();
+
+    return res.status(200).json({ success: true, message: "Status updated successfully" });
   } catch (err) {
     console.error("🔥 Status Update Error:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
 
 // For user dashboard
 exports.getMyWalletBalance = async (req, res) => {

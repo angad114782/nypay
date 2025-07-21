@@ -1,137 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import PassbookCard from "../components/PassbookCard";
 import BackWithLogo from "../components/BackWithLogo";
 import logo from "/asset/event.jpg";
 import { FaFilter } from "react-icons/fa";
 import Footer from "../sections/Footer";
 import PassBookFilter from "../sections/PassBookFilter";
-import { isAfter, isEqual, isSameMinute, parse } from "date-fns";
-
-const passbookData = [
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 500,
-    txntype: "Deposit to Wallet",
-    dateTime: "01 June 2025, 12:22 PM",
-    status: "Approved",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 500,
-    txntype: "Withdraw from Wallet",
-    dateTime: "02 June 2025, 12:22 PM",
-    status: "Pending",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 500,
-    txntype: "Deposit to ID",
-    dateTime: "28 May 2025, 01:22 PM",
-    status: "Rejected",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 500,
-    txntype: "Deposit to Wallet",
-    dateTime: "01 June 2025, 12:22 PM",
-    status: "Cancelled",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 750,
-    txntype: "Withdraw from ID",
-    dateTime: "17 June 2025, 03:45 PM",
-    status: "Approved",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 300,
-    txntype: "Deposit to Wallet",
-    dateTime: "12 June 2025, 09:15 AM",
-    status: "Pending",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 1200,
-    txntype: "Withdraw from Wallet",
-    dateTime: "08 June 2025, 06:10 PM",
-    status: "Rejected",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 950,
-    txntype: "Deposit to ID",
-    dateTime: "25 May 2025, 10:00 AM",
-    status: "Approved",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 300,
-    txntype: "Deposit to Wallet",
-    dateTime: "12 June 2025, 09:15 AM",
-    status: "Pending",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 1200,
-    txntype: "Withdraw from Wallet",
-    dateTime: "08 June 2025, 06:10 PM",
-    status: "Rejected",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 950,
-    txntype: "Deposit to ID",
-    dateTime: "25 May 2025, 10:00 AM",
-    status: "Approved",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 300,
-    txntype: "Deposit to Wallet",
-    dateTime: "12 June 2025, 09:15 AM",
-    status: "Pending",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 1200,
-    txntype: "Withdraw from Wallet",
-    dateTime: "08 June 2025, 06:10 PM",
-    status: "Rejected",
-  },
-  {
-    url: "http://radheyexchange.xyz",
-    amount: 950,
-    txntype: "Deposit to ID",
-    dateTime: "25 May 2025, 10:00 AM",
-    status: "Approved",
-  },
-];
+import { parse, format } from "date-fns";
+import { toast } from "sonner";
 
 function Passbook() {
   const [showFilter, setShowFilter] = useState(false);
-  const [filteredData, setFilteredData] = useState(passbookData);
-  const handleFilter = ({ date, txntype, status }) => {
-    const filtered = passbookData.filter((item) => {
-      const itemDate = parse(
-        item.dateTime,
-        "dd MMMM yyyy, hh:mm a",
-        new Date()
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Initial Fetch
+  const fetchPassbook = async (filters = {}) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/passbook/my`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: filters,
+        }
       );
-      const filterDate = date ? new Date(date) : null;
 
-      const matchesDate = filterDate
-        ? isAfter(itemDate, filterDate) || isSameMinute(itemDate, filterDate)
-        : true;
-      const matchesTxnType = txntype === "All" || item.txntype === txntype;
-      const matchesStatus = status === "All" || item.status === status;
+      const formattedData = res.data.data.map((item) => ({
+        amount: item.amount,
+        txntype: item.description,
+        status: "Approved", // Optional: Add status field to Passbook model if needed
+        url: "https://radheyexchange.xyz",
+        dateTime: format(new Date(item.createdAt), "dd MMMM yyyy, hh:mm a"),
+      }));
 
-      return matchesDate && matchesTxnType && matchesStatus;
-    });
+      setFilteredData(formattedData);
+    } catch (err) {
+      console.error("Passbook Fetch Error:", err);
+      toast.error("Failed to fetch passbook");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    setFilteredData(filtered);
+  useEffect(() => {
+    fetchPassbook();
+  }, []);
+
+  // ✅ On Filter Apply
+  const handleFilter = ({ date, txntype, status }) => {
+    const filters = {};
+    if (date) filters.fromDate = date;
+    if (txntype !== "All") filters.type = txntype;
+    // Status filtering only if Passbook model supports it
+
+    fetchPassbook(filters);
     setShowFilter(false);
   };
+
   return (
     <>
       <div className="pb-2">
@@ -144,9 +70,7 @@ function Passbook() {
             <h1 className="font-semibold">Transactions</h1>
             <button
               className="flex items-center gap-2"
-              onClick={() => {
-                setShowFilter(true);
-              }}
+              onClick={() => setShowFilter(true)}
             >
               <FaFilter className="text-xs" />
               Filter
@@ -155,18 +79,21 @@ function Passbook() {
         </div>
 
         <div className="p-4 grid grid-cols-1 gap-3">
-          {filteredData.map((item, index) => (
-            <PassbookCard
-              key={index}
-              url={item.url}
-              amount={item.amount}
-              dateTime={item.dateTime}
-              status={item.status}
-              txntype={item.txntype}
-              image={logo}
-            />
-          ))}
-          {filteredData.length === 0 && (
+          {loading ? (
+            <p className="text-center text-gray-400">Loading...</p>
+          ) : filteredData.length > 0 ? (
+            filteredData.map((item, index) => (
+              <PassbookCard
+                key={index}
+                url={item.url}
+                amount={item.amount}
+                dateTime={item.dateTime}
+                status={item.status}
+                txntype={item.txntype}
+                image={logo}
+              />
+            ))
+          ) : (
             <p className="text-center text-sm text-gray-400 py-8">
               No matching results.
             </p>

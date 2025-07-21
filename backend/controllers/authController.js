@@ -144,8 +144,14 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Email and password required" });
 
     const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user || !(await user.comparePassword(password)))
+    if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Your account is inactive" });
+    }
+
 
     if (!user.isVerified)
       return res.status(403).json({ message: "User not verified via OTP" });
@@ -207,6 +213,11 @@ exports.verifyLoginOtp = async (req, res) => {
 
     const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Your account is inactive" });
+    }
+
 
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||

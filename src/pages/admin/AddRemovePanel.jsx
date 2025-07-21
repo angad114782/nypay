@@ -32,7 +32,7 @@ const AddRemovePanel = () => {
   const fetchPanels = async () => {
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/panels/panel`,
+        `${import.meta.env.VITE_URL}/api/panels/admin`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -204,14 +204,13 @@ const AddRemovePanel = () => {
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-2 items-center justify-around">
-                  <ConfirmDialog
+                  {/* <ConfirmDialog
                     onClick={() => deletePanels(item._id, item.userId)}
                     buttonLogo={<Trash2Icon />}
                     title={"Delete Panel"}
                     description={"Are you sure you want to delete this panel?."}
-                  />
+                  /> */}
 
-                  {/* <SquarePen /> */}
                   <AddOrEditPanelDialog
                     fetchPanels={fetchPanels}
                     panel={item}

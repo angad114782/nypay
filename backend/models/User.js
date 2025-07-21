@@ -7,9 +7,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String },
   wallet: {
-  type: Number,
-  default: 0,
-},
+    type: Number,
+    default: 0,
+  },
+  isActive: { type: Boolean, default: true },
   isVerified: { type: Boolean, default: false },
   role: { type: String, default: "user" },
   lastLoginIp: { type: String },

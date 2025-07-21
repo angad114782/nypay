@@ -1,3 +1,5 @@
+import axios from "axios";
+import { toast } from "sonner";
 import CopyButton from "@/components/CopyButton";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -28,7 +30,7 @@ import WithdrawLogo from "/asset/Group 48095823.png";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
-  { label: "User Name", value: "userName" },
+  // { label: "User Name", value: "userName" },
 ];
 
 const STATUS_OPTIONS = [
@@ -39,7 +41,28 @@ const STATUS_OPTIONS = [
   { label: "Rejected", value: "Rejected" },
 ];
 
-const ClientInfoTable = ({ data }) => {
+const ClientInfoTable = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Fetch users from backend
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${import.meta.env.VITE_URL}/api/users/all-users`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setUsers(res.data.users || []);
+      } catch (err) {
+        console.error("❌ Fetch Error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const {
     entries,
     setEntries,
@@ -58,21 +81,33 @@ const ClientInfoTable = ({ data }) => {
     paginatedData,
     filteredData,
     totalPages,
-  } = useTableFilter({ data, initialColumn: "userName" });
+  } = useTableFilter({ data: users, initialColumn: "name" });
 
   // const [handleBlockToggle, setHandleBlockToggle] = useState(null);
-  const [tableData, setTableData] = useState(data);
+  const [tableData, setTableData] = useState([]);
   // Handle block/unblock toggle
-  const handleBlockToggleFn = (id, isBlocked) => {
-    // Update the local state to reflect the change
-    setTableData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isBlocked } : item))
+  const handleBlockToggleFn = async (id, isActive) => {
+    // Optimistic UI update
+    setUsers((prev) =>
+      prev.map((user) =>
+        user._id === id ? { ...user, isActive } : user
+      )
     );
-    // Optionally, call your API here to persist the change
-    // Example: await api.updateBlockStatus(id, isBlocked);
-    console.log(
-      `Toggling block for ID ${id}: ${isBlocked ? "Blocked" : "Unblocked"}`
-    );
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${import.meta.env.VITE_URL}/api/users/${id}/toggle-active`,
+        { isActive },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // ✅ Toast on success
+      toast.success(`User ${isActive ? "activated" : "deactivated"} successfully`);
+    } catch (err) {
+      console.error("Toggle Active Error:", err);
+      toast.error("Failed to update user status");
+    }
   };
 
   // Enhanced filter logic
@@ -104,9 +139,9 @@ const ClientInfoTable = ({ data }) => {
       ],
       body: filteredData.map((item, idx) => [
         idx + 1,
-        item.profileName,
+        item.name,
         item.userName,
-        item.mobile,
+        item.phone,
         item.createdAt,
         item.firstDeposit,
         item.firstBonus,
@@ -117,7 +152,7 @@ const ClientInfoTable = ({ data }) => {
         item.totalDeposit,
         item.source,
         item.isBlocked ? "Blocked" : "Unblocked",
-        item.parentIp,
+        item.lastLoginIp,
       ]),
     });
     doc.save("table.pdf");
@@ -128,7 +163,7 @@ const ClientInfoTable = ({ data }) => {
     const ws = XLSX.utils.json_to_sheet(
       filteredData.map((item, idx) => ({
         "S.No": idx + 1,
-        "Profile Name": item.profileName,
+        "Profile Name": item.name,
         "User Name": item.userName,
         Password: item.password,
         UniqueId: item.uniqueId,
@@ -137,7 +172,7 @@ const ClientInfoTable = ({ data }) => {
         "Block/Unblock": item.isBlocked ? "Blocked" : "Unblocked",
         Status: item.status,
         Remark: item.remark,
-        "Parent IP": item.parentIp,
+        "Parent IP": item.lastLoginIp,
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -172,18 +207,12 @@ const ClientInfoTable = ({ data }) => {
           <TableRow>
             <TableHead className="w-[50px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
-            <TableHead>User Name</TableHead>
+            {/* <TableHead>User Name</TableHead> */}
             <TableHead>
               Mobile <br /> Number
             </TableHead>
             <TableHead>
               Created <br /> Date
-            </TableHead>
-            <TableHead>
-              First <br /> Deposit
-            </TableHead>
-            <TableHead>
-              First <br /> Bonus
             </TableHead>
             <TableHead>
               Last <br /> Deposit
@@ -195,79 +224,65 @@ const ClientInfoTable = ({ data }) => {
               Last <br /> Login <br /> Date
             </TableHead>
             <TableHead>
-              Referral <br /> Code
-            </TableHead>
-            <TableHead>
               Total <br /> Deposit
             </TableHead>
-            <TableHead>Source</TableHead>
             <TableHead>Block/Unblock</TableHead>
-            <TableHead className={"text-center"}>
+            {/* <TableHead className={"text-center"}>
               Delete <br /> User
-            </TableHead>
+            </TableHead> */}
             <TableHead className="text-center">Action</TableHead>
-            <TableHead className="text-right rounded-tr-lg">
+            <TableHead className="text-right">
               Parent IP
+            </TableHead>
+            <TableHead className="text-right rounded-tr-lg">
+              City
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginatedData.map((item, index) => (
-            <TableRow key={item.id}>
+            <TableRow key={item._id}>
               {/* S.No with copy all */}
               <TableCell className="w-[50px]">
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nMobile - ${item.mobile}`}
+                    textToCopy={`Username - ${item.name}\nMobile - ${item.phone}`}
                     title="Copy User Name, Mobile"
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.profileName}</TableCell>
+              <TableCell>{item.name}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.userName}
+                  {item.phone}
                   <CopyButton
-                    textToCopy={item.userName}
-                    title="Copy User Name"
-                  />
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-1">
-                  {item.mobile}
-                  <CopyButton
-                    textToCopy={item.mobile}
+                    textToCopy={item.phone}
                     title="Copy Mobile Number"
                   />
                 </div>
               </TableCell>
               <TableCell>{item.createdAt}</TableCell>
-              <TableCell>{item.firstDeposit}</TableCell>
-
-              <TableCell>{item.firstBonus}</TableCell>
               <TableCell>{item.lastDeposit}</TableCell>
               <TableCell>{item.lastDepositDate}</TableCell>
               <TableCell>{item.lastLoginDate}</TableCell>
-              <TableCell>{item.referralCode}</TableCell>
               <TableCell>{item.totalDeposit}</TableCell>
-              <TableCell>{item.source}</TableCell>
 
               <TableCell className={"text-center align-middle"}>
                 {/* {item.isBlocked} */}
                 <div className="flex items-center justify-center gap-1">
                   <Switch
-                    checked={item.isBlocked}
-                    onCheckedChange={(val) => handleBlockToggleFn(item.id, val)}
+                    checked={item.isActive}
+                    onCheckedChange={(val) => handleBlockToggleFn(item._id, val)}
                   />
+
                 </div>
               </TableCell>
-              <TableCell className={"text-center align-middle"}>
+              {/* <TableCell className={"text-center align-middle"}>
                 <div className="flex items-center justify-center gap-1">
                   {<Trash2 className="text-red-500" />}
                 </div>
-              </TableCell>
+              </TableCell> */}
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 flex-col items-center justify-center">
                   <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
@@ -281,7 +296,8 @@ const ClientInfoTable = ({ data }) => {
                   </button>
                 </div>
               </TableCell>
-              <TableCell className="text-right">{item.parentIp}</TableCell>
+              <TableCell className="text-right">{item.lastLoginIp}</TableCell>
+              <TableCell className="text-right">{item.city}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -290,7 +306,7 @@ const ClientInfoTable = ({ data }) => {
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
           <TransactionCard
-            key={item.id}
+            key={item._id}
             transaction={item}
             handleBlockToggleFn={handleBlockToggleFn}
           />
@@ -363,7 +379,7 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
         <User2 className="w-4 h-4 text-black" />
         <span className="text-sm">Username</span>
         <span className="ml-auto text-sm font-bold ">
-          {transaction.userName}
+          {transaction.name}
         </span>
         <CopyButton textToCopy={transaction.userName} title="Copy User Name" />
       </div>
@@ -372,7 +388,7 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
       <div className="flex items-center p-2 gap-2">
         <CreditCard className="w-4 h-4 text-black" />
         <span className="text-sm text-black">Mobile No.</span>
-        <span className="ml-auto text-sm text-black">{transaction.mobile}</span>
+        <span className="ml-auto text-sm text-black">{transaction.phone}</span>
       </div>
 
       {/* Payment Type */}
@@ -388,7 +404,7 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
       <div className="flex items-center p-2 gap-2">
         <MapPin className="w-4 h-4 text-black" />
         <span className="text-sm text-black">Parent IP</span>
-        <span className="ml-auto text-sm ">{transaction.parentIp}</span>
+        <span className="ml-auto text-sm ">{transaction.lastLoginIp}</span>
       </div>
 
       {/* Status and Remarks */}

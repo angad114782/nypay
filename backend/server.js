@@ -63,5 +63,20 @@ app.use("/api/slider", sliderRoutes);
 const userGameIdRoutes = require("./routes/userGameIdRoutes");
 app.use("/api/game", userGameIdRoutes);
 
+const allUserRoutes = require("./routes/allUserRoutes");
+app.use("/api/users", allUserRoutes); 
+
+
+const passbookRoutes = require("./routes/passbookRoutes");
+app.use("/api/passbook", passbookRoutes);
+
+
+const panelWithdrawRoutes = require("./routes/panelWithdrawRoute");
+app.use("/api/panel-withdraw", panelWithdrawRoutes);
+
+
+const panelDepositRoute = require("./routes/panelDepositRoute");
+app.use("/api/panel-deposit", panelDepositRoute);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

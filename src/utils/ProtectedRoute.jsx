@@ -45,12 +45,14 @@ const AccessDenied = ({ requiredRole, userRole }) => (
           {userRole || "None"}
         </span>
       </p>
-      <button
-        onClick={() => window.history.back()}
-        className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors"
-      >
-        Go Back
-      </button>
+    <button
+  onClick={() => {
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  }}  className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
+>  Logout - {userRole || "None"}
+</button>
+
     </div>
   </div>
 );

@@ -7,14 +7,17 @@ const userGameIdSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    panelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Panel", // ✅ Link to the Panel model
+      required: true,
+    },
+
     username: { type: String, required: true },
     password: { type: String, required: true },
 
-    // ✅ Add these fields
-    type: { type: String }, // e.g., "Teen Patti", "Poker", etc.
-    gameName: { type: String },
-    gameLogo: { type: String }, // URL to logo image
-    gameUrl: { type: String },
+    type: [{ type: String }], // e.g., "Teen Patti", "Poker"
 
     status: { type: String, default: "Pending" },
     isBlocked: { type: Boolean, default: false },

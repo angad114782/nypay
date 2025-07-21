@@ -4,28 +4,53 @@ const path = require("path");
 // CREATE
 const createPanel = async (req, res) => {
   try {
-    const { profileName, userId, password, roles } = req.body;
+    const { profileName, userId, password } = req.body;
     const logo = req.file ? req.file.filename : null;
+
+    // Parse type safely
+    let type = [];
+    if (req.body.type) {
+      try {
+        type = JSON.parse(req.body.type); // Expecting array from frontend
+      } catch (err) {
+        return res.status(400).json({ message: "Invalid type format" });
+      }
+    }
 
     const newPanel = new Panel({
       profileName,
       userId,
+      password,
       logo,
-      roles: roles ? JSON.parse(roles) : [],
+      type, // Array of strings
     });
 
     await newPanel.save();
-    res
-      .status(201)
-      .json({ message: "Panel created successfully", panel: newPanel });
+    res.status(201).json({ message: "Panel created successfully", panel: newPanel });
   } catch (err) {
     console.error("Create Panel Error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
 
+
 // GET ALL
 const getAllPanels = async (req, res) => {
+  try {
+    const panels = await Panel.find({ isActive: true }).sort({ createdAt: -1 });
+
+    const fullPanels = panels.map((panel) => ({
+      ...panel._doc,
+      logoUrl: panel.logo ? `/uploads/panels/${panel.logo}` : null,
+    }));
+
+    res.json({ success: true, panels: fullPanels });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+// GET ALL
+const getAllPanelsAdmin = async (req, res) => {
   try {
     const panels = await Panel.find().sort({ createdAt: -1 });
 
@@ -44,25 +69,16 @@ const getAllPanels = async (req, res) => {
 const updatePanel = async (req, res) => {
   try {
     const { id } = req.params;
-    const { profileName, userId, password, roles } = req.body;
+    const { profileName, userId, password, type } = req.body;
     const updates = {};
 
     if (profileName) updates.profileName = profileName;
     if (userId) updates.userId = userId;
-    if (password) {
-      // updates.password = await bcrypt.hash(password, 10);
-      updates.password = password;
-    }
-    if (roles) {
-      updates.roles = JSON.parse(roles);
-    }
-    if (req.file) {
-      updates.logo = req.file.filename;
-    }
+    if (password) updates.password = password;
+    if (type) updates.type = type;
+    if (req.file) updates.logo = req.file.filename;
 
-    const panel = await Panel.findByIdAndUpdate(id, updates, {
-      new: true,
-    });
+    const panel = await Panel.findByIdAndUpdate(id, updates, { new: true });
 
     const updatedPanel = {
       ...panel._doc,
@@ -106,4 +122,5 @@ module.exports = {
   updatePanel,
   deletePanel,
   togglePanelStatus,
+  getAllPanelsAdmin,
 };

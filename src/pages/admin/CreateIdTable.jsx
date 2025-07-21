@@ -1,3 +1,4 @@
+import axios from "axios";
 import CopyButton from "@/components/CopyButton";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -29,7 +30,6 @@ import Pagination from "./Pagination";
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
   { label: "User Name", value: "userName" },
-  { label: "Unique ID", value: "uniqueId" },
   //   { label: "UTR", value: "utr" },
 ];
 
@@ -64,17 +64,84 @@ const CreateIdTable = ({ data }) => {
 
   const [tableData, setTableData] = useState(data);
 
-  // Handle block/unblock toggle
-  const handleBlockToggleFn = (id, isBlocked) => {
-    // Update the local state to reflect the change
-    setTableData((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, isBlocked } : item))
-    );
-    // Optionally, call your API here to persist the change
-    // Example: await api.updateBlockStatus(id, isBlocked);
-    console.log(
-      `Toggling block for ID ${id}: ${isBlocked ? "Blocked" : "Unblocked"}`
-    );
+  const handleBlockToggleFn = async (id, isBlocked) => {
+    try {
+      // Call backend API to update block status
+      const res = await axios.patch(
+        `${import.meta.env.VITE_URL}/api/game/block-toggle/${id}`,
+        { isBlocked },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Add auth if needed
+          },
+        }
+      );
+
+      // Update local table data state
+      setTableData((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, isBlocked: res.data.updated.isBlocked } : item
+        )
+      );
+
+    } catch (error) {
+      console.error("❌ Block toggle failed:", error);
+    }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      const res = await axios.patch(
+        `${import.meta.env.VITE_URL}/api/game/status/${id}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setTableData((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, status: res.data.updated.status } : item
+        )
+      );
+
+    } catch (err) {
+      console.error("❌ Status update error:", err);
+    }
+  };
+
+
+  const [showRemarkModal, setShowRemarkModal] = useState(false);
+  const [remarkText, setRemarkText] = useState("");
+  const [selectedId, setSelectedId] = useState("");
+
+  const handleRemarkSubmit = async () => {
+    try {
+      const res = await axios.patch(
+        `${import.meta.env.VITE_URL}/api/game/remark/${selectedId}`,
+        { remark: remarkText },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // update UI
+      setTableData((prev) =>
+        prev.map((item) =>
+          item.id === selectedId ? { ...item, remark: res.data.updated.remark } : item
+        )
+      );
+
+      setShowRemarkModal(false);
+      setRemarkText("");
+      setSelectedId("");
+    } catch (error) {
+      console.error("❌ Remark update failed:", error);
+    }
   };
 
   // Reset to first page when entries/search/searchColumn changes
@@ -106,8 +173,7 @@ const CreateIdTable = ({ data }) => {
         item.profileName,
         item.userName,
         item.password,
-        item.uniqueId,
-        item.website,
+        item.panel,
         item.createdAt,
         item.isBlocked ? "Blocked" : "Unblocked",
         item.status,
@@ -126,8 +192,7 @@ const CreateIdTable = ({ data }) => {
         "Profile Name": item.profileName,
         "User Name": item.userName,
         Password: item.password,
-        UniqueId: item.uniqueId,
-        Website: item.website,
+        Panel: item.panel,
         "Date Created": item.createdAt,
         "Block/Unblock": item.isBlocked ? "Blocked" : "Unblocked",
         Status: item.status,
@@ -169,13 +234,13 @@ const CreateIdTable = ({ data }) => {
             <TableHead>Profile Name</TableHead>
             <TableHead>User Name</TableHead>
             <TableHead>Password</TableHead>
-            <TableHead>Unique ID</TableHead>
-            <TableHead>Website</TableHead>
+            {/* <TableHead>Unique ID</TableHead> */}
+            <TableHead>Panel</TableHead>
             <TableHead>Date Created</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Remark</TableHead>
             <TableHead>Block/Unblock</TableHead>
-            <TableHead className={"text-center"}>Delete User</TableHead>
+            {/* <TableHead className={"text-center"}>Close</TableHead> */}
             <TableHead className="text-center">Action</TableHead>
             <TableHead className="text-right rounded-tr-lg">
               Parent IP
@@ -214,8 +279,7 @@ const CreateIdTable = ({ data }) => {
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.uniqueId}</TableCell>
-              <TableCell>{item.website}</TableCell>
+              <TableCell>{item.panel}</TableCell>
 
               <TableCell>{item.createdAt}</TableCell>
               <TableCell>{item.status}</TableCell>
@@ -225,27 +289,76 @@ const CreateIdTable = ({ data }) => {
                 {/* {item.isBlocked} */}
                 <div className="flex items-center justify-center gap-1">
                   <Switch
-                    checked={item.isBlocked}
-                    onCheckedChange={(val) => handleBlockToggleFn(item.id, val)}
+                    checked={item.isBlocked} // force boolean
+                    onCheckedChange={(val) => 
+                      handleBlockToggleFn(item.id, val)}
                   />
                 </div>
               </TableCell>
-              <TableCell className={"text-center align-middle"}>
-                <div className="flex items-center justify-center gap-1">
-                  {<Trash2 className="text-red-500" />}
+              {/* <TableCell className="text-center align-middle">
+                <div className="flex items-center justify-center gap-2">
+                  <input
+                    type="checkbox"
+                    onClick={() => handleCheckboxClick(row.id)} 
+                    className="form-checkbox w-4 h-4 text-blue-600"
+                  />
+
                 </div>
-              </TableCell>
+              </TableCell> */}
+
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button
+                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                    onClick={() => handleStatusUpdate(item.id, "Active")}
+                  >
                     Approve
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+                  <button
+                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                    onClick={() => handleStatusUpdate(item.id, "Rejected")}
+                  >
                     Reject
                   </button>
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
+                  {showRemarkModal && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                      <div className="bg-white p-6 rounded shadow-lg w-[300px]">
+                        <h3 className="text-lg font-semibold mb-2">Update Remark</h3>
+                        <textarea
+                          className="w-full border p-2 mb-4 rounded"
+                          rows={3}
+                          value={remarkText}
+                          onChange={(e) => setRemarkText(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="bg-gray-300 px-3 py-1 rounded"
+                            onClick={() => setShowRemarkModal(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="bg-green-500 text-white px-3 py-1 rounded"
+                            onClick={handleRemarkSubmit}
+                          >
+                            Save
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
+                    onClick={() => {
+                      setSelectedId(item.id);
+                      setRemarkText(item.remark || "");
+                      setShowRemarkModal(true);
+                    }}
+                  >
                     Remark
                   </button>
+
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -348,9 +461,9 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
       {/* Payment Type */}
       <div className="flex items-center p-2 gap-2">
         <CreditCard className="w-4 h-4 text-black" />
-        <span className="text-sm text-black">Website</span>
+        <span className="text-sm text-black">Panel</span>
         <span className="ml-auto text-sm text-black">
-          {transaction.website}
+          {transaction.panel}
         </span>
       </div>
 
