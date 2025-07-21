@@ -20,6 +20,7 @@ import WithdrawLogo from "/asset/Group 48095823.png";
 import axios from "axios";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import WithdrawalRejectDialog from "./WithdrawalRejectDialog";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -30,9 +31,9 @@ const COLUMN_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { label: "All", value: "all" },
-  { label: "Pending", value: "pending" },
-  { label: "Approved", value: "approved" },
-  { label: "Rejected", value: "rejected" },
+  { label: "Pending", value: "Pending" },
+  { label: "Approved", value: "Approved" },
+  { label: "Rejected", value: "Rejected" },
 ];
 
 const WithdrawTable = ({ data, fetchWithdraws }) => {
@@ -48,17 +49,14 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
     dateRange,
     setDateRange,
     currentPage,
-    setCurrentPage,
     goToPage,
     handleReset,
     paginatedData,
     filteredData,
     totalPages,
+    updateItem,
+    refreshData,
   } = useTableFilter({ data, initialColumn: "userName" });
-
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [entries, search, searchColumn]);
 
   // PDF Download handler
   const handleDownloadPDF = () => {
@@ -119,7 +117,28 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
   };
   // 1) Helpers at top of WithdrawTable
   const token = localStorage.getItem("token");
-
+  const handleStatusUpdate = async (id, newStatus, remark = "") => {
+    try {
+      const res = await axios.patch(
+        `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
+        { status: newStatus, remark },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      updateItem(id, {
+        status: res.data.updated.status,
+        remark: res.data.updated.remark,
+      });
+      toast.success(`Status updated successfully`);
+      await fetchWithdraws();
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to update status.";
+      toast.error(msg);
+    }
+  };
   const updateStatus = async (id, newStatus) => {
     try {
       const res = await axios.put(
@@ -308,7 +327,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
               </TableCell>
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
-                  <button
+                  {/* <button
                     onClick={() => updateStatus(item.id, "approved")}
                     className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
                   >
@@ -325,7 +344,34 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                     className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
                   >
                     Remark
+                  </button> */}
+                  <button
+                    className="px-2 py-1 disabled:bg-gray-100 disabled:text-gray-700 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                    // onClick={() => handleStatusUpdate(item.id, "Approved")}
+                    onClick={() =>
+                      handleStatusUpdate(
+                        item.id,
+                        "Approved",
+                        "Approved successfully"
+                      )
+                    }
+                    disabled={item.status !== "Pending"}
+                  >
+                    Approve
                   </button>
+                  <WithdrawalRejectDialog
+                    buttonLogo={
+                      <button
+                        disabled={item.status !== "Pending"}
+                        className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                      >
+                        Reject
+                      </button>
+                    }
+                    gameId={item.id}
+                    // status={item.status !== "Pending"}
+                    onStatusUpdated={fetchWithdraws}
+                  />
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>

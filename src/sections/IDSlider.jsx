@@ -72,19 +72,19 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
       navigate("/id?tab=createId");
     }
   };
-
+  console.log(myIdCardData);
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-3">
         <p className="text-xs font-semibold">My ID’s</p>
         <div className="flex items-center gap-2">
-          <button
-            className="flex items-center gap-1"
-          >
+          <button className="flex items-center gap-1">
             <img src="asset/plus.png" alt="create id" className="w-4 h-4" />
-            <span className="text-xs bg-purple-600 text-white font-medium py-1 px-2 rounded-full"
-              onClick={handleCreateId}>
+            <span
+              className="text-xs bg-purple-600 text-white font-medium py-1 px-2 rounded-full"
+              onClick={handleCreateId}
+            >
               Create ID
             </span>
           </button>
@@ -100,8 +100,7 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
       {/* Slider */}
       <div className="flex overflow-x-auto gap-2 p-2 bg-gray-800 justify-center rounded-lg scroll-hide">
         {myIdCardData.filter(
-          (card) =>
-            card.panelId?.isActive === true && card.status === "Active"
+          (card) => card.panelId?.isActive === true && card.status === "Active"
         ).length > 0 ? (
           myIdCardData
             .filter(
@@ -114,7 +113,9 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
                 username={card.username}
                 password={card.password}
                 status={card.status}
-                logo={`${import.meta.env.VITE_URL}/uploads/panels/${card.panelId?.logo}`}
+                logo={`${import.meta.env.VITE_URL}/uploads/panels/${
+                  card.panelId?.logo
+                }`}
                 site={card.panelId?.userId}
                 gameName={card.panelId?.profileName}
                 onclickwithdraw={() => handlePanelWithdraw(card)}
@@ -143,7 +144,6 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
           </div>
         )}
       </div>
-
 
       {/* Login Modal */}
       {showLoginPrompt && (

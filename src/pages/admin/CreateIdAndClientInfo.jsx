@@ -7,8 +7,6 @@ import ClientInfoTable from "./ClientInfoTable";
 import CreateIdTable from "./CreateIdTable";
 import QuickActionCards from "./QuickActionCards";
 
-
-
 const withdrawdata = [
   {
     id: 1,
@@ -42,35 +40,40 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       setActiveTab(location.state.subTab);
     }
   }, [location.state]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_URL}/api/game/admin/all-requests`, {
+  const fetchData = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/game/admin/all-requests`,
+        {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`, // Replace this as needed
           },
-        });
-        const formatted = res.data.gameIds.map((item) => ({
-          id: item._id,
-          userName: item.username,
-          password: item.password,
-          profileName: item.userId?.name || "N/A",                 // ✅ Requesting user name
-          panel: item.panelId?.userId ? item.panelId.userId.startsWith("http")? item.panelId.userId: `https://${item.panelId.userId}`: "N/A", // ✅ Panel URL or fallback
-          createdAt: new Date(item.createdAt).toLocaleDateString(),
-          status: item.status || "Pending",
-          remark: item.remark || "",
-          isBlocked: item.isBlocked || false,
-          parentIp: item.parentIp || "N/A",
-          type: item.type?.join(", ") || "",                       // ✅ Optional: show type if needed
-        }));
+        }
+      );
+      const formatted = res.data.gameIds.map((item) => ({
+        id: item._id,
+        userName: item.username,
+        password: item.password,
+        profileName: item.userId?.name || "N/A", // ✅ Requesting user name
+        panel: item.panelId?.userId
+          ? item.panelId.userId.startsWith("http")
+            ? item.panelId.userId
+            : `https://${item.panelId.userId}`
+          : "N/A", // ✅ Panel URL or fallback
+        createdAt: new Date(item.createdAt).toLocaleDateString(),
+        status: item.status || "Pending",
+        remark: item.remark || "",
+        isBlocked: item.isBlocked || false,
+        parentIp: item.parentIp || "N/A",
+        type: item.type?.join(", ") || "", // ✅ Optional: show type if needed
+      }));
 
-        setCreateIdData(formatted);
-      } catch (err) {
-        console.error("❌ Error fetching createIdData", err);
-      }
-    };
-
+      setCreateIdData(formatted);
+    } catch (err) {
+      console.error("❌ Error fetching createIdData", err);
+    }
+  };
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -90,7 +93,7 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
           <TabsTrigger value="clientInfo">Client Information</TabsTrigger>
         </TabsList>
         <TabsContent value="createId">
-          <CreateIdTable data={createIdData} />
+          <CreateIdTable data={createIdData} fetchData={fetchData} />
         </TabsContent>
         <TabsContent value="clientInfo">
           <ClientInfoTable data={withdrawdata} />

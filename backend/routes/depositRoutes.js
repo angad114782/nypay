@@ -4,7 +4,7 @@ const {
   createDeposit,
   getAllDeposits,
   updateDepositStatus,
-  updateDepositRemark,
+  // updateDepositRemark,
   getMyWalletBalance, // 🆕
 } = require("../controllers/depositController");
 
@@ -28,9 +28,9 @@ router.get("/wallet/balance", protect, getMyWalletBalance); // 🆕
 router.get("/admin/deposits", protect, adminOnly, getAllDeposits);
 
 // 🔄 Update Deposit Status (approve/reject)
-router.put("/admin/status/:id", protect, adminOnly, updateDepositStatus);
+router.patch("/admin/status/:id", protect, adminOnly, updateDepositStatus);
 
 // 📝 Update Deposit Remark
-router.put("/admin/remark/:id", protect, adminOnly, updateDepositRemark);
+// router.put("/admin/remark/:id", protect, adminOnly, updateDepositRemark);
 
 module.exports = router;

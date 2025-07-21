@@ -20,15 +20,18 @@ function MyId() {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_URL}/api/game/my-game-ids`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const res = await axios.get(
+          `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (res.data.success) {
-          setMyIdCardData(res.data.gameIds || []);
+          console.log(res.data);
+          setMyIdCardData(res.data.gameIds);
         } else {
           toast.error("Failed to fetch Game IDs");
         }
@@ -56,10 +59,11 @@ function MyId() {
   // ✅ Filter based on populated panel data
   const filteredCards = useMemo(() => {
     const term = searchTerm.toLowerCase();
-    return myIdCardData.filter((card) =>
-      card.username?.toLowerCase().includes(term) ||
-      card.panelId?.profileName?.toLowerCase().includes(term) ||
-      card.panelId?.userId?.toLowerCase().includes(term)
+    return myIdCardData.filter(
+      (card) =>
+        card.username?.toLowerCase().includes(term) ||
+        card.panelId?.profileName?.toLowerCase().includes(term) ||
+        card.panelId?.userId?.toLowerCase().includes(term)
     );
   }, [searchTerm, myIdCardData]);
 
@@ -79,16 +83,16 @@ function MyId() {
           </p>
         ) : (
           filteredCards.map((card) => {
-
-
             return (
               <MyIdCard
                 key={card._id}
-                cardId={card._id} 
+                cardId={card._id}
                 username={card.username}
                 password={card.password}
                 status={card.status}
-                logo={`${import.meta.env.VITE_URL}/uploads/panels/${card.panelId?.logo}`}
+                logo={`${import.meta.env.VITE_URL}/uploads/panels/${
+                  card.panelId?.logo
+                }`}
                 site={card.panelId?.userId}
                 isActive={!!card.panelId?.isActive}
                 gameName={card.panelId?.profileName}

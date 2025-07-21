@@ -3,6 +3,7 @@ import { FaExternalLinkAlt } from "react-icons/fa";
 import CopyButton from "./CopyButton";
 import axios from "axios";
 import { toast } from "react-toastify";
+import DrawerPanel from "@/sections/DrawerPanel";
 
 const MyIdCard = ({
   cardId,
@@ -126,14 +127,15 @@ const MyIdCard = ({
                   <CopyButton textToCopy={password} title="Copy Password" />
                   {status !== "Active" && (
                     <span
-                      className={`text-xs px-2 py-1 rounded font-semibold ${status === "Rejected"
+                      className={`text-xs px-2 py-1 rounded font-semibold ${
+                        status === "Rejected"
                           ? "bg-yellow-100 text-yellow-700"
                           : status === "Closed"
-                            ? "bg-red-100 text-red-700"
-                            : status === "Suspended"
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-gray-100 text-gray-700"
-                        }`}
+                          ? "bg-red-100 text-red-700"
+                          : status === "Suspended"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-gray-100 text-gray-700"
+                      }`}
                     >
                       {status}
                     </span>
@@ -141,7 +143,10 @@ const MyIdCard = ({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1 items-center pt-1" ref={menuRef}>
+              <div
+                className="flex flex-col gap-1 items-center pt-1"
+                ref={menuRef}
+              >
                 <div className="flex items-center gap-2">
                   <button
                     className="bg-white p-0.5 rounded-full"
@@ -178,8 +183,9 @@ const MyIdCard = ({
                         <li
                           key={i}
                           onClick={() => handleMenuClick(item)}
-                          className={`cursor-pointer px-3 py-2 rounded-[8px] ${item === "Close ID" ? "bgt-blue2" : ""
-                            }`}
+                          className={`cursor-pointer px-3 py-2 rounded-[8px] ${
+                            item === "Close ID" ? "bgt-blue2" : ""
+                          }`}
                         >
                           {item}
                         </li>
@@ -211,35 +217,37 @@ const MyIdCard = ({
         </div>
       </div>
 
-      {/* 🔒 Change Password Modal */}
+      {/* 🔒 Change Password Modal - FIXED */}
       {showChangeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white text-black rounded-lg p-4 w-[300px]">
-            <h3 className="font-bold text-lg mb-2">Change Password</h3>
-            <input
-              type="text"
-              placeholder="Enter new password"
-              className="w-full px-3 py-2 border rounded mb-3"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowChangeModal(false)}
-                className="px-4 py-1 rounded bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleChangePassword}
-                disabled={isLoading}
-                className="px-4 py-1 rounded bg-blue-600 text-white"
-              >
-                {isLoading ? "Saving..." : "Save"}
-              </button>
-            </div>
+        <DrawerPanel
+          title="Change Password"
+          onClose={() => setShowChangeModal(false)}
+        >
+          <input
+            type="text"
+            placeholder="Enter new password"
+            className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleChangePassword()}
+          />
+          <div className="flex justify-between mb-20 gap-2">
+            <button
+              onClick={() => setShowChangeModal(false)}
+              className="px-4 py-2 rounded text-black bg-white hover:bg-gray-400 transition-colors"
+              disabled={isLoading}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleChangePassword}
+              disabled={isLoading}
+              className="px-4 py-2 rounded bg-blue-600 border-1 border-white hover:bg-blue-700 text-white transition-colors disabled:opacity-50"
+            >
+              {isLoading ? "Saving..." : "Save"}
+            </button>
           </div>
-        </div>
+        </DrawerPanel>
       )}
     </div>
   );

@@ -75,57 +75,58 @@ exports.getAllDeposits = async (req, res) => {
   }
 };
 
-exports.updateDepositStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    let { status } = req.body;
+// exports.updateDepositStatus = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { status, remark = "" } = req.body;
 
-    // 🔁 Normalize status input
-    const statusMap = {
-      pending: "Pending",
-      approve: "Approved",
-      approved: "Approved",
-      completed: "Approved",
-      reject: "Rejected",
-      rejected: "Rejected",
-      rejact: "Rejected",
-      rejacted: "Rejected",
-    };
+//     // 🔁 Normalize status input
+//     const statusMap = {
+//       pending: "Pending",
+//       approve: "Approved",
+//       approved: "Approved",
+//       completed: "Approved",
+//       reject: "Rejected",
+//       rejected: "Rejected",
+//       rejact: "Rejected",
+//       rejacted: "Rejected",
+//     };
 
-    status = statusMap[status?.toLowerCase()] || null;
+//     status = statusMap[status?.toLowerCase()] || null;
 
-    if (!status) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
+//     if (!status) {
+//       return res.status(400).json({ message: "Invalid status" });
+//     }
 
-    const deposit = await Deposit.findById(id);
-    if (!deposit) {
-      return res.status(404).json({ message: "Deposit not found" });
-    }
+//     const deposit = await Deposit.findById(id);
+//     if (!deposit) {
+//       return res.status(404).json({ message: "Deposit not found" });
+//     }
 
-    // ✅ Only update wallet if this is the first approval
-    if (status === "Approved" && deposit.status !== "Approved") {
-      const user = await User.findById(deposit.userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
+//     // ✅ Only update wallet if this is the first approval
+//     if (status === "Approved" && deposit.status !== "Approved") {
+//       const user = await User.findById(deposit.userId);
+//       if (!user) {
+//         return res.status(404).json({ message: "User not found" });
+//       }
 
-      user.wallet = (user.wallet || 0) + deposit.amount;
-      await user.save();
-    } else {
-    }
+//       user.wallet = (user.wallet || 0) + deposit.amount;
+//       await user.save();
+//     } else {
+//     }
 
-    // 💾 Update deposit status
-    deposit.status = status;
-    await deposit.save();
+//     // 💾 Update deposit status
+//     deposit.status = status;
+//     await deposit.save();
 
-    return res.status(200).json({ success: true, message: "Status updated successfully" });
-  } catch (err) {
-    console.error("🔥 Status Update Error:", err);
-    return res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
-
+//     return res
+//       .status(200)
+//       .json({ success: true, message: "Status updated successfully" });
+//   } catch (err) {
+//     console.error("🔥 Status Update Error:", err);
+//     return res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
 
 // For user dashboard
 exports.getMyWalletBalance = async (req, res) => {
@@ -140,19 +141,74 @@ exports.getMyWalletBalance = async (req, res) => {
   }
 };
 
-// ✅ Separate: Update Remark Only
-exports.updateDepositRemark = async (req, res) => {
+// // ✅ Separate: Update Remark Only
+// exports.updateDepositRemark = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { remark } = req.body;
+
+//     await Deposit.findByIdAndUpdate(id, { remark }, { new: true });
+
+//     res
+//       .status(200)
+//       .json({ success: true, message: "Remark updated successfully" });
+//   } catch (err) {
+//     console.error("Remark Update Error:", err);
+//     res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
+
+exports.updateDepositStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { remark } = req.body;
+    const { status, remark = "" } = req.body;
 
-    await Deposit.findByIdAndUpdate(id, { remark }, { new: true });
+    // ✅ Only allow these statuses
+    if (!["Approved", "Rejected", "Pending"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Remark updated successfully" });
-  } catch (err) {
-    console.error("Remark Update Error:", err);
-    res.status(500).json({ success: false, message: "Server Error" });
+    // ✅ Get the deposit
+    const deposit = await Deposit.findById(id);
+    if (!deposit) {
+      return res.status(404).json({
+        success: false,
+        message: "Deposit not found",
+      });
+    }
+
+    // ✅ Only update wallet if this is the first approval
+    if (status === "Approved" && deposit.status !== "Approved") {
+      const user = await User.findById(deposit.userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      user.wallet = (user.wallet || 0) + deposit.amount;
+      await user.save();
+    }
+
+    // ✅ Update status and remark
+    deposit.status = status;
+    deposit.remark = remark;
+    await deposit.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      updated: deposit,
+    });
+  } catch (error) {
+    console.error("❌ Error updating deposit status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
