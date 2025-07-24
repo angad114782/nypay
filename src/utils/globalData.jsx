@@ -244,6 +244,7 @@ export const GlobalProvider = ({ children }) => {
         loadingProfile,
         myIdCardData,
         allCreateIDList,
+        fetchGameIds,
       }}
     >
       {children}
