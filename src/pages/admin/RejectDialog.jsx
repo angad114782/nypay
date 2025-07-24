@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import axios from "axios";
 
-const RejectDialog = ({ gameId, onStatusUpdated, status, buttonLogo }) => {
+const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false); // manage dialog open state

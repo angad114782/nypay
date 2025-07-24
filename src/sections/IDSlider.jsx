@@ -98,14 +98,15 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
       </div>
 
       {/* Slider */}
-      <div className="flex overflow-x-auto gap-2 p-2 bg-gray-800 justify-center rounded-lg scroll-hide">
+      <div className="flex overflow-x-auto gap-2 p-2 bg-gray-500 justify-center rounded-lg scroll-hide">
         {myIdCardData.filter(
-          (card) => card.panelId?.isActive === true && card.status === "Active"
+          (card) =>
+            card.panelId?.isActive === true && card.status === "Approved"
         ).length > 0 ? (
           myIdCardData
             .filter(
               (card) =>
-                card.panelId?.isActive === true && card.status === "Active"
+                card.panelId?.isActive === true && card.status === "Approved"
             )
             .map((card, index) => (
               <ExCard
@@ -123,7 +124,7 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
               />
             ))
         ) : (
-          <div className="flex-shrink-0 sm:w-64 w-full bg-gray-700 rounded-xl p-2 flex flex-col items-center justify-center text-center">
+          <div className="flex-shrink-0 sm:w-64 w-full bg-gray-500 rounded-xl p-2 flex flex-col items-center justify-center text-center">
             <img
               src="/asset/Logo-Exchages.png"
               alt="No IDs"
