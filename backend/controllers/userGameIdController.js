@@ -17,7 +17,9 @@ const createGameId = async (req, res) => {
     // 🔍 Fetch Panel Info
     const panel = await Panel.findById(panelId);
     if (!panel) {
-      return res.status(404).json({ success: false, message: "Panel not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Panel not found" });
     }
 
     // ✅ Create Game ID
@@ -54,7 +56,6 @@ const createGameId = async (req, res) => {
   }
 };
 
-
 const getMyGameIds = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -72,7 +73,6 @@ const getMyGameIds = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 
 // ✅ Admin: Get all Game ID requests
 const getAllGameIdRequests = async (req, res) => {
@@ -104,10 +104,16 @@ const updateGameId = async (req, res) => {
     ).populate("panelId", "gameName gameLogo gameUrl profileName");
 
     if (!updated) {
-      return res.status(404).json({ success: false, message: "Game ID not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Game ID not found" });
     }
 
-    res.json({ success: true, message: "Username/Password updated", gameId: updated });
+    res.json({
+      success: true,
+      message: "Username/Password updated",
+      gameId: updated,
+    });
   } catch (err) {
     console.error("❌ Error updating Game ID:", err);
     res.status(500).json({ success: false, message: "Server Error" });
@@ -125,7 +131,9 @@ const closeGameId = async (req, res) => {
     );
 
     if (!updated) {
-      return res.status(404).json({ success: false, message: "Game ID not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Game ID not found" });
     }
 
     res.json({ success: true, message: "Game ID closed", gameId: updated });
@@ -138,63 +146,68 @@ const closeGameId = async (req, res) => {
 const deleteGameId = async (req, res) => {
   try {
     const { id } = req.params;
-    const deleted = await UserGameId.findByIdAndDelete(id)
-      .populate("panelId", "gameName");
+    const deleted = await UserGameId.findByIdAndDelete(id).populate(
+      "panelId",
+      "gameName"
+    );
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: "Game ID not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Game ID not found" });
     }
 
-    res.json({ success: true, message: "Game ID deleted successfully", gameId: deleted });
+    res.json({
+      success: true,
+      message: "Game ID deleted successfully",
+      gameId: deleted,
+    });
   } catch (err) {
     console.error("❌ Error deleting Game ID:", err);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
-const changeGameIdStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status } = req.body;
+// const changeGameIdStatus = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { status } = req.body;
 
-    if (!["Active", "Rejected", "Pending", "Closed"].includes(status))
-      return res.status(400).json({ success: false, message: "Invalid status" });
+//     if (!["Active", "Rejected", "Pending", "Closed"].includes(status))
+//       return res.status(400).json({ success: false, message: "Invalid status" });
 
+//     const gameId = await UserGameId.findById(id).populate("panelId", "gameName");
+//     if (!gameId)
+//       return res.status(404).json({ success: false, message: "Game ID not found" });
 
-    const gameId = await UserGameId.findById(id).populate("panelId", "gameName");
-    if (!gameId)
-      return res.status(404).json({ success: false, message: "Game ID not found" });
+//     gameId.status = status;
+//     await gameId.save();
 
-    gameId.status = status;
-    await gameId.save();
+//     res.status(200).json({ success: true, message: `Status updated to ${status}`, updated: gameId });
+//   } catch (error) {
+//     console.error("❌ Status Error:", error);
+//     res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
 
-    res.status(200).json({ success: true, message: `Status updated to ${status}`, updated: gameId });
-  } catch (error) {
-    console.error("❌ Status Error:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
+// const updateGameIdRemark = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const { remark } = req.body;
 
+//     const gameId = await UserGameId.findById(id).populate("panelId", "gameName");
+//     if (!gameId) return res.status(404).json({ success: false, message: "Game ID not found" });
 
-const updateGameIdRemark = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { remark } = req.body;
+//     // ✅ Allow admin to update remark directly
+//     gameId.remark = remark;
+//     await gameId.save();
 
-    const gameId = await UserGameId.findById(id).populate("panelId", "gameName");
-    if (!gameId) return res.status(404).json({ success: false, message: "Game ID not found" });
-
-    // ✅ Allow admin to update remark directly
-    gameId.remark = remark;
-    await gameId.save();
-
-    res.status(200).json({ success: true, message: "Remark updated", updated: gameId });
-  } catch (error) {
-    console.error("❌ Remark Error:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
-  }
-};
-
+//     res.status(200).json({ success: true, message: "Remark updated", updated: gameId });
+//   } catch (error) {
+//     console.error("❌ Remark Error:", error);
+//     res.status(500).json({ success: false, message: "Server Error" });
+//   }
+// };
 
 // PATCH /api/game/block-toggle/:id
 const toggleGameIdBlock = async (req, res) => {
@@ -208,7 +221,8 @@ const toggleGameIdBlock = async (req, res) => {
       { new: true }
     );
 
-    if (!updated) return res.status(404).json({ success: false, message: "Not found" });
+    if (!updated)
+      return res.status(404).json({ success: false, message: "Not found" });
 
     res.status(200).json({ success: true, updated });
   } catch (error) {
@@ -217,6 +231,54 @@ const toggleGameIdBlock = async (req, res) => {
   }
 };
 
+const changeGameIdStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, remark = "" } = req.body;
+
+    // ✅ Only allow these statuses
+    if (!["Approved", "Rejected", "Pending"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    // ✅ Get the game ID
+    const gameId = await UserGameId.findById(id);
+    if (!gameId) {
+      return res.status(404).json({
+        success: false,
+        message: "Game ID not found",
+      });
+    }
+
+    // ❌ Reject if status already changed
+    if (gameId.status !== "Pending") {
+      return res.status(403).json({
+        success: false,
+        message: "Status already updated",
+      });
+    }
+
+    // ✅ Update status and remark
+    gameId.status = status;
+    gameId.remark = remark;
+    await gameId.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      updated: gameId,
+    });
+  } catch (error) {
+    console.error("❌ Error updating status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 module.exports = {
   createGameId,
@@ -226,6 +288,6 @@ module.exports = {
   closeGameId,
   deleteGameId,
   changeGameIdStatus,
-  updateGameIdRemark,
+  // updateGameIdRemark,
   toggleGameIdBlock,
 };
