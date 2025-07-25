@@ -117,7 +117,6 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
     XLSX.writeFile(wb, "table.xlsx");
   };
   // 1) Helpers at top of WithdrawTable
-  const token = localStorage.getItem("token");
   const handleStatusUpdate = async (id, newStatus, remark = "") => {
     try {
       const res = await axios.patch(
@@ -140,38 +139,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
       toast.error(msg);
     }
   };
-  const updateStatus = async (id, newStatus) => {
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success(`Withdrawal ${newStatus}`); // e.g. “Withdrawal Completed”
-      fetchWithdraws(); // or refetch data
-      console.log(res, "updateStatus");
-    } catch (err) {
-      console.error("Status update failed", err);
-      toast.error("Unable to update status.");
-    }
-  };
 
-  const updateRemark = async (id) => {
-    const remark = prompt("Enter remark for this withdrawal:");
-    if (remark == null) return; // user cancelled
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_URL}/api/withdraw/admin/remark/${id}`,
-        { remark },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Remark saved");
-      fetchWithdraws();
-    } catch (err) {
-      console.error("Remark update failed", err);
-      toast.error("Unable to save remark.");
-    }
-  };
   return (
     <>
       {/*  */}

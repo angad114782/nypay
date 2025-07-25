@@ -1,17 +1,20 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import axios from "axios";
 import { toast } from "sonner"; // or use react-toastify
+import { GlobalContext } from "@/utils/globalData";
 
 function WithdrawPanel1({ onClose, goNext, cardData }) {
   const [amount, setAmount] = useState(0);
   const [loading, setLoading] = useState(false);
-
+  const { walletBalance } = useContext(GlobalContext);
   const withdrawData = useMemo(() => {
     if (!cardData?.panelId) return [];
 
     return [
       {
-        logo: `${import.meta.env.VITE_URL}/uploads/panels/${cardData.panelId.logo || "default.jpg"}`,
+        logo: `${import.meta.env.VITE_URL}/uploads/panels/${
+          cardData.panelId.logo || "default.jpg"
+        }`,
         title: cardData.panelId.profileName || "Game Panel",
         subtitle: cardData.panelId.userId || "example.com",
       },
@@ -86,7 +89,10 @@ function WithdrawPanel1({ onClose, goNext, cardData }) {
           <p className="text-gray-600 text-sm">{data.subtitle}</p>
         </div>
       ))}
-
+      <div className="mx-3 my-3 flex flex-col justify-center items-center mb-2 bgt-grey5 rounded-[10px] p-4 font-inter text-black text-center">
+        <p className="mb-1">Available Balance</p>
+        <p>{walletBalance}</p>
+      </div>
       {/* Withdraw Form */}
       <form
         className="flex flex-col gap-2 px-3 text-[15px] font-medium space-y-1 mb-5 mt-3"

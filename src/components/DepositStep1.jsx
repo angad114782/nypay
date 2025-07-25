@@ -159,12 +159,12 @@ function DepositStep1({
         ))}
 
       {/* Wallet Balance */}
-      {!depositPanel && (
-        <div className="mx-3 my-3 flex flex-col justify-center items-center mb-2 bgt-grey5 rounded-[10px] p-4 font-inter text-black text-center">
-          <p className="mb-1">Available Balance</p>
-          <p className="font-bold">{walletBalance}</p>
-        </div>
-      )}
+      {/* {!depositPanel && ( */}
+      <div className="mx-3 my-3 flex flex-col justify-center items-center mb-2 bgt-grey5 rounded-[10px] p-4 font-inter text-black text-center">
+        <p className="mb-1">Available Balance</p>
+        <p className="font-bold">{walletBalance}</p>
+      </div>
+      {/* )} */}
 
       {/* Deposit Form */}
       <form
@@ -182,11 +182,11 @@ function DepositStep1({
             min={500}
             required={!depositPanel}
           />
-          {!depositPanel && (
-            <p className="text-xs font-normal my-2">
-              Minimum Deposit amount is 500 coins.
-            </p>
-          )}
+          {/* {!depositPanel && ( */}
+          <p className="text-xs font-normal my-2">
+            Minimum Deposit amount is 500 coins.
+          </p>
+          {/* )} */}
         </div>
 
         <button
