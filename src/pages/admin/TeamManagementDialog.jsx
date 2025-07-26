@@ -1,3 +1,6 @@
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -12,9 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, ShieldPlus } from "lucide-react";
-import { useState } from "react";
 
-export const TeamManagementDialog = () => {
+export const TeamManagementDialog = ({ onSuccess }) => {
+  const [open, setOpen] = useState(false); // Add dialog state
   const [teamManagementData, setTeamManagementData] = useState({
     profileName: "",
     userId: "",
@@ -41,11 +44,27 @@ export const TeamManagementDialog = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  // Reset form when dialog closes
+  const resetForm = () => {
+    setTeamManagementData({
+      profileName: "",
+      userId: "",
+      password: "",
+      roles: {
+        admin: false,
+        deposit: false,
+        manager: false,
+        withdrawal: false,
+        auditor: false,
+        createID: false,
+      },
+    });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Prepare final payload
     const payload = {
       profileName: teamManagementData.profileName,
       userId: teamManagementData.userId,
@@ -55,26 +74,49 @@ export const TeamManagementDialog = () => {
       ),
     };
 
-    console.log("Submitting data to backend:", payload);
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_URL}/api/user-management/team`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    // Simulate API
-    setTimeout(() => {
+      toast.success("User added successfully!");
+      setOpen(false); // Close the dialog
+      resetForm(); // Reset the form
+      if (onSuccess) onSuccess(); // optionally trigger refetch
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Error adding user");
+    } finally {
       setLoading(false);
-      alert("Submitted successfully!");
-    }, 1000);
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          resetForm(); // Reset form when dialog is closed
+        }
+      }}
+    >
       <DialogTrigger className="bg-[#FAB906] text-black cursor-pointer lg:px-6 px-3 h-6 lg:h-full rounded-lg hover:bg-[#fab940]">
         Add User
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px] bg-white text-black p-0 overflow-hidden">
-        <DialogTitle className={"hidden"}></DialogTitle>
-        <DialogDescription className={"hidden"}></DialogDescription>
+        <DialogTitle className="hidden" />
+        <DialogDescription className="hidden" />
         <div className="h-24 bg-gradient-to-r relative from-[#8AAA08] -z-20 to-[#15CA5280]" />
+
         <div className="px-6">
-          {/* Lock Icon */}
           <div className="flex items-center justify-center -mt-12 mb-6">
             <div className="bg-white rounded-full p-4 shadow-lg">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
@@ -83,12 +125,10 @@ export const TeamManagementDialog = () => {
             </div>
           </div>
 
-          {/* Title */}
           <div className="text-center absolute top-3 left-3 mb-8">
             <h2 className="text-2xl font-bold text-white">Add New Team User</h2>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4">
               <div>
@@ -97,7 +137,6 @@ export const TeamManagementDialog = () => {
                 </Label>
                 <Input
                   type="text"
-                  name="profileName"
                   value={teamManagementData.profileName}
                   onChange={(e) =>
                     setTeamManagementData({
@@ -107,6 +146,7 @@ export const TeamManagementDialog = () => {
                   }
                   placeholder="Enter team member name"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  required
                 />
               </div>
 
@@ -114,7 +154,6 @@ export const TeamManagementDialog = () => {
                 <Label className="text-gray-800 font-medium">User ID</Label>
                 <Input
                   type="text"
-                  name="teamUserId"
                   value={teamManagementData.userId}
                   onChange={(e) =>
                     setTeamManagementData({
@@ -124,6 +163,7 @@ export const TeamManagementDialog = () => {
                   }
                   placeholder="Enter required user ID"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  required
                 />
               </div>
 
@@ -133,7 +173,6 @@ export const TeamManagementDialog = () => {
                 </Label>
                 <Input
                   type="password"
-                  name="password"
                   value={teamManagementData.password}
                   onChange={(e) =>
                     setTeamManagementData({
@@ -141,8 +180,9 @@ export const TeamManagementDialog = () => {
                       password: e.target.value,
                     })
                   }
-                  placeholder="Enter required password"
+                  placeholder="Enter password"
                   className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  required
                 />
               </div>
 
@@ -174,14 +214,13 @@ export const TeamManagementDialog = () => {
 
             <DialogFooter className="pb-6 px-0">
               <div className="flex gap-3 w-full">
-                <DialogClose asChild>
-                  <Button
-                    type="button"
-                    className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
+                <Button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="flex-1 bg-gray-500 text-white hover:bg-gray-600"
+                >
+                  Cancel
+                </Button>
                 <Button
                   type="submit"
                   className="flex-1 bg-blue-600 text-white hover:bg-blue-700"
