@@ -77,7 +77,7 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-3">
-        <p className="text-xs font-semibold">My ID’s</p>
+        <p className="text-xs font-semibold">My ID's</p>
         <div className="flex items-center gap-2">
           <button className="flex items-center gap-1">
             <img src="asset/plus.png" alt="create id" className="w-4 h-4" />
@@ -97,52 +97,56 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
         </div>
       </div>
 
-      {/* Slider */}
-      <div className="flex overflow-x-auto gap-2 p-2 bg-gray-800 justify-center rounded-lg scroll-hide">
-        {myIdCardData.filter(
-          (card) => card.panelId?.isActive === true && card.status === "Active"
-        ).length > 0 ? (
-          myIdCardData
-            .filter(
-              (card) =>
-                card.panelId?.isActive === true && card.status === "Active"
-            )
-            .map((card, index) => (
-              <ExCard
-                key={card._id}
-                username={card.username}
-                password={card.password}
-                status={card.status}
-                logo={`${import.meta.env.VITE_URL}/uploads/panels/${
-                  card.panelId?.logo
-                }`}
-                site={card.panelId?.userId}
-                gameName={card.panelId?.profileName}
-                onclickwithdraw={() => handlePanelWithdraw(card)}
-                onclickdesposit={() => handlePanelDeposit(card)}
+      {/* Slider - Fixed version */}
+      <div className="overflow-x-auto bg-gray-500 rounded-lg">
+        <div className="flex gap-2 p-2">
+          {myIdCardData.filter(
+            (card) =>
+              card.panelId?.isActive === true && card.status === "Approved"
+          ).length > 0 ? (
+            myIdCardData
+              .filter(
+                (card) =>
+                  card.panelId?.isActive === true && card.status === "Approved"
+              )
+              .map((card, index) => (
+                <ExCard
+                  key={card._id}
+                  username={card.username}
+                  password={card.password}
+                  status={card.status}
+                  logo={`${import.meta.env.VITE_URL}/uploads/panels/${
+                    card.panelId?.logo
+                  }`}
+                  site={card.panelId?.userId}
+                  gameName={card.panelId?.profileName}
+                  onclickwithdraw={() => handlePanelWithdraw(card)}
+                  onclickdesposit={() => handlePanelDeposit(card)}
+                />
+              ))
+          ) : (
+            <div className="flex-shrink-0 sm:w-64 w-full bg-gray-500 rounded-xl p-2 flex flex-col items-center justify-center text-center">
+              <img
+                src="/asset/Logo-Exchages.png"
+                alt="No IDs"
+                className="w-20 h-20 opacity-75"
               />
-            ))
-        ) : (
-          <div className="flex-shrink-0 sm:w-64 w-full bg-gray-700 rounded-xl p-2 flex flex-col items-center justify-center text-center">
-            <img
-              src="/asset/Logo-Exchages.png"
-              alt="No IDs"
-              className="w-20 h-20 opacity-75"
-            />
-            <h3 className="text-sm font-semibold text-gray-200">
-              You haven’t created any IDs yet.
-            </h3>
-            <p className="text-xs text-gray-400">
-              Tap below to get started—your in‑game profiles will show up here.
-            </p>
-            <button
-              onClick={handleCreateId}
-              className="mt-2 text-xs bg-purple-600 hover:bg-purple-700 transition-all text-white font-medium py-2 px-4 rounded-full"
-            >
-              Create Your First ID
-            </button>
-          </div>
-        )}
+              <h3 className="text-sm font-semibold text-gray-200">
+                You haven't created any IDs yet.
+              </h3>
+              <p className="text-xs text-gray-400">
+                Tap below to get started—your in‑game profiles will show up
+                here.
+              </p>
+              <button
+                onClick={handleCreateId}
+                className="mt-2 text-xs bg-purple-600 hover:bg-purple-700 transition-all text-white font-medium py-2 px-4 rounded-full"
+              >
+                Create Your First ID
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Login Modal */}

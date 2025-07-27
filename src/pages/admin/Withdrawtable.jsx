@@ -21,6 +21,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import WithdrawalRejectDialog from "./WithdrawalRejectDialog";
+import DepositRejectDialog from "./DepositRejectDialog";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -116,7 +117,6 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
     XLSX.writeFile(wb, "table.xlsx");
   };
   // 1) Helpers at top of WithdrawTable
-  const token = localStorage.getItem("token");
   const handleStatusUpdate = async (id, newStatus, remark = "") => {
     try {
       const res = await axios.patch(
@@ -139,38 +139,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
       toast.error(msg);
     }
   };
-  const updateStatus = async (id, newStatus) => {
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success(`Withdrawal ${newStatus}`); // e.g. “Withdrawal Completed”
-      fetchWithdraws(); // or refetch data
-      console.log(res, "updateStatus");
-    } catch (err) {
-      console.error("Status update failed", err);
-      toast.error("Unable to update status.");
-    }
-  };
 
-  const updateRemark = async (id) => {
-    const remark = prompt("Enter remark for this withdrawal:");
-    if (remark == null) return; // user cancelled
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_URL}/api/withdraw/admin/remark/${id}`,
-        { remark },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Remark saved");
-      fetchWithdraws();
-    } catch (err) {
-      console.error("Remark update failed", err);
-      toast.error("Unable to save remark.");
-    }
-  };
   return (
     <>
       {/*  */}
@@ -385,8 +354,8 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
           <TransactionCard
             key={item.id}
             transaction={item}
-            updateStatus={updateStatus}
-            updateRemark={updateRemark}
+            handleStatusUpdate={handleStatusUpdate}
+            fetchWithdraws={fetchWithdraws}
           />
         ))}
       </div>
@@ -404,8 +373,8 @@ export default WithdrawTable;
 
 export const TransactionCard = ({
   transaction,
-  updateStatus,
-  updateRemark,
+  fetchWithdraws,
+  handleStatusUpdate,
 }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -589,23 +558,30 @@ export const TransactionCard = ({
         </div>
         <div className="flex gap-2">
           <button
-            onClick={() => updateStatus(transaction.id, "approved")}
+            onClick={() =>
+              handleStatusUpdate(
+                transaction.id,
+                "Approved",
+                "Approved successfully"
+              )
+            }
+            disabled={transaction.status !== "Pending"}
             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
-          <button
-            onClick={() => updateStatus(transaction.id, "rejected")}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
-          >
-            Reject
-          </button>
-          <button
-            onClick={() => updateRemark(transaction.id)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
-          >
-            Remark
-          </button>
+          <WithdrawalRejectDialog
+            buttonLogo={
+              <button
+                disabled={transaction.status !== "Pending"}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+              >
+                Reject
+              </button>
+            }
+            gameId={transaction.id}
+            onStatusUpdated={fetchWithdraws}
+          />
         </div>
       </div>
     </div>

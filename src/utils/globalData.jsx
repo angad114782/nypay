@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { createContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export const GlobalContext = createContext();
 
@@ -48,25 +49,27 @@ export const GlobalProvider = ({ children }) => {
   }, [token, refreshTrigger, retryCount]);
 
   useEffect(() => {
-  const fetchWalletBalance = async () => {
-    try {
-      const res = await axios.get(`${import.meta.env.VITE_URL}/api/deposit/wallet/balance`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const fetchWalletBalance = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_URL}/api/deposit/wallet/balance`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-      const formatted = Number(res.data.balance || 0).toLocaleString("en-IN");
-      setWalletBalance(formatted);
-    } catch (err) {
-      console.error("❌ Failed to fetch wallet balance:", err);
-      setWalletBalance("0");
+        const formatted = Number(res.data.balance || 0).toLocaleString("en-IN");
+        setWalletBalance(formatted);
+      } catch (err) {
+        console.error("❌ Failed to fetch wallet balance:", err);
+        setWalletBalance("0");
+      }
+    };
+
+    if (token) {
+      fetchWalletBalance();
     }
-  };
-
-  if (token) {
-    fetchWalletBalance();
-  }
-}, [token, refreshTrigger]);
-
+  }, [token, refreshTrigger]);
 
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile"); // Clear cache
@@ -97,17 +100,69 @@ export const GlobalProvider = ({ children }) => {
 
   const [myIdCardData, setMyIdCardData] = useState([]);
   // console.log(myIdCardData);
-  const fetchPanels = async () => {
+  const fetchGameIds = async () => {
     try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.error("❌ No token found");
+        toast.error("Please login to continue");
+        return;
+      }
+
+      console.log(
+        "🔍 Making request with token:",
+        token ? "Present" : "Missing"
+      );
+
       const res = await axios.get(
         `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
-      setMyIdCardData(res?.data?.gameIds);
+
+      if (res.data.success) {
+        console.log("✅ Game IDs fetched successfully:", res.data);
+        setMyIdCardData(res.data.gameIds);
+      } else {
+        console.error("❌ API returned success: false");
+        toast.error("Failed to fetch Game IDs");
+      }
     } catch (err) {
-      // console.error("❌ Failed to load Panels", err);
+      console.error("❌ Error fetching Game IDs:", err);
+
+      if (err.response) {
+        // Server responded with error status
+        const { status, data } = err.response;
+        console.error("❌ Response status:", status);
+        console.error("❌ Response data:", data);
+
+        if (status === 401) {
+          toast.error("Authentication failed. Please login again.");
+          // Optionally redirect to login
+          localStorage.removeItem("token");
+          localStorage.removeItem("userProfile");
+        } else {
+          toast.error(
+            data.message || "Something went wrong while loading Game IDs."
+          );
+        }
+      } else if (err.request) {
+        // Network error
+        console.error("❌ Network error:", err.request);
+        toast.error("Network error. Please check your connection.");
+      } else {
+        // Other error
+        console.error("❌ Other error:", err.message);
+        toast.error("Something went wrong while loading Game IDs.");
+      }
+    } finally {
+      setLoading(false);
     }
   };
   // const myIdCardData = [
@@ -215,23 +270,23 @@ export const GlobalProvider = ({ children }) => {
   // ];
   useEffect(() => {
     fetchSliders();
-    fetchPanels();
+    fetchGameIds();
   }, []);
   return (
-  <GlobalContext.Provider
-  value={{
-    walletBalance,
-    setWalletBalance,
-    userProfile,
-    setUserProfile,
-    refreshUserProfile,
-    loadingProfile,
-    myIdCardData,
-    allCreateIDList,
-  }}
->
-  {children}
-</GlobalContext.Provider>
-
+    <GlobalContext.Provider
+      value={{
+        walletBalance,
+        setWalletBalance,
+        userProfile,
+        setUserProfile,
+        refreshUserProfile,
+        loadingProfile,
+        myIdCardData,
+        allCreateIDList,
+        fetchGameIds,
+      }}
+    >
+      {children}
+    </GlobalContext.Provider>
   );
 };

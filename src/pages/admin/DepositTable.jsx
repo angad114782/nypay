@@ -356,8 +356,8 @@ export default DepositTable;
 // Card component for mobile view
 export const TransactionCard = ({
   transaction,
-  updateStatus,
-  updateRemark,
+  fetchDeposits,
+  handleStatusUpdate,
 }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -467,23 +467,30 @@ export const TransactionCard = ({
         </div>
         <div className="flex  gap-2">
           <button
-            onClick={() => updateStatus(transaction.id, "approved")}
+            onClick={() =>
+              handleStatusUpdate(
+                transaction.id,
+                "Approved",
+                "Approved successfully"
+              )
+            }
+            disabled={transaction.status !== "Pending"}
             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
-          <button
-            onClick={() => updateStatus(transaction.id, "rejected")}
-            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
-          >
-            Reject
-          </button>
-          <button
-            onClick={() => updateRemark(transaction.id)}
-            className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs"
-          >
-            Remark
-          </button>
+          <DepositRejectDialog
+            buttonLogo={
+              <button
+                disabled={transaction.status !== "Pending"}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+              >
+                Reject
+              </button>
+            }
+            gameId={transaction.id}
+            onStatusUpdated={fetchDeposits}
+          />
         </div>
       </div>
     </div>

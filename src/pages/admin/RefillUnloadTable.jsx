@@ -20,6 +20,7 @@ import * as XLSX from "xlsx";
 import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import logonew from "/asset/new.png";
+import RefillIdRejectDialog from "./RefillIdRejectDialog";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -31,34 +32,34 @@ const COLUMN_OPTIONS = [
 
 const STATUS_OPTIONS = [
   { label: "All", value: "all" },
-  { label: "Completed", value: "Completed" },
   { label: "Pending", value: "Pending" },
-  { label: "Failed", value: "Failed" },
+  { label: "Approved", value: "Approved" },
   { label: "Rejected", value: "Rejected" },
 ];
-const handleAction = async (id, actionType) => {
-  try {
-    const baseURL = import.meta.env.VITE_URL;
-    const token = localStorage.getItem("token"); // adjust if you're using sessionStorage or context
+// const handleAction = async (id, actionType) => {
+//   try {
+//     const baseURL = import.meta.env.VITE_URL;
+//     const token = localStorage.getItem("token"); // adjust if you're using sessionStorage or context
 
-    const res = await axios.patch(
-      `${baseURL}/api/panel-deposit/${id}/status`,
-      { status: actionType },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+//     const res = await axios.patch(
+//       `${baseURL}/api/panel-deposit/${id}/status`,
+//       { status: actionType },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${token}`,
+//         },
+//       }
+//     );
 
-    toast.success(`${actionType} successfully!`);
-    fetchData(); // 👈 refetch updated data
-  } catch (err) {
-    console.error("Action Error:", err.response?.data || err.message);
-    toast.error(err.response?.data?.error || "Action failed. Please try again.");
-  }
-};
-
+//     toast.success(`${actionType} successfully!`);
+//     fetchData(); // 👈 refetch updated data
+//   } catch (err) {
+//     console.error("Action Error:", err.response?.data || err.message);
+//     toast.error(
+//       err.response?.data?.error || "Action failed. Please try again."
+//     );
+//   }
+// };
 
 const RefillUnloadTable = ({ data, type, fetchData }) => {
   const {
@@ -73,17 +74,17 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
     dateRange,
     setDateRange,
     currentPage,
-    setCurrentPage,
     goToPage,
     handleReset,
     paginatedData,
     filteredData,
     totalPages,
+    updateItem,
   } = useTableFilter({ data, initialColumn: "userName" });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [entries, search, searchColumn]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [entries, search, searchColumn]);
 
   // PDF Download handler
   const handleDownloadPDF = () => {
@@ -139,7 +140,28 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "table.xlsx");
   };
-
+  const handleStatusUpdate = async (id, newStatus, remark = "") => {
+    try {
+      const res = await axios.patch(
+        `${import.meta.env.VITE_URL}/api/panel-deposit/${id}/status`,
+        { status: newStatus, remark },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      updateItem(id, {
+        status: res.data.updated.status,
+        remark: res.data.updated.remark,
+      });
+      toast.success(`Status updated successfully`);
+      await fetchData();
+    } catch (err) {
+      const msg = err?.response?.data?.message || "Failed to update status.";
+      toast.error(msg);
+    }
+  };
   return (
     <>
       <TableFilterBar
@@ -224,21 +246,32 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
                   <button
-                    onClick={() => handleAction(item.id, "Approved")}
-                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                    className="px-2 py-1 disabled:bg-gray-100 disabled:text-gray-700 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                    // onClick={() => handleStatusUpdate(item.id, "Approved")}
+                    onClick={() =>
+                      handleStatusUpdate(
+                        item.id,
+                        "Approved",
+                        "Approved successfully"
+                      )
+                    }
+                    disabled={item.status !== "Pending"}
                   >
                     Approve
                   </button>
-                  <button
-                    onClick={() => handleAction(item.id, "Rejected")}
-                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
-                  >
-                    Reject
-                  </button>
-
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
-                    Remark
-                  </button>
+                  <RefillIdRejectDialog
+                    buttonLogo={
+                      <button
+                        disabled={item.status !== "Pending"}
+                        className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                      >
+                        Reject
+                      </button>
+                    }
+                    id={item.id}
+                    // status={item.status !== "Pending"}
+                    onStatusUpdated={fetchData}
+                  />
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -249,7 +282,13 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
 
       <div className="lg:hidden block">
         {paginatedData.map((item) => (
-          <TransactionCard key={item.id} type={type} transaction={item} />
+          <TransactionCard
+            key={item.id}
+            transaction={item}
+            handleStatusUpdate={handleStatusUpdate}
+            type={type}
+            fetchData={fetchData}
+          />
         ))}
       </div>
       {/* Pagination Controls */}
@@ -265,7 +304,12 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
 export default RefillUnloadTable;
 
 // Card component for mobile view
-export const TransactionCard = ({ transaction, type }) => {
+export const TransactionCard = ({
+  transaction,
+  type,
+  handleStatusUpdate,
+  fetchData,
+}) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "completed":
@@ -285,8 +329,9 @@ export const TransactionCard = ({ transaction, type }) => {
       <div className="flex bg-[#8AAA08]    items-center justify-between p-2 ">
         <div className="flex items-center gap-2">
           <div
-            className={`w-10 h-10 ${type === "unload" ? "bg-[#4F6DE4]" : "bg-[#FB680F]"
-              } rounded-full flex items-center justify-center dark:text-white text-white font-semibold`}
+            className={`w-10 h-10 ${
+              type === "unload" ? "bg-[#4F6DE4]" : "bg-[#FB680F]"
+            } rounded-full flex items-center justify-center dark:text-white text-white font-semibold`}
           >
             <img src={logonew} alt="" />
           </div>
@@ -372,15 +417,31 @@ export const TransactionCard = ({ transaction, type }) => {
           <Copy className={"h-6 w-6"} />
         </div>
         <div className="flex  gap-2">
-          <button className="flex-1 bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded-full text-[10px] font-light">
+          <button
+            onClick={() =>
+              handleStatusUpdate(
+                transaction.id,
+                "Approved",
+                "Approved successfully"
+              )
+            }
+            disabled={transaction.status !== "Pending"}
+            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+          >
             Approve
           </button>
-          <button className="flex-1 bg-red-500 hover:bg-red-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
-            Reject
-          </button>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1  rounded-full text-[10px] font-light">
-            Remark
-          </button>
+          <RefillIdRejectDialog
+            buttonLogo={
+              <button
+                disabled={transaction.status !== "Pending"}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+              >
+                Reject
+              </button>
+            }
+            id={transaction.id}
+            onStatusUpdated={fetchData}
+          />
         </div>
       </div>
     </div>
