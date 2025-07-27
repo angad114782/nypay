@@ -15,7 +15,7 @@ const LoadingSpinner = () => (
 );
 
 // Access Denied Component
-const AccessDenied = ({ requiredRole, userRole }) => (
+const AccessDenied = ({ requiredRole, userRole, userManagementRoles }) => (
   <div className="min-h-screen flex items-center justify-center bg-white">
     <div className="text-center max-w-md mx-4">
       <div className="mb-6">
@@ -40,19 +40,30 @@ const AccessDenied = ({ requiredRole, userRole }) => (
         Required role:{" "}
         <span className="font-semibold text-red-600">{requiredRole}</span>
         <br />
-        Your role:{" "}
+        Your main role:{" "}
         <span className="font-semibold text-blue-600">
           {userRole || "None"}
         </span>
+        {userManagementRoles && userManagementRoles.length > 0 && (
+          <>
+            <br />
+            Your UserManagement roles:{" "}
+            <span className="font-semibold text-green-600">
+              {userManagementRoles.join(", ")}
+            </span>
+          </>
+        )}
       </p>
-    <button
-  onClick={() => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
-  }}  className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
->  Logout - {userRole || "None"}
-</button>
-
+      <button
+        onClick={() => {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }}
+        className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
+      >
+        {" "}
+        Logout - {userRole || "None"}
+      </button>
     </div>
   </div>
 );
@@ -74,11 +85,12 @@ export const ProtectedRoute = ({ children }) => {
 // Role-based protected route
 export const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { isLoggedIn, isLoading } = useAuth();
-  const { userProfile, loadingProfile } = useContext(GlobalContext);
+  const { userProfile, userManagementRoles, loadingProfile, loadingRoles } =
+    useContext(GlobalContext);
   const location = useLocation();
 
   // Show loading if either auth or profile is loading
-  if (isLoading || loadingProfile) return <LoadingSpinner />;
+  if (isLoading || loadingProfile || loadingRoles) return <LoadingSpinner />;
 
   // If not logged in, redirect to login
   if (!isLoggedIn) {
@@ -90,14 +102,22 @@ export const RoleProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   const userRole = userProfile.role;
 
-  // Check if user has required role
-  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-    return (
-      <AccessDenied
-        requiredRole={allowedRoles.join(" or ")}
-        userRole={userRole}
-      />
-    );
+  // Check if user has required role from main user model OR UserManagement roles
+  if (allowedRoles.length > 0) {
+    const hasMainUserRole = allowedRoles.includes(userRole);
+    const hasUserManagementRole =
+      userManagementRoles && userManagementRoles.length > 0;
+
+    // Allow access if user has main role OR has UserManagement roles
+    if (!hasMainUserRole && !hasUserManagementRole) {
+      return (
+        <AccessDenied
+          requiredRole={allowedRoles.join(" or ")}
+          userRole={userRole}
+          userManagementRoles={userManagementRoles}
+        />
+      );
+    }
   }
 
   return children;
@@ -110,10 +130,12 @@ export const ClientRoute = ({ children }) => {
   );
 };
 
-// Admin Route (role: admin)
+// Admin Route (role: admin or has UserManagement admin roles)
 export const AdminRoute = ({ children }) => {
   return (
-    <RoleProtectedRoute allowedRoles={["admin"]}>{children}</RoleProtectedRoute>
+    <RoleProtectedRoute allowedRoles={["admin", "super-admin"]}>
+      {children}
+    </RoleProtectedRoute>
   );
 };
 
@@ -138,13 +160,21 @@ export const AdminOrSuperAdminRoute = ({ children }) => {
 // Public Route (only accessible when NOT logged in)
 export const PublicRoute = ({ children }) => {
   const { isLoggedIn, isLoading } = useAuth();
-  const { userProfile } = useContext(GlobalContext);
+  const { userProfile, userManagementRoles, loadingRoles } =
+    useContext(GlobalContext);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || loadingRoles) return <LoadingSpinner />;
 
   // If logged in, redirect based on role
   if (isLoggedIn && userProfile) {
     const userRole = userProfile.role;
+    const hasUserManagementRoles =
+      userManagementRoles && userManagementRoles.length > 0;
+
+    // If user has UserManagement roles, redirect to admin dashboard
+    if (hasUserManagementRoles) {
+      return <Navigate to="/admin" replace />;
+    }
 
     switch (userRole) {
       case "super-admin":
@@ -167,9 +197,10 @@ export const MixedRoute = ({
   allowPublic = false,
 }) => {
   const { isLoggedIn, isLoading } = useAuth();
-  const { userProfile, loadingProfile } = useContext(GlobalContext);
+  const { userProfile, userManagementRoles, loadingProfile, loadingRoles } =
+    useContext(GlobalContext);
 
-  if (isLoading || loadingProfile) return <LoadingSpinner />;
+  if (isLoading || loadingProfile || loadingRoles) return <LoadingSpinner />;
 
   // If not logged in and public access is allowed
   if (!isLoggedIn && allowPublic) {
@@ -186,12 +217,20 @@ export const MixedRoute = ({
     if (!userProfile) return <LoadingSpinner />;
 
     const userRole = userProfile.role;
+    const hasUserManagementRoles =
+      userManagementRoles && userManagementRoles.length > 0;
 
-    if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    // Allow access if user has main role OR has UserManagement roles
+    const hasMainUserRole =
+      allowedRoles.length === 0 || allowedRoles.includes(userRole);
+    const hasAccess = hasMainUserRole || hasUserManagementRoles;
+
+    if (!hasAccess) {
       return (
         <AccessDenied
-          requiredRole={allowedRoles.join(" or ")}
+          requiredRole={allowedRoles.join(" or ") || "specific roles"}
           userRole={userRole}
+          userManagementRoles={userManagementRoles}
         />
       );
     }

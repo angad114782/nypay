@@ -14,10 +14,10 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, ShieldPlus } from "lucide-react";
+import { Lock, ShieldPlus, AlertCircle } from "lucide-react";
 
 export const TeamManagementDialog = ({ onSuccess }) => {
-  const [open, setOpen] = useState(false); // Add dialog state
+  const [open, setOpen] = useState(false);
   const [teamManagementData, setTeamManagementData] = useState({
     profileName: "",
     userId: "",
@@ -33,6 +33,7 @@ export const TeamManagementDialog = ({ onSuccess }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({}); // Add state for field-specific errors
 
   const handleRoleChange = (role) => {
     setTeamManagementData((prev) => ({
@@ -42,6 +43,10 @@ export const TeamManagementDialog = ({ onSuccess }) => {
         [role]: !prev.roles[role],
       },
     }));
+    // Clear role error when user selects a role
+    if (errors.roles) {
+      setErrors((prev) => ({ ...prev, roles: null }));
+    }
   };
 
   // Reset form when dialog closes
@@ -59,15 +64,63 @@ export const TeamManagementDialog = ({ onSuccess }) => {
         createID: false,
       },
     });
+    setErrors({}); // Clear errors when resetting form
+  };
+
+  const handleInputChange = (field, value) => {
+    setTeamManagementData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    // Clear field error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!teamManagementData.profileName.trim()) {
+      newErrors.profileName = "Profile name is required";
+    }
+
+    if (!teamManagementData.userId.trim()) {
+      newErrors.userId = "User ID is required";
+    }
+
+    if (!teamManagementData.password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (teamManagementData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    const selectedRoles = Object.values(teamManagementData.roles).some(
+      (role) => role
+    );
+    if (!selectedRoles) {
+      newErrors.roles = "At least one role must be selected";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      toast.error("Please fix the errors before submitting");
+      return;
+    }
+
     setLoading(true);
+    setErrors({}); // Clear any previous errors
 
     const payload = {
-      profileName: teamManagementData.profileName,
-      userId: teamManagementData.userId,
+      profileName: teamManagementData.profileName.trim(),
+      userId: teamManagementData.userId.trim(),
       password: teamManagementData.password,
       roles: Object.keys(teamManagementData.roles).filter(
         (role) => teamManagementData.roles[role]
@@ -86,13 +139,44 @@ export const TeamManagementDialog = ({ onSuccess }) => {
         }
       );
 
-      toast.success("User added successfully!");
-      setOpen(false); // Close the dialog
-      resetForm(); // Reset the form
-      if (onSuccess) onSuccess(); // optionally trigger refetch
+      toast.success("Team user added successfully!");
+      setOpen(false);
+      resetForm();
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Error adding user");
+
+      // Handle different types of errors
+      if (err.response) {
+        const { status, data } = err.response;
+
+        // Handle specific error cases
+        if (status === 404 && data.message?.includes("User not found")) {
+          setErrors({ userId: "User ID not found in the system" });
+          toast.error("Invalid User ID - User not found in the system");
+        } else if (status === 400 && data.message?.includes("already exists")) {
+          setErrors({ userId: "Team user already exists with this User ID" });
+          toast.error("Team user already exists with this User ID");
+        } else if (
+          status === 400 &&
+          data.message?.includes("Invalid user ID format")
+        ) {
+          setErrors({ userId: "Invalid User ID format" });
+          toast.error("Invalid User ID format");
+        } else if (status === 400 && data.message?.includes("Invalid roles")) {
+          setErrors({ roles: "Some selected roles are invalid" });
+          toast.error(data.message);
+        } else if (data.details && Array.isArray(data.details)) {
+          // Handle validation errors with details
+          toast.error(`Validation Error: ${data.details.join(", ")}`);
+        } else {
+          toast.error(data.message || "Error adding user");
+        }
+      } else if (err.request) {
+        toast.error("Network error - Please check your connection");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,7 +188,7 @@ export const TeamManagementDialog = ({ onSuccess }) => {
       onOpenChange={(isOpen) => {
         setOpen(isOpen);
         if (!isOpen) {
-          resetForm(); // Reset form when dialog is closed
+          resetForm();
         }
       }}
     >
@@ -139,15 +223,20 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   type="text"
                   value={teamManagementData.profileName}
                   onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      profileName: e.target.value,
-                    })
+                    handleInputChange("profileName", e.target.value)
                   }
                   placeholder="Enter team member name"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.profileName ? "border border-red-500" : ""
+                  }`}
                   required
                 />
+                {errors.profileName && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.profileName}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -155,16 +244,19 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                 <Input
                   type="text"
                   value={teamManagementData.userId}
-                  onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      userId: e.target.value,
-                    })
-                  }
+                  onChange={(e) => handleInputChange("userId", e.target.value)}
                   placeholder="Enter required user ID"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.userId ? "border border-red-500" : ""
+                  }`}
                   required
                 />
+                {errors.userId && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.userId}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -175,15 +267,20 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   type="password"
                   value={teamManagementData.password}
                   onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      password: e.target.value,
-                    })
+                    handleInputChange("password", e.target.value)
                   }
-                  placeholder="Enter password"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  placeholder="Enter password (min 6 characters)"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.password ? "border border-red-500" : ""
+                  }`}
                   required
                 />
+                {errors.password && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.password}
+                  </div>
+                )}
               </div>
 
               {/* Roles */}
@@ -210,6 +307,12 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   )}
                 </div>
               </div>
+              {errors.roles && (
+                <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.roles}
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pb-6 px-0">

@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { FaCopy } from "react-icons/fa";
 import { IoCopy, IoCopyOutline } from "react-icons/io5";
-import Tesseract from "tesseract.js";
 import { Progress } from "./ui/progress";
 
 import axios from "axios";
 import CopyButton from "./CopyButton";
 import { toast } from "sonner";
-
 
 const paymentModes = [
   {
@@ -21,205 +19,13 @@ const paymentModes = [
   },
 ];
 
-// Enhanced extraction patterns for different payment apps and banks
-// Enhanced extraction patterns that handle spaces and periods
-const extractTransactionDetails = (text) => {
-  // console.log("Extracted OCR Text:", text);
-
-  // Clean and normalize text
-  const cleanText = text.replace(/\s+/g, " ").trim();
-  const lines = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  const result = {
-    utr: null,
-    transactionId: null,
-    referenceNumber: null,
-    amount: null,
-    dateTime: null,
-    payerName: null,
-    payeeName: null,
-    appType: null,
-  };
-
-  // Detect payment app type
-  const appPatterns = {
-    paytm: /paytm|paytm wallet/i,
-    phonepe: /phonepe|phone pe/i,
-    googlepay: /google pay|gpay|g pay/i,
-    amazonpay: /amazon pay/i,
-    bhim: /bhim|bhim upi/i,
-    sbi: /sbi|state bank/i,
-    hdfc: /hdfc/i,
-    icici: /icici/i,
-    axis: /axis/i,
-  };
-
-  for (const [app, pattern] of Object.entries(appPatterns)) {
-    if (pattern.test(cleanText)) {
-      result.appType = app;
-      break;
-    }
-  }
-
-  // IMPROVED UTR/Reference patterns that handle spaces, periods, and various formats
-  const utrPatterns = [
-    // Handle "UPI Ref. No: 5183527 90253" format with spaces
-    /(?:UPI\s*Ref\.?\s*No\.?)[:\s]*([0-9]{7,12}\s*[0-9]{5,12})/i,
-
-    // Handle standard UTR patterns
-    /(?:UTR|UPI.*?Ref|UPI Reference|UPI Ref No|UPI Ref|Ref No|Reference No|Ref#|Reference#|Ref\.|Reference\.)[:\s]*([A-Z0-9\s]{8,25})/i,
-
-    // Handle Transaction ID patterns
-    /(?:Transaction ID|Txn ID|TxnID|Order ID|OrderID|Reference ID|Ref ID|RefID|Payment ID|PaymentID|Trans ID|TransID|Transaction Reference Number|Reference Number|Ref Number|Ref No|Reference No)[:\s]*([A-Z0-9\s]{8,25})/i,
-
-    // Handle 12-digit numbers with spaces (like "5183527 90253")
-    /\b([0-9]{7,12}\s+[0-9]{5,12})\b/g,
-
-    // Handle regular 12-digit numbers
-    /\b([0-9]{12})\b/g,
-
-    // Handle long alphanumeric strings
-    /\b([A-Z0-9]{10,25})\b/g,
-  ];
-
-  // Extract UTR/Transaction details
-  for (const pattern of utrPatterns) {
-    const matches = cleanText.match(pattern);
-    if (matches) {
-      if (pattern.global) {
-        // For global patterns, find the most likely UTR
-        const candidates = [...cleanText.matchAll(pattern)];
-        for (const match of candidates) {
-          const extractedValue = match[0];
-
-          // Check for 12-digit number with spaces (like "5183527 90253")
-          if (/^[0-9]{7,12}\s+[0-9]{5,12}$/.test(extractedValue)) {
-            result.utr = extractedValue;
-            break;
-          }
-          // Check for regular 12-digit number
-          else if (
-            extractedValue.length === 12 &&
-            /^\d{12}$/.test(extractedValue)
-          ) {
-            result.utr = extractedValue;
-            break;
-          }
-          // Check for long alphanumeric (likely transaction ID)
-          else if (extractedValue.length >= 10 && !result.transactionId) {
-            result.transactionId = extractedValue;
-          }
-        }
-      } else {
-        const extractedValue = matches[1] || matches[0];
-
-        // Clean up the extracted value (remove extra spaces)
-        const cleanedValue = extractedValue.replace(/\s+/g, " ").trim();
-
-        if (cleanedValue.length >= 8) {
-          // Check what type of pattern matched
-          const matchedPattern = matches[0];
-
-          if (
-            /UPI\s*Ref/i.test(matchedPattern) ||
-            /UTR/i.test(matchedPattern)
-          ) {
-            result.utr = cleanedValue;
-          } else if (
-            /Transaction.*?ID|Trans.*?ID|TXN.*?ID|Order.*?ID|Payment.*?ID/i.test(
-              matchedPattern
-            )
-          ) {
-            result.transactionId = cleanedValue;
-          } else if (/Reference|Ref\s*No|Ref\s*#/i.test(matchedPattern)) {
-            result.referenceNumber = cleanedValue;
-          } else if (
-            !result.utr &&
-            !result.transactionId &&
-            !result.referenceNumber
-          ) {
-            // If no specific type detected, use as reference number
-            result.referenceNumber = cleanedValue;
-          }
-        }
-      }
-    }
-  }
-
-  // Amount extraction patterns (unchanged)
-  const amountPatterns = [
-    /(?:Amount|Paid|Rs\.?|₹)\s*([0-9,]+\.?[0-9]*)/i,
-    /₹\s*([0-9,]+\.?[0-9]*)/g,
-    /Rs\.?\s*([0-9,]+\.?[0-9]*)/i,
-  ];
-
-  for (const pattern of amountPatterns) {
-    const matches = cleanText.match(pattern);
-    if (matches) {
-      result.amount = matches[1].replace(/,/g, "");
-      break;
-    }
-  }
-
-  // Date/Time extraction (unchanged)
-  const datePatterns = [
-    /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})/g,
-    /(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{2,4})/i,
-    /(\d{1,2}:\d{2}(?::\d{2})?\s*(?:AM|PM)?)/i,
-  ];
-
-  for (const pattern of datePatterns) {
-    const matches = cleanText.match(pattern);
-    if (matches) {
-      result.dateTime = matches[0];
-      break;
-    }
-  }
-
-  // Name extraction (unchanged)
-  const namePatterns = [
-    /(?:To|Paid to|Recipient)[:\s]*([A-Za-z\s]{3,30})/i,
-    /(?:From|Payer)[:\s]*([A-Za-z\s]{3,30})/i,
-  ];
-
-  for (const pattern of namePatterns) {
-    const matches = cleanText.match(pattern);
-    if (matches) {
-      const name = matches[1].trim();
-      if (pattern.source.includes("To|Paid to|Recipient")) {
-        result.payeeName = name;
-      } else {
-        result.payerName = name;
-      }
-    }
-  }
-
-  // Fallback: Look for any long alphanumeric strings that could be transaction IDs
-  if (!result.utr && !result.transactionId && !result.referenceNumber) {
-    const fallbackPattern = /\b[A-Z0-9]{10,25}\b/g;
-    const fallbackMatches = [...cleanText.matchAll(fallbackPattern)];
-    if (fallbackMatches.length > 0) {
-      result.transactionId = fallbackMatches[0][0];
-    }
-  }
-
-  // console.log("Final extraction result:", result);
-  return result;
-};
-
 function DepositStep2({ goNext, onClose, depositAmount }) {
+  const [loading, setLoading] = useState(false);
   const [screenshot, setScreenshot] = useState(null);
-  const [ocrText, setOcrText] = useState("");
-  const [extractedData, setExtractedData] = useState(null);
-  const [ocrLoading, setOcrLoading] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [depositMethod, setDepositMethod] = useState("upi");
   const [resetKey, setResetKey] = useState(0);
   const [copiedField, setCopiedField] = useState(null);
-  const [ocrProgress, setOcrProgress] = useState(0);
   const [editableUtr, setEditableUtr] = useState("");
   const [bankDetails, setBankDetails] = useState({});
   const [upiDetails, setUpiDetails] = useState({});
@@ -248,7 +54,6 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log(res, "upires");
       setUpiDetails(res.data.upi);
     } catch (error) {
       console.error("Failed to fetch upi details:", error);
@@ -262,11 +67,11 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
 
   const handleSubmitDeposit = async () => {
     if (!editableUtr || editableUtr.length < 6) {
-      return alert("Please enter a valid UTR or Transaction ID.");
+      return toast.warning("Please enter a valid UTR or Transaction ID.");
     }
 
     if (!screenshot) {
-      return alert("Please upload a payment screenshot.");
+      return toast.warning("Please upload a payment screenshot.");
     }
 
     const formData = new FormData();
@@ -276,6 +81,7 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
     formData.append("screenshot", screenshot);
 
     try {
+      setLoading(true);
       const token = localStorage.getItem("token");
       const res = await axios.post(
         `${import.meta.env.VITE_URL}/api/deposit`,
@@ -291,8 +97,11 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
       toast.success(res.data.message);
       goNext(); // move to next step
     } catch (err) {
+      setLoading(false);
       console.error("Deposit Error:", err);
       toast.error(err?.response?.data?.message || "Deposit failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -307,39 +116,6 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
     const file = e.target.files[0];
     if (file) {
       setScreenshot(file);
-      setOcrLoading(true);
-      setOcrText("");
-      setExtractedData(null);
-
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const imageData = event.target.result;
-        try {
-          // Enhanced OCR configuration
-          const result = await Tesseract.recognize(imageData, "eng", {
-            logger: (m) => {
-              if (m.status === "recognizing text") {
-                setOcrProgress(m.progress);
-              }
-            },
-            tessedit_char_whitelist:
-              "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,:-/₹Rs ",
-            preserve_interword_spaces: 1,
-          });
-
-          const text = result.data.text;
-          setOcrText(text);
-
-          // Extract transaction details
-          const extractedDetails = extractTransactionDetails(text);
-          setExtractedData(extractedDetails);
-        } catch (err) {
-          console.error("OCR Error:", err);
-          setOcrText("Could not extract text from image.");
-        }
-        setOcrLoading(false);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -351,19 +127,6 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
     link.click();
     document.body.removeChild(link);
   };
-
-  useEffect(() => {
-    if (extractedData) {
-      setEditableUtr(
-        (
-          extractedData.utr ||
-          extractedData.transactionId ||
-          extractedData.referenceNumber ||
-          ""
-        ).replace(/\s+/g, "")
-      );
-    }
-  }, [extractedData]);
 
   return (
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full mb-4 relative overflow-hidden max-w-3xl">
@@ -437,7 +200,6 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
 
         {depositMethod === "upi" ? (
           <>
-          
             {/* QR & UPI ID */}
             <div className="bgt-grey5 rounded-[10px] mt-3 p-3 text-center text-black">
               <button onClick={handleQrDownload}>
@@ -553,33 +315,21 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
             </div>
           </label>
 
-          {/* OCR Loading Status */}
-          {ocrLoading && (
-            <div className="mt-2">
-              <Progress value={Math.round(ocrProgress * 100)} className="h-1" />
-            </div>
-          )}
-
-          {/* Show only UTR number */}
-          {extractedData &&
-            (extractedData.utr ||
-              extractedData.transactionId ||
-              extractedData.referenceNumber) && (
-              <div className="mt-2">
-                <label className="block text-xs text-blue-200 mb-1">
-                  UTR / Transaction / Reference Number
-                </label>
-                <input
-                  type="text"
-                  value={editableUtr}
-                  onChange={(e) =>
-                    setEditableUtr(e.target.value.replace(/\s+/g, ""))
-                  }
-                  className="w-full rounded-lg px-3 py-2 text-black bg-white text-sm"
-                  placeholder="Enter or correct the number"
-                />
-              </div>
-            )}
+          {/* UTR Input */}
+          <div className="mt-2">
+            <label className="block text-xs text-blue-200 mb-1">
+              UTR / Transaction / Reference Number
+            </label>
+            <input
+              type="text"
+              value={editableUtr}
+              onChange={(e) =>
+                setEditableUtr(e.target.value.replace(/\s+/g, ""))
+              }
+              className="w-full rounded-lg px-3 py-2 text-black bg-white text-sm"
+              placeholder="Enter UTR or Transaction ID"
+            />
+          </div>
         </div>
 
         <div className="bg-white h-0.5 w-56 my-4 mx-auto"></div>
@@ -589,7 +339,7 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
           className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
           onClick={handleSubmitDeposit}
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </button>
       </div>
     </div>
