@@ -47,6 +47,7 @@ function Passbook() {
     fetchPassbook();
   }, []);
 
+  console.log(filteredData, "filteredData");
   // ✅ On Filter Apply
   const handleFilter = ({ date, txntype, status }) => {
     const filters = {};

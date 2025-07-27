@@ -1,9 +1,8 @@
 import React, { useState, useContext } from "react";
 import { GlobalContext } from "../utils/globalData";
-
+import axios from "axios";
 import { useMemo, useEffect } from "react";
-
-
+import { toast } from "sonner";
 
 function DepositStep1({
   onClose,
@@ -13,25 +12,94 @@ function DepositStep1({
   cardData,
 }) {
   const { walletBalance } = useContext(GlobalContext);
+  const [loading, setLoading] = useState(false);
   const [inputAmount, setInputAmount] = useState("");
-  useEffect(() => {
-  }, [cardData]);
+  useEffect(() => {}, [cardData]);
 
   const depositData = useMemo(() => {
     if (!cardData || !cardData.panelId) return [];
 
     return [
       {
-        logo: `${import.meta.env.VITE_URL}/uploads/panels/${cardData.panelId.logo || "default.jpg"}`,
+        logo: `${import.meta.env.VITE_URL}/uploads/panels/${
+          cardData.panelId.logo || "default.jpg"
+        }`,
         title: cardData.panelId.profileName || "Game Platform",
         subtitle: cardData.panelId.userId || "example.com",
       },
     ];
   }, [cardData]);
 
+  const createPanelDeposit = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
+      if (!token) {
+        toast.error("Please login to continue");
+        return;
+      }
 
-  const handleSubmit = (e) => {
+      if (!inputAmount || Number(inputAmount) < 500) {
+        toast.error("Please enter a valid amount (minimum 500 coins)");
+        return;
+      }
+
+      if (Number(inputAmount) > walletBalance) {
+        toast.error("Insufficient balance");
+        return;
+      }
+
+      const response = await axios.post(
+        `${import.meta.env.VITE_URL}/api/panel-deposit/deposit`,
+        {
+          amount: Number(inputAmount),
+          panelId: cardData.panelId._id, // Use the panel ID
+          // cardId: cardData._id, // Include card ID if needed
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        toast.success("Deposit successful!");
+
+        // Update wallet balance if you have the function
+        // if (updateWalletBalance) {
+        //   updateWalletBalance(walletBalance - Number(inputAmount));
+        // }
+
+        // Close modal or go to next step
+        onClose();
+
+        // Optionally refresh data or call parent callback
+        if (goNext) {
+          goNext(response.data, cardData);
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error creating panel deposit:", err);
+
+      // Handle different error types
+      if (err.response?.status === 401) {
+        toast.error("Please login again");
+      } else if (err.response?.status === 400) {
+        toast.error(err.response.data.message || "Invalid deposit request");
+      } else if (err.response?.status === 403) {
+        toast.error("Insufficient permissions");
+      } else {
+        toast.error("Something went wrong while processing deposit");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!depositPanel) {
@@ -43,7 +111,8 @@ function DepositStep1({
       setDepositAmount(inputAmount);
       goNext(inputAmount, cardData); // passing amount + panel data
     } else {
-      goNext(true, cardData); // DepositPanel flow
+      // goNext(true, cardData); // DepositPanel flow
+      await createPanelDeposit();
     }
   };
 
@@ -72,7 +141,8 @@ function DepositStep1({
       </div>
 
       {/* Panel Information */}
-      {depositPanel && depositData.length > 0 && (
+      {depositPanel &&
+        depositData.length > 0 &&
         depositData.map((depData, index) => (
           <div
             key={index}
@@ -86,17 +156,15 @@ function DepositStep1({
             <p className="font-bold text-black">{depData.title}</p>
             <p className="text-gray-600 text-sm">{depData.subtitle}</p>
           </div>
-        ))
-      )}
-
+        ))}
 
       {/* Wallet Balance */}
-      {!depositPanel && (
-        <div className="mx-3 my-3 flex flex-col justify-center items-center mb-2 bgt-grey5 rounded-[10px] p-4 font-inter text-black text-center">
-          <p className="mb-1">Available Balance</p>
-          <p className="font-bold">{walletBalance}</p>
-        </div>
-      )}
+      {/* {!depositPanel && ( */}
+      <div className="mx-3 my-3 flex flex-col justify-center items-center mb-2 bgt-grey5 rounded-[10px] p-4 font-inter text-black text-center">
+        <p className="mb-1">Available Balance</p>
+        <p className="font-bold">{walletBalance}</p>
+      </div>
+      {/* )} */}
 
       {/* Deposit Form */}
       <form
@@ -114,11 +182,11 @@ function DepositStep1({
             min={500}
             required={!depositPanel}
           />
-          {!depositPanel && (
-            <p className="text-xs font-normal my-2">
-              Minimum Deposit amount is 500 coins.
-            </p>
-          )}
+          {/* {!depositPanel && ( */}
+          <p className="text-xs font-normal my-2">
+            Minimum Deposit amount is 500 coins.
+          </p>
+          {/* )} */}
         </div>
 
         <button

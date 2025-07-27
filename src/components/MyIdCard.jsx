@@ -31,7 +31,7 @@ const MyIdCard = ({
     "Change Password",
     "Close ID",
   ];
-
+  console.log(status, "sdsd");
   const cardData = {
     cardId,
     logo,

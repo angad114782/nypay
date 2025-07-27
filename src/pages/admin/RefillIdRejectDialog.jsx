@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import axios from "axios";
 
-const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
+const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false); // manage dialog open state
@@ -22,7 +22,7 @@ const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
     try {
       setLoading(true);
       const res = await axios.patch(
-        `${import.meta.env.VITE_URL}/api/game/status/${gameId}`,
+        `${import.meta.env.VITE_URL}/api/panel-deposit/${id}/status`,
         {
           status: "Rejected",
           remark,
@@ -51,9 +51,9 @@ const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
       <DialogTrigger asChild>{buttonLogo}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reject Game ID?</DialogTitle>
+          <DialogTitle>Reject refill id?</DialogTitle>
           <DialogDescription>
-            Add a reason for rejecting this Game ID. This action cannot be
+            Add a reason for rejecting this id deposit. This action cannot be
             undone.
           </DialogDescription>
         </DialogHeader>
@@ -85,4 +85,4 @@ const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
   );
 };
 
-export default RejectDialog;
+export default RefillIdRejectDialog;

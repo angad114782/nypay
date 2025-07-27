@@ -341,17 +341,17 @@ const CreateIdTable = ({ data, fetchData }) => {
                   >
                     Approve
                   </button>
+
                   <RejectDialog
                     buttonLogo={
                       <button
-                        disabled={status}
-                        className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                        disabled={item.status !== "Pending"} // Fixed: Use item.status instead of status
+                        className="px-2 py-1 disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
                       >
                         Reject
                       </button>
                     }
                     gameId={item.id}
-                    status={item.status !== "Pending"}
                     onStatusUpdated={fetchData}
                   />
                 </div>
@@ -561,7 +561,6 @@ export const TransactionCard = ({
               </button>
             }
             gameId={transaction.id}
-            status={transaction.status !== "Pending"}
             onStatusUpdated={fetchData}
           />
           {/* <button
