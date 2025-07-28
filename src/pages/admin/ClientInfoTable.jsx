@@ -44,22 +44,25 @@ const STATUS_OPTIONS = [
 const ClientInfoTable = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/users/all-users`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log(res.data.users, "res.data.users");
+      setUsers(res.data.users || []);
+    } catch (err) {
+      console.error("❌ Fetch Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   // ✅ Fetch users from backend
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${import.meta.env.VITE_URL}/api/users/all-users`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data.users || []);
-      } catch (err) {
-        console.error("❌ Fetch Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsers();
   }, []);
 
@@ -89,9 +92,7 @@ const ClientInfoTable = () => {
   const handleBlockToggleFn = async (id, isActive) => {
     // Optimistic UI update
     setUsers((prev) =>
-      prev.map((user) =>
-        user._id === id ? { ...user, isActive } : user
-      )
+      prev.map((user) => (user._id === id ? { ...user, isActive } : user))
     );
 
     try {
@@ -103,7 +104,9 @@ const ClientInfoTable = () => {
       );
 
       // ✅ Toast on success
-      toast.success(`User ${isActive ? "activated" : "deactivated"} successfully`);
+      toast.success(
+        `User ${isActive ? "activated" : "deactivated"} successfully`
+      );
     } catch (err) {
       console.error("Toggle Active Error:", err);
       toast.error("Failed to update user status");
@@ -231,12 +234,8 @@ const ClientInfoTable = () => {
               Delete <br /> User
             </TableHead> */}
             <TableHead className="text-center">Action</TableHead>
-            <TableHead className="text-right">
-              Parent IP
-            </TableHead>
-            <TableHead className="text-right rounded-tr-lg">
-              City
-            </TableHead>
+            <TableHead className="text-right">Parent IP</TableHead>
+            <TableHead className="text-right rounded-tr-lg">City</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -273,9 +272,10 @@ const ClientInfoTable = () => {
                 <div className="flex items-center justify-center gap-1">
                   <Switch
                     checked={item.isActive}
-                    onCheckedChange={(val) => handleBlockToggleFn(item._id, val)}
+                    onCheckedChange={(val) =>
+                      handleBlockToggleFn(item._id, val)
+                    }
                   />
-
                 </div>
               </TableCell>
               {/* <TableCell className={"text-center align-middle"}>
@@ -378,9 +378,7 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
         {/* <IndianRupee className="w-4 h-4" /> */}
         <User2 className="w-4 h-4 text-black" />
         <span className="text-sm">Username</span>
-        <span className="ml-auto text-sm font-bold ">
-          {transaction.name}
-        </span>
+        <span className="ml-auto text-sm font-bold ">{transaction.name}</span>
         <CopyButton textToCopy={transaction.userName} title="Copy User Name" />
       </div>
 

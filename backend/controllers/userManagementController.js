@@ -14,21 +14,11 @@ const createTeamUser = async (req, res) => {
         message: "Profile name, user ID, and password are required",
       });
     }
-
-    // Option 1: If userId is actually the MongoDB _id (ObjectId)
-    // const userExists = await User.findById(userId);
-
-    // Option 2: If userId is a username or email field in User model
-    // const userExists = await User.findOne({ username: userId });
-    // const userExists = await User.findOne({ email: userId });
-
-    // Option 3: If you don't need to validate against User model, remove this check
-    // Comment out or remove the user existence check entirely
-
-    // For now, let's remove this check since your User model structure is unclear
-    // You can add it back once you clarify what field to check against
-
-    // Check if team user already exists
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        message: "Invalid user ID format",
+      });
+    }
 
     const userObjectId = new mongoose.Types.ObjectId(userId);
     // Check if team user already exists
@@ -41,10 +31,8 @@ const createTeamUser = async (req, res) => {
       });
     }
 
-    // Hash the password (uncomment this for security)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Convert roles to proper case to match enum
     const formattedRoles = roles.map((role) => {
       switch (role.toLowerCase()) {
         case "admin":
@@ -74,7 +62,6 @@ const createTeamUser = async (req, res) => {
 
     await newUser.save();
 
-    // Don't send password in response
     const responseUser = {
       _id: newUser._id,
       profileName: newUser.profileName,
@@ -168,9 +155,51 @@ const deleteTeamUser = async (req, res) => {
   }
 };
 
+const getCurrentUserRoles = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Find the UserManagement record for the current user
+    const userManagement = await UserManagement.findOne({ userId })
+      .select("roles profileName")
+      .populate("userId", "name email role");
+
+    if (!userManagement) {
+      return res.status(200).json({
+        hasUserManagement: false,
+        roles: [],
+        profileName: null,
+        userInfo: {
+          name: req.user.name,
+          email: req.user.email,
+          role: req.user.role,
+        },
+      });
+    }
+
+    res.status(200).json({
+      hasUserManagement: true,
+      roles: userManagement.roles || [],
+      profileName: userManagement.profileName,
+      userInfo: {
+        name: userManagement.userId?.name || req.user.name,
+        email: userManagement.userId?.email || req.user.email,
+        role: userManagement.userId?.role || req.user.role,
+      },
+    });
+  } catch (err) {
+    console.error("Get current user roles error:", err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};
+
 module.exports = {
   createTeamUser,
   getAllTeamUsers,
   updateUserRoles,
   deleteTeamUser,
+  getCurrentUserRoles,
 };

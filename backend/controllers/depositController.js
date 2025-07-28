@@ -128,8 +128,11 @@ exports.getAllDeposits = async (req, res) => {
 //   }
 // };
 
-// For user dashboard
 exports.getMyWalletBalance = async (req, res) => {
+  if (!req.user || !req.user._id) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
   try {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });

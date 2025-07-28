@@ -7,11 +7,44 @@ export const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
   const [walletBalance, setWalletBalance] = useState("10,00,000");
   const [userProfile, setUserProfile] = useState(null);
+  const [userManagementRoles, setUserManagementRoles] = useState([]);
+  const [userManagementProfile, setUserManagementProfile] = useState(null);
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [loadingRoles, setLoadingRoles] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   const token = localStorage.getItem("token");
+
+  // Fetch UserManagement roles for the current user
+  const fetchUserManagementRoles = async () => {
+    if (!token) return;
+
+    try {
+      setLoadingRoles(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/user-management/my-roles`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log("🔍 UserManagement roles response:", res.data);
+
+      setUserManagementRoles(res.data.roles || []);
+      setUserManagementProfile({
+        hasUserManagement: res.data.hasUserManagement,
+        profileName: res.data.profileName,
+        userInfo: res.data.userInfo,
+      });
+    } catch (err) {
+      console.error("Failed to fetch UserManagement roles", err);
+      setUserManagementRoles([]);
+      setUserManagementProfile(null);
+    } finally {
+      setLoadingRoles(false);
+    }
+  };
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -46,6 +79,7 @@ export const GlobalProvider = ({ children }) => {
     };
 
     fetchUserProfile();
+    fetchUserManagementRoles();
   }, [token, refreshTrigger, retryCount]);
 
   useEffect(() => {
@@ -74,6 +108,10 @@ export const GlobalProvider = ({ children }) => {
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile"); // Clear cache
     setRefreshTrigger((prev) => !prev);
+  };
+
+  const refreshUserManagementRoles = () => {
+    fetchUserManagementRoles();
   };
   const [allCreateIDList, setAllCreateIdList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -279,8 +317,12 @@ export const GlobalProvider = ({ children }) => {
         setWalletBalance,
         userProfile,
         setUserProfile,
+        userManagementRoles,
+        userManagementProfile,
         refreshUserProfile,
+        refreshUserManagementRoles,
         loadingProfile,
+        loadingRoles,
         myIdCardData,
         allCreateIDList,
         fetchGameIds,

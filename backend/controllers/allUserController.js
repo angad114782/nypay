@@ -3,11 +3,6 @@ const User = require("../models/User");
 // ✅ Get All Registered Users (Only with role: 'user')
 exports.getAllUsers = async (req, res) => {
   try {
-    // Optional: Only allow admin to access
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ message: "Access denied" });
-    }
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
@@ -32,7 +27,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-
 exports.toggleActiveStatus = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -43,7 +37,11 @@ exports.toggleActiveStatus = async (req, res) => {
     user.isActive = !user.isActive;
     await user.save();
 
-    res.status(200).json({ message: `User marked as ${user.isActive ? "active" : "inactive"}` });
+    res
+      .status(200)
+      .json({
+        message: `User marked as ${user.isActive ? "active" : "inactive"}`,
+      });
   } catch (err) {
     console.error("Toggle Active Error:", err.message);
     res.status(500).json({ message: "Failed to toggle user status" });
