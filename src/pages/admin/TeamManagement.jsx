@@ -95,7 +95,8 @@ const TeamManagement = () => {
       setLoading(true);
 
       await axios.delete(
-        `${import.meta.env.VITE_URL
+        `${
+          import.meta.env.VITE_URL
         }/api/user-management/team/${userIdToDelete}`,
         {
           headers: {
@@ -192,10 +193,11 @@ const TeamManagement = () => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${typeof item.userId === "object"
-                      ? item.userId.name
-                      : item.userId
-                      }\nProfile Name - ${item.profileName}`}
+                    textToCopy={`Username - ${
+                      typeof item.userId === "object"
+                        ? item.userId.name
+                        : item.userId
+                    }\nProfile Name - ${item.profileName}`}
                     title="Copy User Name, Profile Name"
                   />
                 </div>
@@ -235,7 +237,7 @@ const TeamManagement = () => {
               </TableCell>
 
               <TableCell className="text-center align-middle">
-                <div className="flex gap-1 items-center justify-center flex-wrap">
+                {/* <div className="flex gap-1 items-center justify-center flex-wrap">
                   {item.role?.map((role, idx) => {
                     const { bg, text } = getBadgeClasses(role);
                     return (
@@ -247,7 +249,7 @@ const TeamManagement = () => {
                       </Badge>
                     );
                   })}
-                </div>
+                </div> */}
               </TableCell>
 
               <TableCell className="text-center align-middle">
@@ -332,9 +334,9 @@ const TeamManagement = () => {
           {teamUsers.length === 0
             ? "No entries to display"
             : `Showing ${(currentPage - 1) * entries + 1} to ${Math.min(
-              currentPage * entries,
-              teamUsers.length
-            )} of ${teamUsers.length} entries`}
+                currentPage * entries,
+                teamUsers.length
+              )} of ${teamUsers.length} entries`}
         </span>
 
         <div className="flex gap-1">
@@ -349,10 +351,11 @@ const TeamManagement = () => {
             <button
               key={i + 1}
               onClick={() => goToPage(i + 1)}
-              className={`px-2 py-1 rounded border text-sm ${currentPage === i + 1
-                ? "bg-[#8AAA08] text-white"
-                : "bg-white text-gray-700"
-                }`}
+              className={`px-2 py-1 rounded border text-sm ${
+                currentPage === i + 1
+                  ? "bg-[#8AAA08] text-white"
+                  : "bg-white text-gray-700"
+              }`}
             >
               {i + 1}
             </button>
@@ -451,12 +454,8 @@ const TransactionCard = ({
             <span className="text-sm text-black">Mobile</span>
           </div>
           <span className="text-sm ml-auto">{transaction.mobile}</span>
-          <CopyButton
-            textToCopy={transaction.mobile}
-            title="Copy Mobile"
-          />
+          <CopyButton textToCopy={transaction.mobile} title="Copy Mobile" />
         </div>
-
 
         <div className="flex items-center">
           <div className="flex items-center gap-2">
@@ -472,7 +471,7 @@ const TransactionCard = ({
             <span className="text-sm text-black">Roles</span>
           </div>
           <div className="ml-auto">
-            <div className="flex flex-wrap gap-1">
+            {/* <div className="flex flex-wrap gap-1">
               {transaction.roles?.map((role, idx) => {
                 const { bg, text } = getBadgeClasses(role);
                 return (
@@ -484,7 +483,7 @@ const TransactionCard = ({
                   </Badge>
                 );
               })}
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

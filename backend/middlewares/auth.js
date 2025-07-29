@@ -1,7 +1,6 @@
 // middlewares/auth.js
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const UserManagement = require("../models/UserManagement");
 
 const protect = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -21,30 +20,29 @@ const protect = async (req, res, next) => {
       req.user = null; // user deleted
       return next(); // let controller handle it
     }
-
+    console.log("Authenticated user:", user._id, user.name);
     req.user = user;
     next();
   } catch (error) {
+    console.error("Authentication error:", error.message);
+    if (error.name === "TokenExpiredError") {
+      console.warn(
+        "Token expired for user:",
+        req.user ? req.user._id : "unknown"
+      );
+    } else {
+      console.error("Invalid token or user not found");
+    }
     req.user = null; // token invalid or expired
     return next(); // allow logout to continue
   }
 };
 
-const adminOnly = async (req, res, next) => {
-  const userManagement = await UserManagement.findOne({
-    userId: req?.user?._id,
-  });
-  if (
-    req.user &&
-    (req.user.role === "admin" ||
-      req.user.role === "super-admin" ||
-      userManagement.roles.length > 0)
-  ) {
+const adminOnly = (req, res, next) => {
+  if (req.user && req.user.role === "admin") {
     return next();
   }
-  return res
-    .status(403)
-    .json({ message: "Access denied: Admins or Super Admins only" });
+  return res.status(403).json({ message: "Access denied: Admins only" });
 };
 
 module.exports = {

@@ -27,7 +27,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AccountSetting from "./AccountSetting";
 import AddRemovePanel from "./AddRemovePanel";
@@ -48,18 +48,11 @@ import { FaLandmark } from "react-icons/fa";
 import { toast } from "sonner";
 import { useAuth } from "@/utils/AuthContext";
 import axios from "axios";
-import { GlobalContext } from "@/utils/globalData";
 
 const Dashboard = () => {
   const { tab } = useParams();
   const { setIsLoggedIn } = useAuth();
   const [logoutLoading, setLogoutLoading] = useState(false);
-  const {
-    userProfile,
-    userManagementRoles,
-    userManagementProfile,
-    loadingRoles,
-  } = useContext(GlobalContext);
 
   const handleLogout = async () => {
     setLogoutLoading(true);
@@ -134,7 +127,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Check if current route is super admin
-  const isSuperAdmin = userProfile?.role === "super-admin";
+  const isSuperAdmin = location.pathname.includes("/super-admin");
 
   // Get the current tab from URL
   const tabMap = {
@@ -226,128 +219,16 @@ const Dashboard = () => {
       label: "Create ID/Client Info",
       id: "create-id",
     },
-    {
-      icon: ArrowUpDown,
-      label: "Platform/Panel",
-      id: "platform-panel",
-    },
-    {
-      icon: Users,
-      label: "Banner/Slider",
-      id: "banner-slider",
-    },
-    {
-      icon: Users,
-      label: "Team Management",
-      id: "team-management",
-    },
+    { icon: ArrowUpDown, label: "Platform/Panel", id: "platform-panel" },
+    { icon: Users, label: "Banner/Slider", id: "banner-slider" },
+    { icon: Users, label: "Team Management", id: "team-management" },
     { icon: LogOut, label: "LogOut", id: "LogOut" },
   ];
 
-  // Mapping of roles to allowed tab IDs based on spreadsheet
-  const roleTabMap = {
-    "Super Admin": [
-      "super-admin-client-setup",
-      "super-admin-banner-slider",
-      "dashboard",
-      "deposit-withdrawals",
-      "refill-unload",
-      "create-id",
-      "platform-panel",
-      "banner-slider",
-      "team-management",
-      "LogOut",
-    ],
-    Admin: [
-      "dashboard",
-      "deposit-withdrawals",
-      "refill-unload",
-      "create-id",
-      "platform-panel",
-      "banner-slider",
-      "team-management",
-      "LogOut",
-    ],
-    Manager: [
-      "deposit-withdrawals",
-      "refill-unload",
-      "create-id",
-      "platform-panel",
-      "banner-slider",
-      "LogOut",
-    ],
-    Auditor: [
-      "deposit-withdrawals",
-      "refill-unload",
-      "banner-slider",
-      "LogOut",
-    ],
-    Deposit: ["deposit-withdrawals", "refill-unload", "LogOut"],
-    Withdrawal: ["deposit-withdrawals", "refill-unload", "LogOut"],
-    CreateID: ["create-id", "banner-slider", "LogOut"],
-  };
-
-  // Determine which tabs to show based on roles
-  // Determine which tabs to show based on roles
-  const getAvailableTabs = () => {
-    // Always show all super admin tabs for super-admins
-    if (userProfile?.role === "super-admin") {
-      return roleTabMap["Super Admin"];
-    }
-
-    // If user has no UserManagement roles, check their main user role
-    if (!userManagementRoles || userManagementRoles.length === 0) {
-      if (userProfile?.role === "admin") {
-        return roleTabMap["Admin"];
-      }
-      return ["LogOut"]; // Only logout for regular users without specific roles
-    }
-
-    // Otherwise, use UserManagement roles
-    const allowedTabIds = new Set();
-    userManagementRoles.forEach((role) => {
-      const tabsForRole = roleTabMap[role] || [];
-      tabsForRole.forEach((tabId) => allowedTabIds.add(tabId));
-    });
-
-    // Only add dashboard if user has Admin role in UserManagement
-    if (userManagementRoles.includes("Admin")) {
-      allowedTabIds.add("dashboard");
-    }
-
-    allowedTabIds.add("LogOut"); // Always allow logout
-    return Array.from(allowedTabIds);
-  };
-
-  const availableTabs = getAvailableTabs();
-
-  // Filter sidebar items based on available tabs
-  const filterSidebarItems = (items) => {
-    return items.filter((item) => availableTabs.includes(item.id));
-  };
-
-  // Choose and filter sidebar items based on current route
+  // Choose sidebar items based on current route
   const sidebarItems = isSuperAdmin
-    ? filterSidebarItems(superAdminSidebarItems)
-    : filterSidebarItems(adminSidebarItems);
-
-  // Show loading while roles are being fetched
-  if (loadingRoles) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="w-12 h-12 mx-auto border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-          <p className="text-lg font-semibold text-gray-700">
-            Loading dashboard...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Debug information (only show in development)
-  const showDebugInfo =
-    import.meta.env.DEV && userManagementProfile?.hasUserManagement;
+    ? superAdminSidebarItems
+    : adminSidebarItems;
 
   const renderContent = () => {
     switch (activeTab) {
@@ -428,12 +309,7 @@ const Dashboard = () => {
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-lg md:text-xl font-semibold">
-              {userManagementProfile?.hasUserManagement
-                ? userManagementProfile.profileName + " Dashboard"
-                : isSuperAdmin
-                ? "Super Admin"
-                : "Admin"}
-              {/* {isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"} */}
+              {isSuperAdmin ? "Super Admin Dashboard" : "Admin Dashboard"}
             </h1>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
@@ -524,17 +400,9 @@ const Dashboard = () => {
         </Avatar>
         {isSidebarOpen && (
           <div className="mx-auto text-center flex flex-col text-lg ">
-            {userManagementProfile?.hasUserManagement
-              ? userManagementProfile.profileName
-              : isSuperAdmin
-              ? "Super Admin"
-              : "Admin"}
+            {isSuperAdmin ? "Super Admin" : "Admin"}
             <span className="text-[15px] font-[400px]">
-              {userManagementProfile?.hasUserManagement
-                ? userManagementRoles.join(", ") || "No Roles"
-                : isSuperAdmin
-                ? "Super Admin Role"
-                : "Admin Role"}
+              {isSuperAdmin ? "Super Admin Role" : "Admin Role"}
             </span>
           </div>
         )}
@@ -572,31 +440,6 @@ const Dashboard = () => {
         }`}
       >
         <div className="p-4  md:p-6">
-          {/* Debug Information */}
-          {showDebugInfo && (
-            <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h3 className="font-semibold text-yellow-800 mb-2">
-                Debug Info (Development Only)
-              </h3>
-              <div className="text-sm text-yellow-700">
-                <p>
-                  <strong>User Management Profile:</strong>{" "}
-                  {userManagementProfile?.profileName}
-                </p>
-                <p>
-                  <strong>User Management Roles:</strong>{" "}
-                  {userManagementRoles.join(", ") || "None"}
-                </p>
-                <p>
-                  <strong>Available Tabs:</strong> {availableTabs.join(", ")}
-                </p>
-                <p>
-                  <strong>Main User Role:</strong> {userProfile?.role}
-                </p>
-              </div>
-            </div>
-          )}
-
           {tab === "client-details" ? <ClientDetails /> : renderContent()}
         </div>
       </main>
@@ -623,4 +466,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-// here why dashboard tab is showing to all i want only super admin or admin to show it

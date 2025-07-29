@@ -123,6 +123,7 @@ function Login() {
           );
           const data = await response.json();
           if (response.ok) {
+            console.log("Login successful:", data);
             localStorage.setItem("token", data.token);
             setIsLoggedIn(true);
             refreshUserProfile(); // ADD THIS LINE
@@ -311,9 +312,11 @@ function Login() {
                 {!isWhatsappLogin ? (
                   <div className="space-y-4 mb-14">
                     <div
-                      className={`relative ${errors?.email ? "border-red-500" : "border-gray-300"
-                        } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${loading ? "opacity-75 pointer-events-none" : ""
-                        }`}
+                      className={`relative ${
+                        errors?.email ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                     >
                       <input
                         type="text"
@@ -324,18 +327,21 @@ function Login() {
                         disabled={loading}
                       />
                       <label
-                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${errors?.email
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${
+                          errors?.email
                             ? "text-red-500"
                             : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-                          }`}
+                        }`}
                       >
                         Email ID
                       </label>
                     </div>
                     <div
-                      className={`relative ${errors?.password ? "border-red-500" : "border-gray-300"
-                        } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${loading ? "opacity-75 pointer-events-none" : ""
-                        }`}
+                      className={`relative ${
+                        errors?.password ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                     >
                       <input
                         type={showPassword ? "text" : "password"}
@@ -346,10 +352,11 @@ function Login() {
                         disabled={loading}
                       />
                       <label
-                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${errors?.password
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm ${
+                          errors?.password
                             ? "text-red-500"
                             : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
-                          }`}
+                        }`}
                       >
                         Password
                       </label>
@@ -389,16 +396,19 @@ function Login() {
                 ) : (
                   <div className="space-y-4 mb-14">
                     <div
-                      className={`relative ${errors?.phone ? "border-red-500" : "border-gray-300"
-                        } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)] ${loading ? "opacity-75 pointer-events-none" : ""
-                        }`}
+                      className={`relative ${
+                        errors?.phone ? "border-red-500" : "border-gray-300"
+                      } border rounded-2xl overflow-visible focus-within:border-[var(--theme-orange2)] ${
+                        loading ? "opacity-75 pointer-events-none" : ""
+                      }`}
                       style={{ position: "relative", zIndex: 0 }}
                     >
                       <label
-                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 ${errors?.phone
+                        className={`absolute -top-3 left-4 px-1 font-medium bg-white text-sm z-10 ${
+                          errors?.phone
                             ? "text-red-500"
                             : "text-[var(--theme-grey3)]"
-                          }`}
+                        }`}
                       >
                         Mobile WhatsApp
                       </label>
@@ -446,8 +456,9 @@ function Login() {
                   <Button
                     onClick={handleContinue}
                     disabled={loading}
-                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${loading ? "opacity-90 cursor-not-allowed" : ""
-                      }`}
+                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                      loading ? "opacity-90 cursor-not-allowed" : ""
+                    }`}
                   >
                     {renderButtonContent(
                       isWhatsappLogin ? "Continue" : "Login"
@@ -463,8 +474,9 @@ function Login() {
                   <Button
                     onClick={handleWhatsappToggle}
                     disabled={loading}
-                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${loading ? "opacity-75 cursor-not-allowed" : ""
-                      }`}
+                    className={`bg-[#0C42A8] py-4 sm:py-6 hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                      loading ? "opacity-75 cursor-not-allowed" : ""
+                    }`}
                   >
                     {loading ? (
                       <PulseLoader />
@@ -501,8 +513,9 @@ function Login() {
             <Button
               onClick={handleContinue}
               disabled={loading || otpValues.some((val) => !val)}
-              className={`bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${loading ? "opacity-90 cursor-not-allowed" : ""
-                }`}
+              className={`bg-[#0C42A8] py-4 sm:py-6 w-full hover:bg-blue-500 text-base sm:text-lg transition-all duration-300 ${
+                loading ? "opacity-90 cursor-not-allowed" : ""
+              }`}
             >
               {renderButtonContent("Confirm")}
             </Button>
