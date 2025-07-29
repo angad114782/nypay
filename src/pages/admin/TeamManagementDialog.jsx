@@ -14,65 +14,101 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, ShieldPlus } from "lucide-react";
+import { Lock, ShieldPlus, AlertCircle } from "lucide-react";
 
 export const TeamManagementDialog = ({ onSuccess }) => {
-  const [open, setOpen] = useState(false); // Add dialog state
+  const [open, setOpen] = useState(false);
   const [teamManagementData, setTeamManagementData] = useState({
     profileName: "",
     userId: "",
+    mobile: "",
     password: "",
-    roles: {
-      admin: false,
-      deposit: false,
-      manager: false,
-      withdrawal: false,
-      auditor: false,
-      createID: false,
-    },
+    selectedRole: "",
   });
 
-  const [loading, setLoading] = useState(false);
 
-  const handleRoleChange = (role) => {
-    setTeamManagementData((prev) => ({
-      ...prev,
-      roles: {
-        ...prev.roles,
-        [role]: !prev.roles[role],
-      },
-    }));
-  };
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({}); // Add state for field-specific errors
 
   // Reset form when dialog closes
   const resetForm = () => {
     setTeamManagementData({
       profileName: "",
       userId: "",
+      mobile: "",
       password: "",
-      roles: {
-        admin: false,
-        deposit: false,
-        manager: false,
-        withdrawal: false,
-        auditor: false,
-        createID: false,
-      },
+      selectedRole: "", // ✅ correct key
     });
+    setErrors({}); // Clear errors when resetting form
+  };
+
+  const handleInputChange = (field, value) => {
+    setTeamManagementData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    // Clear field error when user starts typing
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!teamManagementData.profileName.trim()) {
+      newErrors.profileName = "Profile name is required";
+    }
+
+    if (!teamManagementData.userId.trim()) {
+      newErrors.userId = "User ID is required";
+    }
+    if (!teamManagementData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!/^[6-9]\d{9}$/.test(teamManagementData.mobile.trim())) {
+      newErrors.mobile = "Enter a valid 10-digit mobile number";
+    }
+
+
+    if (!teamManagementData.password.trim()) {
+      newErrors.password = "Password is required";
+    } else if (teamManagementData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    if (!teamManagementData.selectedRole) {
+      newErrors.roles = "Please select a role";
+    }
+
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      toast.error("Please fix the errors before submitting");
+      return;
+    }
+
     setLoading(true);
+    setErrors({}); // Clear any previous errors
+
+    const role = teamManagementData.selectedRole === "createID"
+      ? "user"
+      : teamManagementData.selectedRole;
 
     const payload = {
-      profileName: teamManagementData.profileName,
-      userId: teamManagementData.userId,
+      profileName: teamManagementData.profileName.trim(),
+      userId: teamManagementData.userId.trim(),
+      mobile: teamManagementData.mobile.trim(),
       password: teamManagementData.password,
-      roles: Object.keys(teamManagementData.roles).filter(
-        (role) => teamManagementData.roles[role]
-      ),
+      role,
     };
+
 
     try {
       const res = await axios.post(
@@ -86,13 +122,44 @@ export const TeamManagementDialog = ({ onSuccess }) => {
         }
       );
 
-      toast.success("User added successfully!");
-      setOpen(false); // Close the dialog
-      resetForm(); // Reset the form
-      if (onSuccess) onSuccess(); // optionally trigger refetch
+      toast.success("Team user added successfully!");
+      setOpen(false);
+      resetForm();
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error(err);
-      toast.error(err?.response?.data?.message || "Error adding user");
+
+      // Handle different types of errors
+      if (err.response) {
+        const { status, data } = err.response;
+
+        // Handle specific error cases
+        if (status === 404 && data.message?.includes("User not found")) {
+          setErrors({ userId: "User ID not found in the system" });
+          toast.error("Invalid User ID - User not found in the system");
+        } else if (status === 400 && data.message?.includes("already exists")) {
+          setErrors({ userId: "Team user already exists with this User ID" });
+          toast.error("Team user already exists with this User ID");
+        } else if (
+          status === 400 &&
+          data.message?.includes("Invalid user ID format")
+        ) {
+          setErrors({ userId: "Invalid User ID format" });
+          toast.error("Invalid User ID format");
+        } else if (status === 400 && data.message?.includes("Invalid roles")) {
+          setErrors({ roles: "Some selected roles are invalid" });
+          toast.error(data.message);
+        } else if (data.details && Array.isArray(data.details)) {
+          // Handle validation errors with details
+          toast.error(`Validation Error: ${data.details.join(", ")}`);
+        } else {
+          toast.error(data.message || "Error adding user");
+        }
+      } else if (err.request) {
+        toast.error("Network error - Please check your connection");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
@@ -104,7 +171,7 @@ export const TeamManagementDialog = ({ onSuccess }) => {
       onOpenChange={(isOpen) => {
         setOpen(isOpen);
         if (!isOpen) {
-          resetForm(); // Reset form when dialog is closed
+          resetForm();
         }
       }}
     >
@@ -139,33 +206,59 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   type="text"
                   value={teamManagementData.profileName}
                   onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      profileName: e.target.value,
-                    })
+                    handleInputChange("profileName", e.target.value)
                   }
                   placeholder="Enter team member name"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.profileName ? "border border-red-500" : ""
+                    }`}
                   required
                 />
+                {errors.profileName && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.profileName}
+                  </div>
+                )}
               </div>
 
               <div>
-                <Label className="text-gray-800 font-medium">User ID</Label>
+                <Label className="text-gray-800 font-medium">Email ID</Label>
                 <Input
                   type="text"
                   value={teamManagementData.userId}
-                  onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      userId: e.target.value,
-                    })
-                  }
-                  placeholder="Enter required user ID"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  onChange={(e) => handleInputChange("userId", e.target.value)}
+                  placeholder="Enter required Email ID"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.userId ? "border border-red-500" : ""
+                    }`}
                   required
                 />
+                {errors.userId && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.userId}
+                  </div>
+                )}
               </div>
+
+              <div>
+                <Label className="text-gray-800 font-medium">Mobile Number</Label>
+                <Input
+                  type="tel"
+                  value={teamManagementData.mobile}
+                  onChange={(e) => handleInputChange("mobile", e.target.value)}
+                  placeholder="Enter 10-digit mobile number"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.mobile ? "border border-red-500" : ""
+                    }`}
+                  required
+                />
+                {errors.mobile && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.mobile}
+                  </div>
+                )}
+              </div>
+
 
               <div>
                 <Label className="text-gray-800 font-medium">
@@ -175,15 +268,19 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   type="password"
                   value={teamManagementData.password}
                   onChange={(e) =>
-                    setTeamManagementData({
-                      ...teamManagementData,
-                      password: e.target.value,
-                    })
+                    handleInputChange("password", e.target.value)
                   }
-                  placeholder="Enter password"
-                  className="mt-2 bg-gray-100 border-0 focus:bg-white"
+                  placeholder="Enter password (min 6 characters)"
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.password ? "border border-red-500" : ""
+                    }`}
                   required
                 />
+                {errors.password && (
+                  <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.password}
+                  </div>
+                )}
               </div>
 
               {/* Roles */}
@@ -193,23 +290,29 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   <span className="text-sm text-black">Role Assign</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 ml-auto">
-                  {Object.entries(teamManagementData.roles).map(
-                    ([role, value]) => (
-                      <div key={role} className="flex items-center gap-1">
-                        <Checkbox
-                          checked={value}
-                          onCheckedChange={() => handleRoleChange(role)}
-                          className="text-black border-black"
-                          id={role}
-                        />
-                        <Label htmlFor={role} className="capitalize">
-                          {role === "createID" ? "Create ID" : role}
-                        </Label>
-                      </div>
-                    )
-                  )}
+                  {["admin", "deposit", "manager", "withdrawal", "auditor", "createID"].map((role) => (
+                    <label key={role} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="role"
+                        value={role}
+                        checked={teamManagementData.selectedRole === role}
+                        onChange={(e) =>
+                          handleInputChange("selectedRole", e.target.value)
+                        }
+                      />
+                      {role === "createID" ? "Create ID" : role}
+                    </label>
+                  ))}
                 </div>
+
               </div>
+              {errors.roles && (
+                <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.roles}
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pb-6 px-0">

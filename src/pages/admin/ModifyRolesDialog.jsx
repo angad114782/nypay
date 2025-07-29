@@ -28,9 +28,10 @@ export function ModifyRolesDialog({ user, onSuccess, buttonLogo }) {
     "CreateID",
   ];
 
-  useEffect(() => {
-    setRoles(user.roles);
-  }, [user.roles]);
+useEffect(() => {
+  setRoles(Array.isArray(user.roles) ? user.roles : []);
+}, [user.roles]);
+
 
   const toggleRole = (role) => {
     setRoles((prev) =>

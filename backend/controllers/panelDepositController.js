@@ -15,6 +15,13 @@ exports.createPanelDeposit = async (req, res) => {
       return res.status(400).json({ error: "Panel ID is required." });
     }
 
+    // ✅ Check wallet balance
+    const user = await User.findById(req.user.id);
+    if (!user || Number(user.wallet) < amount) {
+      return res.status(400).json({ error: "Insufficient wallet balance." });
+    }
+
+    // 📝 Save deposit request
     const deposit = new PanelDeposit({
       userId: req.user.id,
       panelId,
@@ -29,10 +36,10 @@ exports.createPanelDeposit = async (req, res) => {
       type: "panel-deposit",
       direction: "credit",
       amount,
-      balance: (await User.findById(req.user.id)).wallet || 0, // no wallet update yet
+      balance: Number(user.wallet),
       description: `Panel Deposit of ₹${amount} requested (Panel ID: ${panelId})`,
       status: "Pending",
-      linkedId: deposit._id, // optional: for traceability
+      linkedId: deposit._id,
     });
 
     res.status(200).json({ message: "Deposit request submitted." });
@@ -107,22 +114,22 @@ exports.updatePanelDepositStatus = async (req, res) => {
             return res.status(404).json({ message: "Deposit not found" });
         }
 
-        // ✅ Only credit wallet if approving for the first time
         if (status === "Approved" && deposit.status !== "Approved") {
-            // 🔍 Get userId from UserGameId
-            const gameId = await UserGameId.findById(deposit.gameIdId);
-            if (!gameId) {
-                return res.status(404).json({ message: "Game ID not found" });
-            }
+            const gameId = await UserGameId.findOne({ panelId: deposit.panelId });
+            if (!gameId) return res.status(404).json({ message: "Game ID not found" });
 
             const user = await User.findById(gameId.userId);
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
+            if (!user) return res.status(404).json({ message: "User not found" });
 
-            user.wallet = (user.wallet || 0) + deposit.amount;
+            // ✅ Deduct instead of credit
+            user.wallet = (user.wallet || 0) - deposit.amount;
+
+            // Optional: Prevent negative wallet
+            if (user.wallet < 0) user.wallet = 0;
+
             await user.save();
         }
+
 
         // 💾 Update deposit
         deposit.status = status;

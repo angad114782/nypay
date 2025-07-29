@@ -3,6 +3,7 @@ const User = require("../models/User");
 const Passbook = require("../models/Passbook");
 const UserGameId = require("../models/UserGameId");
 
+// ✅ CREATE Withdraw Request (Deduct coins, log in Passbook)
 exports.createPanelWithdraw = async (req, res) => {
   try {
     const { amount, panelId } = req.body;
@@ -20,29 +21,29 @@ exports.createPanelWithdraw = async (req, res) => {
       return res.status(400).json({ error: "Insufficient coin balance." });
     }
 
-    // 🧾 Create withdrawal request
+    // 💸 Deduct coins from user
     user.coins -= amount;
     await user.save();
 
-    const withdraw = new PanelWithdraw({
+    // 📄 Create withdraw record
+    const withdraw = await PanelWithdraw.create({
       userId: req.user.id,
       panelId,
       amount,
     });
 
-    await withdraw.save();
-
-    // 📘 Log in Passbook
+    // 🧾 Log in Passbook
     await Passbook.create({
       userId: req.user.id,
       type: "panel-withdraw",
       direction: "debit",
       amount,
-      balance: user.coins, // updated balance after deduction
+      balance: Number(user?.coins) || 0, // ✅ ensure a valid number
       description: `Panel Withdraw request of ₹${amount} (Panel ID: ${panelId})`,
       status: "Pending",
       linkedId: withdraw._id,
     });
+
 
     res.status(200).json({ message: "Withdrawal request submitted." });
   } catch (err) {
@@ -51,7 +52,7 @@ exports.createPanelWithdraw = async (req, res) => {
   }
 };
 
-
+// ✅ GET All Withdraw Requests
 exports.getAllPanelWithdraws = async (req, res) => {
   try {
     const withdraws = await PanelWithdraw.find()
@@ -87,13 +88,12 @@ exports.getAllPanelWithdraws = async (req, res) => {
   }
 };
 
-
+// ✅ UPDATE Withdraw Status (Add wallet on approval)
 exports.updatePanelWithdrawStatus = async (req, res) => {
   try {
     const { id } = req.params;
     let { status, remark } = req.body;
 
-    // 🔁 Normalize status input
     const statusMap = {
       pending: "Pending",
       approve: "Approved",
@@ -106,37 +106,36 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
     };
 
     status = statusMap[status?.toLowerCase()] || null;
-
-    if (!status) {
-      return res.status(400).json({ error: "Invalid status value." });
-    }
+    if (!status) return res.status(400).json({ error: "Invalid status value." });
 
     const withdraw = await PanelWithdraw.findById(id);
-    if (!withdraw) {
-      return res.status(404).json({ error: "Withdraw request not found." });
-    }
+    if (!withdraw) return res.status(404).json({ error: "Withdraw request not found." });
 
-    // ✅ Deduct wallet only if approving for first time
+    // ✅ Credit wallet if approving for the first time
     if (status === "Approved" && withdraw.status !== "Approved") {
-      const gameId = await UserGameId.findById(withdraw.gameIdId);
-      if (!gameId) {
-        return res.status(404).json({ error: "Game ID not found" });
-      }
+      const gameId = await UserGameId.findOne({ panelId: withdraw.panelId });
+      if (!gameId) return res.status(404).json({ error: "Game ID not found" });
 
       const user = await User.findById(gameId.userId);
-      if (!user) {
-        return res.status(404).json({ error: "User not found" });
-      }
+      if (!user) return res.status(404).json({ error: "User not found" });
 
-      if ((user.wallet || 0) < withdraw.amount) {
-        return res.status(400).json({ error: "Insufficient wallet balance." });
-      }
-
-      user.wallet -= withdraw.amount;
+      user.wallet = (user.wallet || 0) + withdraw.amount;
       await user.save();
+
+      // 🧾 Log passbook for approval credit
+      await Passbook.create({
+        userId: user._id,
+        type: "panel-withdraw",
+        direction: "credit",
+        amount: withdraw.amount,
+        balance: user.wallet,
+        description: `₹${withdraw.amount} withdrawn from panel credited to wallet (Panel ID: ${withdraw.panelId})`,
+        status: "Success",
+        linkedId: withdraw._id,
+      });
     }
 
-    // 💾 Update withdrawal
+    // 💾 Save status & remark
     withdraw.status = status;
     withdraw.remark = remark;
     withdraw.statusUpdatedAt = new Date();

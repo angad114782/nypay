@@ -12,6 +12,14 @@ exports.createDeposit = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
+    // ✅ Check for duplicate UTR
+    const existingUTR = await Deposit.findOne({ utr });
+    if (existingUTR) {
+      return res
+        .status(400)
+        .json({ message: "This UTR has already been used. Please check again." });
+    }
+
     const newDeposit = new Deposit({
       userId: req.user._id,
       amount,
@@ -23,12 +31,14 @@ exports.createDeposit = async (req, res) => {
     await newDeposit.save();
 
     // 🧾 Create Passbook Entry (pending deposit request)
+    const user = await User.findById(req.user._id);
+
     await Passbook.create({
       userId: req.user._id,
       type: "deposit",
       direction: "credit",
       amount,
-      balance: (await User.findById(req.user._id)).wallet || 0, // wallet unchanged yet
+      balance: user.wallet || 0,
       description: `Deposit of ₹${amount} requested via ${paymentMethod} (UTR: ${utr})`,
     });
 
@@ -47,6 +57,7 @@ exports.createDeposit = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
 exports.getAllDeposits = async (req, res) => {
   try {
     const deposits = await Deposit.find()
@@ -128,8 +139,11 @@ exports.getAllDeposits = async (req, res) => {
 //   }
 // };
 
-// For user dashboard
 exports.getMyWalletBalance = async (req, res) => {
+  if (!req.user || !req.user._id) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
   try {
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });

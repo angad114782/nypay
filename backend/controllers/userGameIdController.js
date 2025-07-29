@@ -57,14 +57,16 @@ const createGameId = async (req, res) => {
 };
 
 const getMyGameIds = async (req, res) => {
-  try {
-    const userId = req.user._id;
+  if (!req.user || !req.user._id) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
 
+  try {
     const gameIds = await UserGameId.find({
-      userId,
+      userId: req.user._id,
       isBlocked: { $ne: true },
     })
-      .populate("panelId", "profileName logo userId isActive") // ✅ Only required fields
+      .populate("panelId", "profileName logo userId isActive")
       .sort({ createdAt: -1 });
 
     res.status(200).json({ success: true, gameIds });
@@ -73,7 +75,6 @@ const getMyGameIds = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-
 // ✅ Admin: Get all Game ID requests
 const getAllGameIdRequests = async (req, res) => {
   try {

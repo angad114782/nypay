@@ -1,176 +1,92 @@
-// controllers/userManagementController.js
-const bcrypt = require("bcryptjs");
-// const User = require("../models/User");
-const UserManagement = require("../models/UserManagement");
-const { default: mongoose } = require("mongoose");
+const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 
+// 🔐 JWT Token generator
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+// ✅ Register Team User Without OTP
 const createTeamUser = async (req, res) => {
+  const { profileName, mobile, userId, password, role } = req.body;
+
   try {
-    const { profileName, userId, password, roles } = req.body;
-
-    // Validate required fields
-    if (!profileName || !userId || !password) {
-      return res.status(400).json({
-        message: "Profile name, user ID, and password are required",
-      });
+    // ✅ 1. Basic Validation
+    if (!profileName || !mobile || !userId || !password || !role) {
+      return res.status(400).json({ message: "All fields are required including role" });
     }
 
-    // Option 1: If userId is actually the MongoDB _id (ObjectId)
-    // const userExists = await User.findById(userId);
+    // ✅ 2. Convert createID -> user
+    const selectedRole = role === "createID" ? "user" : role;
 
-    // Option 2: If userId is a username or email field in User model
-    // const userExists = await User.findOne({ username: userId });
-    // const userExists = await User.findOne({ email: userId });
-
-    // Option 3: If you don't need to validate against User model, remove this check
-    // Comment out or remove the user existence check entirely
-
-    // For now, let's remove this check since your User model structure is unclear
-    // You can add it back once you clarify what field to check against
-
-    // Check if team user already exists
-
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-    // Check if team user already exists
-    const teamUserExists = await UserManagement.findOne({
-      userId: userObjectId,
+    // ✅ 3. Check if user exists
+    const existingUser = await User.findOne({
+      $or: [{ phone: mobile }, { email: userId.toLowerCase() }],
     });
-    if (teamUserExists) {
-      return res.status(400).json({
-        message: "Team user already exists with this userId",
-      });
+
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
     }
 
-    // Hash the password (uncomment this for security)
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Convert roles to proper case to match enum
-    const formattedRoles = roles.map((role) => {
-      switch (role.toLowerCase()) {
-        case "admin":
-          return "Admin";
-        case "deposit":
-          return "Deposit";
-        case "manager":
-          return "Manager";
-        case "withdrawal":
-          return "Withdrawal";
-        case "auditor":
-          return "Auditor";
-        case "createid":
-        case "createID":
-          return "CreateID";
-        default:
-          return role;
-      }
+    // ✅ 4. Create user
+    const newUser = await User.create({
+      name: profileName,
+      phone: mobile,
+      email: userId.toLowerCase(),
+      password,
+      role: selectedRole,
+      isVerified: true,
     });
 
-    const newUser = new UserManagement({
-      profileName,
-      userId: userObjectId,
-      password: hashedPassword, // Use hashed password
-      roles: formattedRoles,
-    });
-
-    await newUser.save();
-
-    // Don't send password in response
-    const responseUser = {
-      _id: newUser._id,
-      profileName: newUser.profileName,
-      userId: newUser.userId,
-      roles: newUser.roles,
-      createdAt: newUser.createdAt,
-      updatedAt: newUser.updatedAt,
-    };
-
+    // ✅ 5. Success response
     res.status(201).json({
-      message: "User created successfully",
-      user: responseUser,
+      message: "User registered successfully",
+      token: generateToken(newUser),
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        phone: newUser.phone,
+        email: newUser.email,
+        role: newUser.role,
+      },
     });
   } catch (err) {
-    console.error("Create team user error:", err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
+    console.error("Register Team User Error:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 const getAllTeamUsers = async (req, res) => {
   try {
-    const teamUsers = await UserManagement.find()
-      .populate("userId", "name lastLoginIp")
-      .select("-password");
-    res.status(200).json({ users: teamUsers });
-  } catch (err) {
-    console.error("Get team users error:", err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-};
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
 
-const updateUserRoles = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { roles } = req.body;
+    // ✅ Exclude users with role "user"
+    const total = await User.countDocuments({ role: { $ne: "user" } });
 
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-    const updatedUser = await UserManagement.findOneAndUpdate(
-      { userId: userObjectId },
-      { roles: roles },
-      { new: true }
-    ).select("-password");
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "Team user not found" });
-    }
+    const users = await User.find({ role: { $ne: "user" } })
+      .select("-password")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     res.status(200).json({
-      message: "User roles updated successfully",
-      user: updatedUser,
+      total,
+      page,
+      limit,
+      users,
     });
   } catch (err) {
-    console.error("Update user roles error:", err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
+    console.error("Get Team Users Error:", err.message);
+    res.status(500).json({ message: "Failed to fetch team users" });
   }
 };
 
-const deleteTeamUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const userObjectId = new mongoose.Types.ObjectId(userId);
-
-    // Try to find and delete the user document where userId matches
-    const deletedUser = await UserManagement.findOneAndDelete({
-      userId: userObjectId,
-    });
-
-    if (!deletedUser) {
-      return res.status(404).json({ message: "Team user not found" });
-    }
-
-    return res.status(200).json({
-      message: "Team user deleted successfully",
-      deletedUser: deletedUser.profileName,
-    });
-  } catch (err) {
-    console.error("Delete team user error:", err);
-    return res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-};
 
 module.exports = {
   createTeamUser,
   getAllTeamUsers,
-  updateUserRoles,
-  deleteTeamUser,
 };

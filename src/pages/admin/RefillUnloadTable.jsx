@@ -141,27 +141,39 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
     XLSX.writeFile(wb, "table.xlsx");
   };
   const handleStatusUpdate = async (id, newStatus, remark = "") => {
-    try {
-      const res = await axios.patch(
-        `${import.meta.env.VITE_URL}/api/panel-deposit/${id}/status`,
-        { status: newStatus, remark },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      updateItem(id, {
-        status: res.data.updated.status,
-        remark: res.data.updated.remark,
-      });
-      toast.success(`Status updated successfully`);
-      await fetchData();
-    } catch (err) {
-      const msg = err?.response?.data?.message || "Failed to update status.";
-      toast.error(msg);
-    }
-  };
+  try {
+    const baseURL = import.meta.env.VITE_URL;
+    const token = localStorage.getItem("token");
+
+    // ✅ Decide endpoint based on type
+    const endpoint =
+      type === "unload"
+        ? `/api/panel-withdraw/${id}/status`
+        : `/api/panel-deposit/${id}/status`;
+
+    const res = await axios.patch(
+      `${baseURL}${endpoint}`,
+      { status: newStatus, remark },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    updateItem(id, {
+      status: res.data?.withdraw?.status || res.data?.deposit?.status,
+      remark: res.data?.withdraw?.remark || res.data?.deposit?.remark,
+    });
+
+    toast.success(`${newStatus} successfully!`);
+    await fetchData();
+  } catch (err) {
+    const msg = err?.response?.data?.message || "Failed to update status.";
+    toast.error(msg);
+  }
+};
+
   return (
     <>
       <TableFilterBar

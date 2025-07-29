@@ -1,39 +1,15 @@
-const mongoose = require("mongoose");
 
-const userManagementSchema = new mongoose.Schema(
-  {
-    profileName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+const { default: mongoose } = require("mongoose");
 
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      // trim: true,
-    },
+const UserManagement = new mongoose.Schema({
+  profileName: { type: String, required: true },
+  userId: { type: String, unique: true, required: true },
+  mobile: { type: String, required: true },
+  password: { type: String, required: true },
+  role: [{ type: String}],
+  permissions: [{ type: String }], // e.g., ["admin", "deposit"]
+  createdAt: { type: Date, default: Date.now },
+});
 
-    password: {
-      type: String,
-      required: true,
-    },
 
-    roles: {
-      type: [String],
-      enum: [
-        "Admin",
-        "Deposit",
-        "Manager",
-        "Withdrawal",
-        "Auditor",
-        "CreateID",
-      ],
-      default: [],
-    },
-  },
-  { timestamps: true }
-);
-
-module.exports = mongoose.model("UserManagement", userManagementSchema);
+module.exports = mongoose.model("UserManagement", UserManagement);

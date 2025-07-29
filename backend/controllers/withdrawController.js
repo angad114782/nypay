@@ -6,12 +6,25 @@ const Passbook = require("../models/Passbook");
 exports.requestWithdraw = async (req, res) => {
   try {
     const { amount, withdrawMethod, selectedAccount } = req.body;
-    const user = await User.findById(req.user._id);
 
+    const user = await User.findById(req.user._id);
     if (!user) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
+    }
+
+    if (!amount || amount < 1200) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Minimum withdrawal is 1200 coins." });
+    }
+
+    // ✅ Check wallet balance before creating the request
+    if (Number(user.wallet) < amount) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Insufficient wallet balance." });
     }
 
     const newWithdraw = new Withdraw({
@@ -23,14 +36,16 @@ exports.requestWithdraw = async (req, res) => {
 
     await newWithdraw.save();
 
-    // 💳 Create passbook entry (Pending doesn't deduct yet)
+    // 💳 Create passbook entry (No deduction yet)
     await Passbook.create({
       userId: user._id,
       type: "withdraw",
       direction: "debit",
       amount,
-      balance: user.wallet, // Balance remains same at request
+      balance: Number(user.wallet),
       description: `Withdrawal of ₹${amount} requested via ${withdrawMethod}`,
+      status: "Pending",
+      linkedId: newWithdraw._id,
     });
 
     res.status(201).json({
@@ -43,6 +58,7 @@ exports.requestWithdraw = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 // ✅ Get all withdraws
 exports.getAllWithdraws = async (req, res) => {
