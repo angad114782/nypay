@@ -37,9 +37,9 @@ const createGameId = async (req, res) => {
     const passbookEntry = new Passbook({
       userId,
       type: "game-id",
-      direction: "debit", // 👈 semantic only, not actual wallet deduction
-      amount: 0,
-      balance: 0, // since no wallet impact
+      direction: "debit", // 
+      panelId: panel._id,
+      status: "Pending",
       description: `Game ID created for panel: ${panel.profileName}`,
     });
 

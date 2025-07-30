@@ -14,7 +14,7 @@ exports.requestWithdraw = async (req, res) => {
         .json({ success: false, message: "User not found" });
     }
 
-    if (!amount || amount < 1200) {
+    if (!amount || amount < 500) {
       return res
         .status(400)
         .json({ success: false, message: "Minimum withdrawal is 1200 coins." });

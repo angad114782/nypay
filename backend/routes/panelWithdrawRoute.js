@@ -1,15 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const { protect, adminOnly } = require("../middlewares/auth");
-const { createPanelWithdraw ,getAllPanelWithdraws, 
-updatePanelWithdrawStatus } = require("../controllers/panelWithdrawController");
 
-// POST /api/panel/withdraw
+const {
+  createPanelWithdraw,
+  getAllPanelWithdraws,
+  updatePanelWithdrawStatus,
+} = require("../controllers/panelWithdrawController");
+
+const { protect, roleCheck } = require("../middlewares/auth"); // ✅ updated import
+
+/* ---------------------------- Panel Withdraw Routes ---------------------------- */
+
+// 🟢 Panel user creates withdraw request
 router.post("/withdraw", protect, createPanelWithdraw);
 
+// 🔵 Get all panel withdraws (admin/manager/auditor/etc.)
 router.get("/all", protect, getAllPanelWithdraws);
 
-// PATCH - update withdraw status
-router.patch("/:id/status", protect, adminOnly, updatePanelWithdrawStatus);
+// 🔄 Update status (approve/reject) — multiple roles allowed
+router.patch(
+  "/:id/status",
+  protect,
+  roleCheck("admin", "manager", "auditor", "withdrawal"),
+  updatePanelWithdrawStatus
+);
 
 module.exports = router;

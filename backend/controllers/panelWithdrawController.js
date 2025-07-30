@@ -41,6 +41,7 @@ exports.createPanelWithdraw = async (req, res) => {
       balance: Number(user?.coins) || 0, // ✅ ensure a valid number
       description: `Panel Withdraw request of ₹${amount} (Panel ID: ${panelId})`,
       status: "Pending",
+      panelId: panelId, 
       linkedId: withdraw._id,
     });
 

@@ -26,13 +26,19 @@ function Passbook() {
         }
       );
 
+      // ✅ Log full API response
+      console.log("Raw Passbook API Response:", res.data);
+
       const formattedData = res.data.data.map((item) => ({
-        amount: item.amount,
-        txntype: item.description,
-        status: "Approved", // Optional: Add status field to Passbook model if needed
-        url: "https://radheyexchange.xyz",
+        amount: item.amount ?? null, // null-safe
+        txntype: item.description || "Unknown",
+        status: item.status || "Pending",
+        url: item.url || null,
         dateTime: format(new Date(item.createdAt), "dd MMMM yyyy, hh:mm a"),
       }));
+
+      // ✅ Log formatted data for debug
+      console.log("Formatted Passbook Data:", formattedData);
 
       setFilteredData(formattedData);
     } catch (err) {
@@ -47,7 +53,7 @@ function Passbook() {
     fetchPassbook();
   }, []);
 
-  console.log(filteredData, "filteredData");
+  // console.log(filteredData, "filteredData");
   // ✅ On Filter Apply
   const handleFilter = ({ date, txntype, status }) => {
     const filters = {};

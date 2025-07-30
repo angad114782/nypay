@@ -305,12 +305,8 @@ exports.updateProfile = async (req, res) => {
 exports.logout = async (req, res) => {
   try {
     if (req.user?._id) {
-      console.log(`✅ User logged out: ${req.user._id} at ${new Date()}`);
-    } else {
-      console.log(
-        `⚠️ Logout: Token received but user not found (maybe deleted)`
-      );
-    }
+      // console.log(`✅ User logged out: ${req.user._id} at ${new Date()}`);
+    } 
 
     // Optional: Clear refresh tokens or session if used
 

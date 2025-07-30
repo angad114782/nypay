@@ -111,10 +111,10 @@ export const GlobalProvider = ({ children }) => {
         return;
       }
 
-      console.log(
-        "🔍 Making request with token:",
-        token ? "Present" : "Missing"
-      );
+      // console.log(
+      //   "🔍 Making request with token:",
+      //   token ? "Present" : "Missing"
+      // );
 
       const res = await axios.get(
         `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
@@ -127,7 +127,7 @@ export const GlobalProvider = ({ children }) => {
       );
 
       if (res.data.success) {
-        console.log("✅ Game IDs fetched successfully:", res.data);
+        // console.log("✅ Game IDs fetched successfully:", res.data);
         setMyIdCardData(res.data.gameIds);
       } else {
         console.error("❌ API returned success: false");

@@ -228,12 +228,12 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.profileName}</TableCell>
+              <TableCell>{item.userName}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.userName}
+                  {item.profileName}
                   <CopyButton
-                    textToCopy={item.userName}
+                    textToCopy={item.profileName}
                     title="Copy User Name"
                   />
                 </div>
@@ -350,15 +350,15 @@ export const TransactionCard = ({
           <div>
             <div className="flex items-center gap-1">
               <h3 className="text-sm dark:text-white text-white font-bold">
-                {transaction.profileName}
+                {transaction.userName}
               </h3>
               <CopyButton
-                textToCopy={transaction.profileName}
+                textToCopy={transaction.userName}
                 title="Copy Profile Name"
               />
             </div>
             <p className="text-sm dark:text-white text-white">
-              {transaction.userName}
+              {transaction.profileName}
             </p>
           </div>
         </div>

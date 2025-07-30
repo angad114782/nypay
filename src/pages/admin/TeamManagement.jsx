@@ -80,7 +80,7 @@ const TeamManagement = () => {
           },
         }
       );
-
+      console.log("✅ Team Users Response:", res.data);
       setTeamUsers(res.data.users);
     } catch (err) {
       console.error("Failed to fetch users", err);
@@ -95,8 +95,7 @@ const TeamManagement = () => {
       setLoading(true);
 
       await axios.delete(
-        `${
-          import.meta.env.VITE_URL
+        `${import.meta.env.VITE_URL
         }/api/user-management/team/${userIdToDelete}`,
         {
           headers: {
@@ -179,10 +178,7 @@ const TeamManagement = () => {
             <TableHead>User Name</TableHead>
             <TableHead>Mobile No.</TableHead>
             <TableHead className={"text-center"}>User Role</TableHead>
-            <TableHead className="text-center">Action</TableHead>
-            <TableHead className="text-right rounded-tr-lg">
-              Parent IP
-            </TableHead>
+            <TableHead className="text-right rounded-tr-lg">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -193,34 +189,29 @@ const TeamManagement = () => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${
-                      typeof item.userId === "object"
+                    textToCopy={`Username - ${typeof item.userId === "object"
                         ? item.userId.name
                         : item.userId
-                    }\nProfile Name - ${item.profileName}`}
+                      }\nProfile Name - ${item.profileName}`}
                     title="Copy User Name, Profile Name"
                   />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.profileName}
+                  {item.name}
                   <CopyButton
-                    textToCopy={item.profileName}
+                    textToCopy={item.name}
                     title="Copy Profile Name"
                   />
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {typeof item.userId === "object"
-                    ? item.userId.name
-                    : item.userId}
+                  {item.email}
                   <CopyButton
                     textToCopy={
-                      typeof item.userId === "object"
-                        ? item.userId.name
-                        : item.userId
+                      item.email
                     }
                     title="Copy User Name"
                   />
@@ -228,17 +219,17 @@ const TeamManagement = () => {
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
-                  {item.mobile}
+                  {item.phone}
                   <CopyButton
-                    textToCopy={item.mobile}
+                    textToCopy={item.phone}
                     title="Copy Mobile Number"
                   />
                 </div>
               </TableCell>
 
               <TableCell className="text-center align-middle">
-                {/* <div className="flex gap-1 items-center justify-center flex-wrap">
-                  {item.role?.map((role, idx) => {
+                <div className="flex gap-1 items-center justify-center flex-wrap">
+                  {[item.role]?.map((role, idx) => {
                     const { bg, text } = getBadgeClasses(role);
                     return (
                       <Badge
@@ -249,7 +240,7 @@ const TeamManagement = () => {
                       </Badge>
                     );
                   })}
-                </div> */}
+                </div>
               </TableCell>
 
               <TableCell className="text-center align-middle">
@@ -289,12 +280,7 @@ const TeamManagement = () => {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() =>
-                            handleDelete(
-                              typeof item.userId === "object"
-                                ? item.userId._id
-                                : item.userId,
-                              item.profileName
-                            )
+                            handleDelete(item._id, item.name || item.profileName)
                           }
                           className="bg-red-600 hover:bg-red-700"
                           disabled={loading}
@@ -305,11 +291,6 @@ const TeamManagement = () => {
                     </AlertDialogContent>
                   </AlertDialog>
                 </div>
-              </TableCell>
-              <TableCell className="text-right">
-                {typeof item.userId === "object"
-                  ? item.userId.lastLoginIp
-                  : "N/A"}
               </TableCell>
             </TableRow>
           ))}
@@ -334,9 +315,9 @@ const TeamManagement = () => {
           {teamUsers.length === 0
             ? "No entries to display"
             : `Showing ${(currentPage - 1) * entries + 1} to ${Math.min(
-                currentPage * entries,
-                teamUsers.length
-              )} of ${teamUsers.length} entries`}
+              currentPage * entries,
+              teamUsers.length
+            )} of ${teamUsers.length} entries`}
         </span>
 
         <div className="flex gap-1">
@@ -351,11 +332,10 @@ const TeamManagement = () => {
             <button
               key={i + 1}
               onClick={() => goToPage(i + 1)}
-              className={`px-2 py-1 rounded border text-sm ${
-                currentPage === i + 1
+              className={`px-2 py-1 rounded border text-sm ${currentPage === i + 1
                   ? "bg-[#8AAA08] text-white"
                   : "bg-white text-gray-700"
-              }`}
+                }`}
             >
               {i + 1}
             </button>

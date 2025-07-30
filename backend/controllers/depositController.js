@@ -40,7 +40,9 @@ exports.createDeposit = async (req, res) => {
       amount,
       balance: user.wallet || 0,
       description: `Deposit of ₹${amount} requested via ${paymentMethod} (UTR: ${utr})`,
+      status: "Pending",
     });
+
 
     res.status(201).json({
       message: "Deposit submitted successfully",

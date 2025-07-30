@@ -133,7 +133,7 @@ const CreateIdTable = ({ data, fetchData }) => {
   const handleStatusUpdate = async (id, newStatus, remark = "") => {
     try {
       const res = await axios.patch(
-        `${import.meta.env.VITE_URL}/api/panel-deposit/${id}/status`,
+        `${import.meta.env.VITE_URL}/api/game/status/${id}`,
         { status: newStatus, remark },
         {
           headers: {
@@ -146,7 +146,7 @@ const CreateIdTable = ({ data, fetchData }) => {
         status: res.data.deposit.status,
         remark: res.data.deposit.remark,
       });
-
+      console.log("✅ Authenticated User:", req.user);
       toast.success(`ID creation ${newStatus} successfully`);
       await fetchData();
     } catch (err) {

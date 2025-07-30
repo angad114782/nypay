@@ -115,7 +115,10 @@ export const ClientRoute = ({ children }) => {
 // Admin Route (role: admin)
 export const AdminRoute = ({ children }) => {
   return (
-    <RoleProtectedRoute allowedRoles={["admin"]}>{children}</RoleProtectedRoute>
+    <RoleProtectedRoute
+      allowedRoles={["admin", "manager", "auditor", "deposit", "withdrawal"]}
+    >
+{children}</RoleProtectedRoute>
   );
 };
 

@@ -39,9 +39,16 @@ const PassbookCard = ({
 
         <div className="text-right flex items-center gap-2">
           <div className="text-right">
-            <p className="text-white font-bold text-[15px] leading-tight">
+            {/* <p className="text-white font-bold text-[15px] leading-tight">
               {amount.toFixed(2)}
-            </p>
+            </p> */}
+
+            {amount !== null && amount !== undefined ? (
+              <p>₹{Number(amount).toFixed(2)}</p>
+            ) : (
+              <p className=" italic">No Amount</p>
+            )}
+
             <div className="flex items-center gap-1 justify-end">
               <span
                 className={clsx(

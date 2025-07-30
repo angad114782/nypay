@@ -1,27 +1,37 @@
 const express = require("express");
 const router = express.Router();
 const withdrawController = require("../controllers/withdrawController");
-const { protect, adminOnly } = require("../middlewares/auth");
+const { protect, roleCheck } = require("../middlewares/auth"); // updated import
 
+/* ---------------------------- User Route ---------------------------- */
+
+// 🟢 Request Withdrawal (User)
 router.post("/request", protect, withdrawController.requestWithdraw);
+
+/* ---------------------------- Admin / Manager / Auditor / Withdraw Team ---------------------------- */
+
+// 🔵 Get All Withdraws
 router.get(
   "/admin/withdraws",
   protect,
-  adminOnly,
+  roleCheck("admin", "manager", "auditor", "withdrawal"),
   withdrawController.getAllWithdraws
 );
 
+// 🔄 Update Withdraw Status
 router.patch(
   "/admin/status/:id",
   protect,
-  adminOnly,
+  roleCheck("admin", "manager", "auditor", "withdrawal"),
   withdrawController.updateWithdrawStatus
-); // update status
+);
+
+// 📝 Update Withdraw Remark (Optional future route)
 // router.put(
 //   "/admin/remark/:id",
 //   protect,
-//   adminOnly,
+//   roleCheck("admin", "manager", "auditor", "withdraw"),
 //   withdrawController.updateWithdrawRemark
-// ); // update remark
+// );
 
 module.exports = router;
