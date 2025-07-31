@@ -15,7 +15,8 @@ const { protect, roleCheck } = require("../middlewares/auth"); // updated import
 router.post("/deposit", protect, createPanelDeposit);
 
 // 🔵 Get all panel deposits (for admin dashboard or filtered view)
-router.get("/all", protect, getAllPanelDeposits);
+router.get("/all", protect,
+  roleCheck("admin", "manager", "auditor", "deposit"), getAllPanelDeposits);
 
 // 🔄 Update status (approve/reject) by admin or assigned roles
 router.patch(

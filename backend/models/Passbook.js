@@ -1,15 +1,17 @@
-// models/Passbook.js
 const mongoose = require("mongoose");
 
 const passbookSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  type: { type: String, required: true }, // e.g., "withdraw", "deposit", "panel-deposit", "panel-withdraw"
+  type: { type: String, required: true }, // e.g., "deposit", "withdraw", etc.
   direction: { type: String, enum: ["credit", "debit"], required: true },
-  amount: { type: Number, },
-  balance: { type: Number,}, // wallet after transaction
+  amount: { type: Number },
+  balance: { type: Number },
   description: { type: String },
-  panelId: { type: mongoose.Schema.Types.ObjectId, ref: "Panel", default: null }, // ✅ Add this
-  status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: "Pending" }, // ✅ Optional if used
+  panelId: { type: mongoose.Schema.Types.ObjectId, ref: "Panel", default: null },
+
+  // ✅ ADD THIS FIELD
+  linkedId: { type: mongoose.Schema.Types.ObjectId, default: null },
+
   createdAt: { type: Date, default: Date.now },
 });
 

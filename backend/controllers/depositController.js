@@ -40,8 +40,9 @@ exports.createDeposit = async (req, res) => {
       amount,
       balance: user.wallet || 0,
       description: `Deposit of ₹${amount} requested via ${paymentMethod} (UTR: ${utr})`,
-      status: "Pending",
+      linkedId: newDeposit._id, // ✅ Add this
     });
+
 
 
     res.status(201).json({

@@ -37,11 +37,13 @@ const createGameId = async (req, res) => {
     const passbookEntry = new Passbook({
       userId,
       type: "game-id",
-      direction: "debit", // 
+      direction: "debit",
       panelId: panel._id,
       status: "Pending",
       description: `Game ID created for panel: ${panel.profileName}`,
+      linkedId: newGameId._id, // ✅ Add this
     });
+
 
     await passbookEntry.save();
 

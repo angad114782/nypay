@@ -22,6 +22,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     fullName: "",
     contactNo: "",
+    roleAss: "",
     email: "",
   });
 
@@ -54,6 +55,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
 
           setFormData({
             fullName: res.data.name || "",
+            roleAss: res.data.role || "",
             contactNo: res.data.phone || "",
             email: res.data.email || "",
           });
@@ -78,6 +80,7 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
       const token = localStorage.getItem("token");
       const data = new FormData();
       data.append("name", formData.fullName);
+      // data.append("role", formData.role);
       data.append("phone", formData.contactNo);
       data.append("email", formData.email);
       if (imageFile) data.append("profilePic", imageFile);
@@ -137,7 +140,8 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                 <h2 className="text-2xl font-bold text-gray-800">
                   {formData.fullName || "Admin"}
                 </h2>
-                <p className="text-gray-600">Admin</p>
+                <p className="text-gray-600">{formData.roleAss || "Admin"}</p>
+
               </div>
             </div>
           </div>

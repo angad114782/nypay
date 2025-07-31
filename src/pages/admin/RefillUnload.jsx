@@ -233,50 +233,69 @@ const RefillUnload = ({ onTabChange }) => {
   const [depositData, setDepositData] = useState([]);
   const [withdrawData, setWithdrawData] = useState([]);
 
-  // ✅ Move fetchData OUTSIDE useEffect
   const fetchData = async () => {
     try {
       const baseURL = import.meta.env.VITE_URL;
+      const token = localStorage.getItem("token");
 
-      const [deposits, withdrawals] = await Promise.all([
-        fetch(`${baseURL}/api/panel-deposit/all`).then((res) => res.json()),
-        fetch(`${baseURL}/api/panel-withdraw/all`).then((res) => res.json()),
+      const headers = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const [depositRes, withdrawRes] = await Promise.allSettled([
+        axios.get(`${baseURL}/api/panel-deposit/all`, headers),
+        axios.get(`${baseURL}/api/panel-withdraw/all`, headers),
       ]);
 
-      const transformedDeposits = deposits.map((d) => ({
-        id: d._id,
-        profileName: d.panelId?.profileName || "N/A",
-        userName: d.gameIdInfo?.username || "N/A",
-        password: d.gameIdInfo?.password || "N/A",
-        status: d.status || "Pending",
-        amount: d.amount,
-        entryDate: new Date(d.requestedAt).toLocaleString(),
-        remark: d.remark || "",
-        parentIp: d.parentIp || "—",
-        paymentType: "Panel Deposit",
-        website: d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
-      }));
+      // Deposit data
+      if (depositRes.status === "fulfilled" && Array.isArray(depositRes.value.data)) {
+        const transformedDeposits = depositRes.value.data.map((d) => ({
+          id: d._id,
+          profileName: d.panelId?.profileName || "N/A",
+          // userNamep: w.userId?.name || "N/A",
+          userName: d.userId?.name || d.gameIdInfo?.username || "N/A",
+          password: d.gameIdInfo?.password || "N/A",
+          status: d.status || "Pending",
+          amount: d.amount,
+          entryDate: new Date(d.requestedAt).toLocaleString(),
+          remark: d.remark || "",
+          parentIp: d.parentIp || "—",
+          paymentType: "Panel Deposit",
+          website: d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+        }));
+        setDepositData(transformedDeposits);
+      } else {
+        console.warn("Deposit data fetch failed or unauthorized");
+      }
 
-      const transformedWithdrawals = withdrawals.map((w) => ({
-        id: w._id,
-        profileName: w.panelId?.profileName || "N/A",
-        userName: w.userId?.name || "N/A",
-        status: w.status || "Pending",
-        amount: w.amount,
-        withdrawDate: new Date(w.requestedAt).toLocaleString(),
-        entryDate: new Date(w.requestedAt).toLocaleString(),
-        remark: w.remark || "",
-        parentIp: w.parentIp || "—",
-        paymentType: "Panel Withdraw",
-        website: w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
-      }));
+      // Withdraw data
+      if (withdrawRes.status === "fulfilled" && Array.isArray(withdrawRes.value.data)) {
+        const transformedWithdrawals = withdrawRes.value.data.map((w) => ({
+          id: w._id,
+          profileName: w.panelId?.profileName || "N/A",
+          userName: w.userId?.name || "N/A",
+          status: w.status || "Pending",
+          amount: w.amount,
+          withdrawDate: new Date(w.requestedAt).toLocaleString(),
+          entryDate: new Date(w.requestedAt).toLocaleString(),
+          remark: w.remark || "",
+          parentIp: w.parentIp || "—",
+          paymentType: "Panel Withdraw",
+          website: w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+        }));
+        setWithdrawData(transformedWithdrawals);
+      } else {
+        console.warn("Withdraw data fetch failed or unauthorized");
+      }
 
-      setDepositData(transformedDeposits);
-      setWithdrawData(transformedWithdrawals);
     } catch (err) {
-      console.error("❌ Error fetching panel transactions:", err);
+      console.error("❌ Unexpected error in fetchData:", err);
+      toast.error("Something went wrong while fetching data.");
     }
   };
+
 
   // ✅ Now works correctly
   useEffect(() => {

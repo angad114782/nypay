@@ -15,7 +15,8 @@ const { protect, roleCheck } = require("../middlewares/auth"); // ✅ updated im
 router.post("/withdraw", protect, createPanelWithdraw);
 
 // 🔵 Get all panel withdraws (admin/manager/auditor/etc.)
-router.get("/all", protect, getAllPanelWithdraws);
+router.get("/all", protect,
+  roleCheck("admin", "manager", "auditor", "withdrawal"),  getAllPanelWithdraws);
 
 // 🔄 Update status (approve/reject) — multiple roles allowed
 router.patch(

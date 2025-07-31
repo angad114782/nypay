@@ -17,32 +17,26 @@ const PassbookCard = ({
   dateTime,
   status,
   txntype,
-  referenceNumber,
-  coins,
-  approveDate,
+  reference,
+  utr,
+  gameId,
   image,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   return (
     <div className="bgt-blue3 rounded-[10px] p-3 text-white w-full shadow-sm relative z-0">
       <div className="flex justify-between items-center">
         <div className="space-y-1">
           <p className="font-semibold text-xs">{txntype}</p>
-          <p className="text-xs text-white/90">{url}</p>
+          {url && <p className="text-xs text-white/90 truncate">{url}</p>}
           <p className="text-xs text-white/80">{dateTime}</p>
         </div>
 
         <div className="text-right flex items-center gap-2">
           <div className="text-right">
-            {/* <p className="text-white font-bold text-[15px] leading-tight">
-              {amount.toFixed(2)}
-            </p> */}
-
             {amount !== null && amount !== undefined ? (
               <p>₹{Number(amount).toFixed(2)}</p>
             ) : (
@@ -77,26 +71,10 @@ const PassbookCard = ({
         {isDropdownOpen && (
           <motion.div
             layout
-            initial={{
-              opacity: 0,
-              height: 0,
-              marginTop: 0,
-            }}
-            animate={{
-              opacity: 1,
-              height: "auto",
-              marginTop: "0.75rem",
-            }}
-            exit={{
-              opacity: 0,
-              height: 0,
-              marginTop: 0,
-            }}
-            transition={{
-              duration: 0.3,
-              ease: [0.22, 0.61, 0.36, 1],
-              layout: { duration: 0.3 },
-            }}
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            animate={{ opacity: 1, height: "auto", marginTop: "0.75rem" }}
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1], layout: { duration: 0.3 } }}
             className="relative z-10 overflow-hidden"
           >
             <motion.div
@@ -107,29 +85,25 @@ const PassbookCard = ({
             >
               <div className="bg-[#0C49BE] rounded-lg p-3 space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-white font-bold">
-                    Reference No.
-                  </span>
+                  <span className="text-xs text-white font-bold">Reference No.</span>
                   <span className="text-xs text-white font-medium">
-                    {referenceNumber || "N/A"}
+                    {reference || "N/A"}
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-white font-bold">Coins:</span>
-                  <span className="text-xs text-white font-medium">
-                    {coins || "0"}
-                  </span>
-                </div>
+                {utr && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white font-bold">UTR:</span>
+                    <span className="text-xs text-white font-medium">{utr}</span>
+                  </div>
+                )}
 
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-white">
-                    Approved On:
-                  </span>
-                  <span className="text-xs text-white font-medium">
-                    {approveDate || "N/A"}
-                  </span>
-                </div>
+                {gameId && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-white font-bold">Game ID:</span>
+                    <span className="text-xs text-white font-medium">{gameId}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
                   <div className="flex items-center">

@@ -26,19 +26,21 @@ function Passbook() {
         }
       );
 
-      // ✅ Log full API response
-      console.log("Raw Passbook API Response:", res.data);
-
       const formattedData = res.data.data.map((item) => ({
-        amount: item.amount ?? null, // null-safe
-        txntype: item.description || "Unknown",
-        status: item.status || "Pending",
-        url: item.url || null,
-        dateTime: format(new Date(item.createdAt), "dd MMMM yyyy, hh:mm a"),
+        amount: item.amount,
+        txntype: item.txntype,
+        status: item.status,
+        url: item.url,
+        dateTime: format(
+          new Date(item.dateTime || item.createdAt),
+          "dd MMMM yyyy, hh:mm a"
+        ),
+
+        reference: item.reference,
+        utr: item.utr,
+        gameId: item.gameId,
       }));
 
-      // ✅ Log formatted data for debug
-      console.log("Formatted Passbook Data:", formattedData);
 
       setFilteredData(formattedData);
     } catch (err) {
@@ -48,6 +50,7 @@ function Passbook() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchPassbook();
@@ -97,8 +100,12 @@ function Passbook() {
                 dateTime={item.dateTime}
                 status={item.status}
                 txntype={item.txntype}
+                reference={item.reference}
+                utr={item.utr}
+                gameId={item.gameId}
                 image={logo}
               />
+
             ))
           ) : (
             <p className="text-center text-sm text-gray-400 py-8">

@@ -65,7 +65,7 @@ exports.getAllPanelDeposits = async (req, res) => {
       deposits.map(async (deposit) => {
         const userGame = await UserGameId.findOne({
           userId: deposit.userId._id,
-          panelId: deposit.panelId._id,
+          panelId: deposit.panelId?._id,
           status: "Active",
         });
 
