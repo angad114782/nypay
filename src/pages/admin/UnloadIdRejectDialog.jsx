@@ -14,7 +14,7 @@ import { useState } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 
-const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
+const UnloadIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
   const [remark, setRemark] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false); // manage dialog open state
@@ -23,7 +23,7 @@ const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
     try {
       setLoading(true);
       const res = await axios.patch(
-        `${import.meta.env.VITE_URL}/api/panel-deposit/${id}/status`,
+        `${import.meta.env.VITE_URL}/api/panel-withdraw/${id}/status`,
         {
           status: "Rejected",
           remark,
@@ -57,9 +57,9 @@ const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
       <DialogTrigger asChild>{buttonLogo}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Reject refill id?</DialogTitle>
+          <DialogTitle>Reject unload id?</DialogTitle>
           <DialogDescription>
-            Add a reason for rejecting this id deposit. This action cannot be
+            Add a reason for rejecting this id withdrawal. This action cannot be
             undone.
           </DialogDescription>
         </DialogHeader>
@@ -91,4 +91,4 @@ const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
   );
 };
 
-export default RefillIdRejectDialog;
+export default UnloadIdRejectDialog;

@@ -21,6 +21,7 @@ import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import logonew from "/asset/new.png";
 import RefillIdRejectDialog from "./RefillIdRejectDialog";
+import UnloadIdRejectDialog from "./UnloadIdRejectDialog";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -275,19 +276,34 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                   >
                     Approve
                   </button>
-                  <RefillIdRejectDialog
-                    buttonLogo={
-                      <button
-                        disabled={item.status !== "Pending"}
-                        className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
-                      >
-                        Reject
-                      </button>
-                    }
-                    id={item.id}
-                    // status={item.status !== "Pending"}
-                    onStatusUpdated={fetchData}
-                  />
+                  {type === "unload" ? (
+                    <UnloadIdRejectDialog
+                      buttonLogo={
+                        <button
+                          disabled={item.status !== "Pending"}
+                          className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                        >
+                          Reject
+                        </button>
+                      }
+                      id={item.id}
+                      onStatusUpdated={fetchData}
+                    />
+                  ) : (
+                    <RefillIdRejectDialog
+                      buttonLogo={
+                        <button
+                          disabled={item.status !== "Pending"}
+                          className="px-2 py-1  disabled:bg-gray-100 disabled:text-gray-700 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
+                        >
+                          Reject
+                        </button>
+                      }
+                      id={item.id}
+                      // status={item.status !== "Pending"}
+                      onStatusUpdated={fetchData}
+                    />
+                  )}
                 </div>
               </TableCell>
               <TableCell className="text-right">{item.parentIp}</TableCell>
@@ -446,18 +462,34 @@ export const TransactionCard = ({
           >
             Approve
           </button>
-          <RefillIdRejectDialog
-            buttonLogo={
-              <button
-                disabled={transaction.status !== "Pending"}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
-              >
-                Reject
-              </button>
-            }
-            id={transaction.id}
-            onStatusUpdated={fetchData}
-          />
+
+          {type === "unload" ? (
+            <UnloadIdRejectDialog
+              buttonLogo={
+                <button
+                  disabled={transaction.status !== "Pending"}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                >
+                  Reject
+                </button>
+              }
+              id={transaction.id}
+              onStatusUpdated={fetchData}
+            />
+          ) : (
+            <RefillIdRejectDialog
+              buttonLogo={
+                <button
+                  disabled={transaction.status !== "Pending"}
+                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                >
+                  Reject
+                </button>
+              }
+              id={transaction.id}
+              onStatusUpdated={fetchData}
+            />
+          )}
         </div>
       </div>
     </div>
