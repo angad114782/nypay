@@ -1,7 +1,16 @@
 import CopyButton from "@/components/CopyButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,32 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { getBadgeClasses } from "@/utils/RolesBadgeColor";
 import axios from "axios";
-import { toast } from "sonner";
-import {
-  Copy,
-  KeyRound,
-  ShieldPlus,
-  SquarePen,
-  Trash2Icon,
-  User,
-} from "lucide-react";
+import { Copy, KeyRound, ShieldPlus, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ModifyRolesDialog } from "./ModifyRolesDialog";
 import { TeamManagementDialog } from "./TeamManagementDialog";
 import latestLogo from "/asset/Group.png";
-import { ModifyRolesDialog } from "./ModifyRolesDialog";
-import { getBadgeClasses } from "@/utils/RolesBadgeColor";
 
 const TeamManagement = () => {
   const [entries, setEntries] = useState(10);
@@ -95,7 +86,8 @@ const TeamManagement = () => {
       setLoading(true);
 
       await axios.delete(
-        `${import.meta.env.VITE_URL
+        `${
+          import.meta.env.VITE_URL
         }/api/user-management/team/${userIdToDelete}`,
         {
           headers: {
@@ -125,6 +117,7 @@ const TeamManagement = () => {
       if (currentPage > newTotalPages && newTotalPages > 0) {
         setCurrentPage(newTotalPages);
       }
+      fetchTeamUsers(); // Refresh the user list
     } catch (err) {
       console.error("Failed to delete user", err);
       toast.error(err?.response?.data?.message || "Failed to delete user");
@@ -178,7 +171,7 @@ const TeamManagement = () => {
             <TableHead>User Name</TableHead>
             <TableHead>Mobile No.</TableHead>
             <TableHead className={"text-center"}>User Role</TableHead>
-            <TableHead className="text-right rounded-tr-lg">Action</TableHead>
+            <TableHead className="text-center rounded-tr-lg">Action</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -189,10 +182,11 @@ const TeamManagement = () => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${typeof item.userId === "object"
+                    textToCopy={`Username - ${
+                      typeof item.userId === "object"
                         ? item.userId.name
                         : item.userId
-                      }\nProfile Name - ${item.profileName}`}
+                    }\nProfile Name - ${item.profileName}`}
                     title="Copy User Name, Profile Name"
                   />
                 </div>
@@ -209,12 +203,7 @@ const TeamManagement = () => {
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.email}
-                  <CopyButton
-                    textToCopy={
-                      item.email
-                    }
-                    title="Copy User Name"
-                  />
+                  <CopyButton textToCopy={item.email} title="Copy User Name" />
                 </div>
               </TableCell>
               <TableCell>
@@ -280,7 +269,10 @@ const TeamManagement = () => {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={() =>
-                            handleDelete(item._id, item.name || item.profileName)
+                            handleDelete(
+                              item._id,
+                              item.name || item.profileName
+                            )
                           }
                           className="bg-red-600 hover:bg-red-700"
                           disabled={loading}
@@ -315,9 +307,9 @@ const TeamManagement = () => {
           {teamUsers.length === 0
             ? "No entries to display"
             : `Showing ${(currentPage - 1) * entries + 1} to ${Math.min(
-              currentPage * entries,
-              teamUsers.length
-            )} of ${teamUsers.length} entries`}
+                currentPage * entries,
+                teamUsers.length
+              )} of ${teamUsers.length} entries`}
         </span>
 
         <div className="flex gap-1">
@@ -332,10 +324,11 @@ const TeamManagement = () => {
             <button
               key={i + 1}
               onClick={() => goToPage(i + 1)}
-              className={`px-2 py-1 rounded border text-sm ${currentPage === i + 1
+              className={`px-2 py-1 rounded border text-sm ${
+                currentPage === i + 1
                   ? "bg-[#8AAA08] text-white"
                   : "bg-white text-gray-700"
-                }`}
+              }`}
             >
               {i + 1}
             </button>

@@ -50,6 +50,10 @@ const AddAccountUpiCard = ({ data, isSelected, onSelect, onDelete }) => {
       toast.success("UPI deleted successfully");
       onDelete(); // Refetch UPI list
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("Delete failed", err);
       toast.error("Failed to delete UPI");
     }
@@ -68,6 +72,10 @@ const AddAccountUpiCard = ({ data, isSelected, onSelect, onDelete }) => {
       toast.success("UPI set as active");
       onSelect(data._id); // Update selected in parent
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("Failed to set active", err);
       toast.error("Failed to update UPI");
     }
@@ -78,7 +86,9 @@ const AddAccountUpiCard = ({ data, isSelected, onSelect, onDelete }) => {
       <div className="flex items-center gap-2">
         <img src={UPILogo} className="size-14" alt="upi logo" />
         <div>
-          <h3 className="text-[14px] font-light leading-[22px]">{data.upiName}</h3>
+          <h3 className="text-[14px] font-light leading-[22px]">
+            {data.upiName}
+          </h3>
           <p className="text-[10px] font-light">{data.upiId}</p>
         </div>
       </div>

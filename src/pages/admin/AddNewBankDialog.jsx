@@ -70,6 +70,10 @@ export const AddNewBankDialog = ({ onSuccess }) => {
         bankName: "",
       });
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Error:", err);
       toast.error(err?.response?.data?.message || "Something went wrong");
     } finally {

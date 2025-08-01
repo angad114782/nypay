@@ -27,7 +27,10 @@ const protect = async (req, res, next) => {
     console.error("Authentication error:", error.message);
 
     if (error.name === "TokenExpiredError") {
-      console.warn("Token expired for user:", req.user ? req.user._id : "unknown");
+      console.warn(
+        "Token expired for user:",
+        req.user ? req.user._id : "unknown"
+      );
     } else {
       console.error("Invalid token or user not found");
     }
@@ -45,10 +48,14 @@ const roleCheck = (...allowedRoles) => {
     }
 
     console.warn(
-      `Access denied for user ${req.user?.email || "unknown"} with role ${req.user?.role}`
+      `Access denied for user ${req.user?.email || "unknown"} with role ${
+        req.user?.role
+      }`
     );
 
-    return res.status(403).json({ message: "Access denied: Unauthorized role" });
+    return res
+      .status(403)
+      .json({ message: "Access denied: Unauthorized role" });
   };
 };
 

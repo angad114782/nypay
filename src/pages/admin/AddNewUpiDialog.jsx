@@ -38,12 +38,16 @@ export const AddNewUpiDialog = ({ onAdd }) => {
       formData.append("upiId", teamManagementData.upiId);
       if (image) formData.append("qrImage", image);
 
-      await axios.post(`${import.meta.env.VITE_URL}/api/admin/upi/add`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post(
+        `${import.meta.env.VITE_URL}/api/admin/upi/add`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       toast.success("UPI added successfully");
       onAdd(); // ✅ Refetch UPI list
@@ -54,6 +58,10 @@ export const AddNewUpiDialog = ({ onAdd }) => {
       fileInputRef.current.value = "";
       setOpen(false);
     } catch (error) {
+      if (error.response && error.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ UPI Add Error:", error);
       toast.error("❌ Failed to add UPI");
     } finally {

@@ -1,11 +1,9 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
-import Footer from "../sections/Footer";
-import MyId from "../sections/MyId";
-import CreateId from "../sections/CreateId";
-import Header from "../sections/Header";
 import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import BankingBankTab from "../sections/BankingBankTab";
 import BankingUpiTab from "../sections/BankingUpiTab";
+import Footer from "../sections/Footer";
+import Header from "../sections/Header";
 
 function Banking() {
   const [searchParams] = useSearchParams();

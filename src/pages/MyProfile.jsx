@@ -17,6 +17,7 @@ const MyProfile = () => {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const token = localStorage.getItem("token");
 
@@ -65,6 +66,7 @@ const MyProfile = () => {
     if (!name || !phone || !email) return alert("Please fill all fields");
 
     try {
+      setLoading(true);
       const formData = new FormData();
       formData.append("name", name);
       formData.append("email", email);
@@ -83,11 +85,18 @@ const MyProfile = () => {
           },
         }
       );
+
       refreshUserProfile();
       toast.success("Profile updated successfully");
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Update failed", err);
       toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -185,8 +194,9 @@ const MyProfile = () => {
             <button
               type="submit"
               className="bgt-blue2 rounded-lg px-6 mt-2 py-1.5 w-full t-shadow5"
+              disabled={loading}
             >
-              Submit
+              {loading ? "Updating..." : "Submit"}
             </button>
             <button
               type="button"

@@ -108,6 +108,17 @@ const ClientInfoTable = () => {
         `User ${isActive ? "activated" : "deactivated"} successfully`
       );
     } catch (err) {
+      // Rollback optimistic update on error
+      setUsers((prev) =>
+        prev.map((user) =>
+          user._id === id ? { ...user, isActive: !isActive } : user
+        )
+      );
+      // ✅ Toast on error
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("Toggle Active Error:", err);
       toast.error("Failed to update user status");
     }

@@ -338,6 +338,7 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
         <button
           className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
           onClick={handleSubmitDeposit}
+          disabled={loading}
         >
           {loading ? "Submitting..." : "Submit"}
         </button>

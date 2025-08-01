@@ -6,21 +6,27 @@ import { AddNewUpiDialog } from "./AddNewUpiDialog";
 const AddAccountUpiTab = ({ onClose }) => {
   const [selectedUpiId, setSelectedUpiId] = useState(null);
   const [data, setData] = useState([]);
-const fetchUpis = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.get(`${import.meta.env.VITE_URL}/api/admin/upi/list`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const fetchUpis = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/admin/upi/list`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-    // console.log("Fetched UPI data:", res.data); // 🔍
-    setData(Array.isArray(res.data.upis) ? res.data.upis : []);
-  } catch (err) {
-    console.error("Failed to fetch UPIs", err);
-    setData([]); // fallback
-  }
-};
-
+      // console.log("Fetched UPI data:", res.data); // 🔍
+      setData(Array.isArray(res.data.upis) ? res.data.upis : []);
+    } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
+      console.error("Failed to fetch UPIs", err);
+      setData([]); // fallback
+    }
+  };
 
   useEffect(() => {
     fetchUpis();

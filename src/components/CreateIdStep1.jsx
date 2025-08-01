@@ -10,11 +10,17 @@ const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo, card }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      setLoading(true);
+      if (!username || !password) {
+        toast.error("Username and password are required.");
+        return;
+      }
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
@@ -33,17 +39,25 @@ const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo, card }) => {
       );
 
       if (res.data.success) {
+        setLoading(false);
+        setUsername("");
+        setPassword("");
+
         toast.success(res.data.message || "Bank details added successfully.");
         onClose();
         await fetchGameIds();
         if (onClick) onClick({ username, password }); // optional callback
         onClose(); // close the modal
       } else {
-        alert("❌ Failed to create ID: " + res.data.message);
+        setLoading(false);
+        toast.error(res.data.message || "Failed to create ID.");
       }
     } catch (err) {
+      setLoading(false);
       console.error("❌ Error:", err);
-      alert("❌ Server Error: " + (err.response?.data?.message || err.message));
+      toast.error(
+        "❌ Server Error: " + (err.response?.data?.message || err.message)
+      );
     }
   };
 
@@ -126,6 +140,7 @@ const CreateIdStep1 = ({ onClose, onClick, title, subtitle, logo, card }) => {
 
         <button
           className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
+          disabled={loading}
           // onClick={onClick}
           type="submit"
         >

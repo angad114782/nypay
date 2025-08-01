@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
 const WithdrawalRejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
   const [remark, setRemark] = useState("");
@@ -40,7 +41,11 @@ const WithdrawalRejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
       }
     } catch (err) {
       console.error("❌ Rejection failed:", err);
-      alert(err?.response?.data?.message || "Rejection failed");
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
+      toast.error(err?.response?.data?.message || "Rejection failed");
     } finally {
       setLoading(false);
     }

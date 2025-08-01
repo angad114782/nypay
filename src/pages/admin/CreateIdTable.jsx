@@ -141,15 +141,19 @@ const CreateIdTable = ({ data, fetchData }) => {
           },
         }
       );
-
+      console.log("Response from status update:", res.data);
       updateItem(id, {
-        status: res.data.deposit.status,
-        remark: res.data.deposit.remark,
+        status: res.data.updated.status,
+        remark: res.data.updated.remark,
       });
       console.log("✅ Authenticated User:", req.user);
       toast.success(`ID creation ${newStatus} successfully`);
       await fetchData();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       const msg = err?.response?.data?.message || "Failed to update status.";
       toast.error(msg);
     }

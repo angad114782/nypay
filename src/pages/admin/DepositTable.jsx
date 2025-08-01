@@ -80,6 +80,10 @@ const DepositTable = ({ data, fetchDeposits }) => {
       toast.success(`Status updated successfully`);
       await fetchDeposits();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       const msg = err?.response?.data?.message || "Failed to update status.";
       toast.error(msg);
     }

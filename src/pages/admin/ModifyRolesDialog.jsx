@@ -47,6 +47,10 @@ export function ModifyRolesDialog({ user, onSuccess, buttonLogo }) {
       setOpen(false);
       onSuccess();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error(err);
       toast.error(err?.response?.data?.message || "Failed to update role");
     }
@@ -57,7 +61,9 @@ export function ModifyRolesDialog({ user, onSuccess, buttonLogo }) {
       <DialogTrigger asChild>{buttonLogo}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Modify Role for {user.name || user.profileName}</DialogTitle>
+          <DialogTitle>
+            Modify Role for {user.name || user.profileName}
+          </DialogTitle>
           <DialogDescription>Select a single role to assign</DialogDescription>
         </DialogHeader>
 
@@ -73,7 +79,9 @@ export function ModifyRolesDialog({ user, onSuccess, buttonLogo }) {
                 onChange={(e) => setRole(e.target.value)}
                 className="accent-[#8AAA08]" // Tailwind accent color
               />
-              {r === "createID" ? "Create ID" : r.charAt(0).toUpperCase() + r.slice(1)}
+              {r === "createID"
+                ? "Create ID"
+                : r.charAt(0).toUpperCase() + r.slice(1)}
             </label>
           ))}
         </div>

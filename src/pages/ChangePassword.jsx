@@ -1,8 +1,7 @@
 import Footer from "@/sections/Footer";
 import axios from "axios";
-import { ArrowLeft, Camera } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -46,7 +45,11 @@ const ChangePassword = () => {
     } catch (err) {
       console.log(err, "error");
       console.error("❌ Update failed", err);
-      alert("❌ Failed to update Password");
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
+      toast.error("❌ Failed to update Password");
     }
   };
 

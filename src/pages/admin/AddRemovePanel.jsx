@@ -50,6 +50,10 @@ const AddRemovePanel = () => {
       toast.success(`Panel ${userId} deleted successfully`);
       fetchPanels();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Failed to delete Panels", err);
     }
   };
@@ -70,6 +74,10 @@ const AddRemovePanel = () => {
         `Panel ${checked ? "activated" : "deactivated"} successfully`
       );
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Failed to toggle Panel status", err);
       // Revert on failure
       setData((prev) =>
@@ -197,8 +205,8 @@ const AddRemovePanel = () => {
               <TableCell className={"align-middle"}>
                 <div className="flex justify-center items-center gap-1">
                   <Switch
-                    checked={item.isActive}
-                    onCheckedChange={(val) => togglePanelStatus(item._id, val)}
+                    checked={!item.isActive}
+                    onCheckedChange={(val) => togglePanelStatus(item._id, !val)}
                   />
                 </div>
               </TableCell>
@@ -396,7 +404,7 @@ const TransactionCard = ({
           <div className="flex items-center justify-center text-xs gap-1">
             Activate/Deactivate
             <Switch
-              checked={transaction.isActive}
+              checked={!transaction.isActive}
               onCheckedChange={(val) => togglePanelStatus(transaction._id, val)}
             />
           </div>

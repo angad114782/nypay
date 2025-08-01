@@ -115,19 +115,12 @@ const MyIdCard = ({
           {/* Main Content */}
           <div className="flex-1 flex flex-col justify-between h-full">
             <div className="flex items-start justify-between w-full">
-              <div className="flex flex-col gap-1 pt-1">
-                <span className="text-[15px] font-bold">{gameName}</span>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-sm">{username}</span>
-                  <CopyButton textToCopy={username} title="Copy Username" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm">{password}</span>
-                  <CopyButton textToCopy={password} title="Copy Password" />
+              <div className="flex flex-col gap-0.6 ">
+                <div className="flex items-center gap-2">
+                  <span className="text-[15px] font-bold">{gameName}</span>
                   {status !== "Active" && (
                     <span
-                      className={`text-xs px-2 py-1 rounded font-semibold ${
+                      className={`text-xs  rounded-full py-1 px-1.5 font-semibold ${
                         status === "Rejected"
                           ? "bg-yellow-100 text-yellow-700"
                           : status === "Closed"
@@ -140,6 +133,14 @@ const MyIdCard = ({
                       {status}
                     </span>
                   )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm">{username}</span>
+                  <CopyButton textToCopy={username} title="Copy Username" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm">{password}</span>
+                  <CopyButton textToCopy={password} title="Copy Password" />
                 </div>
               </div>
 
