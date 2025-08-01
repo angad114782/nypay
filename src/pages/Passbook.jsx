@@ -41,7 +41,6 @@ function Passbook() {
         gameId: item.gameId,
       }));
 
-
       setFilteredData(formattedData);
     } catch (err) {
       console.error("Passbook Fetch Error:", err);
@@ -50,7 +49,7 @@ function Passbook() {
       setLoading(false);
     }
   };
-
+  console.log(filteredData, "filteredData");
 
   useEffect(() => {
     fetchPassbook();
@@ -105,7 +104,6 @@ function Passbook() {
                 gameId={item.gameId}
                 image={logo}
               />
-
             ))
           ) : (
             <p className="text-center text-sm text-gray-400 py-8">

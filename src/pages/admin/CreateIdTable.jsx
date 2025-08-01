@@ -141,10 +141,10 @@ const CreateIdTable = ({ data, fetchData }) => {
           },
         }
       );
-
+      console.log("Response from status update:", res.data);
       updateItem(id, {
-        status: res.data.deposit.status,
-        remark: res.data.deposit.remark,
+        status: res.data.updated.status,
+        remark: res.data.updated.remark,
       });
       console.log("✅ Authenticated User:", req.user);
       toast.success(`ID creation ${newStatus} successfully`);

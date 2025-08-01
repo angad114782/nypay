@@ -12,41 +12,13 @@ function MyId() {
   const [showPanelDeposit, setShowPanelDeposit] = useState(false);
   const [showPanelWithdraw, setShowPanelWithdraw] = useState(false);
   const [selectedCard, setSelectedCard] = useState(null);
-  const { myIdCardData } = useContext(GlobalContext);
+  const { myIdCardData, fetchGameIds } = useContext(GlobalContext);
   // const [myIdCardData, setMyIdCardData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // // ✅ Fetch on mount
-  // useEffect(() => {
-  //   const fetchGameIds = async () => {
-  //     try {
-  //       setLoading(true);
-  //       const token = localStorage.getItem("token");
-  //       const res = await axios.get(
-  //         `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
-  //         {
-  //           headers: {
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         }
-  //       );
-
-  //       if (res.data.success) {
-  //         console.log(res.data);
-  //         setMyIdCardData(res.data.gameIds);
-  //       } else {
-  //         toast.error("Failed to fetch Game IDs");
-  //       }
-  //     } catch (err) {
-  //       console.error("❌ Error fetching Game IDs:", err);
-  //       toast.error("Something went wrong while loading Game IDs.");
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchGameIds();
-  // }, []);
+  useEffect(() => {
+    fetchGameIds();
+  }, []);
 
   const handlePanelDeposit = (card) => {
     setSelectedCard(card);

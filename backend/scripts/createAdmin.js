@@ -5,7 +5,8 @@ const User = require("../models/User");
 async function createAdmin() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    const email = "super-admin@example.com";
+    // const email = "admin@example.com";
+    const email = "super-admin@example.com"; // Change to
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -21,7 +22,14 @@ async function createAdmin() {
       isVerified: true,
       role: "super-admin",
     });
-
+    // const admin = new User({
+    //   name: "Admin1",
+    //   phone: "9999999992",
+    //   email,
+    //   password: "admin123", // plain, will be hashed via pre-save hook
+    //   isVerified: true,
+    //   role: "admin",
+    // });
     await admin.save();
 
     console.log("✅ Admin created:", admin.email);
@@ -31,5 +39,6 @@ async function createAdmin() {
     process.exit(1);
   }
 }
+// export default createAdmin;
 
 createAdmin();

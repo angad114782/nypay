@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import clsx from "clsx";
 import { Triangle } from "lucide-react";
-import PassbookImagePreview from "./PassbookImagePreview";
 import { AnimatePresence, motion } from "framer-motion";
+import { PassbookReceipt } from "./PassbookImagePreview";
 
 const statusStyles = {
   Approved: "bg-green-500 ct-black",
@@ -10,7 +10,6 @@ const statusStyles = {
   Rejected: "bg-[#CA361C] text-white",
   Cancelled: "bg-gray-400 ct-black",
 };
-
 const PassbookCard = ({
   url,
   amount,
@@ -20,7 +19,7 @@ const PassbookCard = ({
   reference,
   utr,
   gameId,
-  image,
+  image, // Keep for backward compatibility but won't be used
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -74,7 +73,11 @@ const PassbookCard = ({
             initial={{ opacity: 0, height: 0, marginTop: 0 }}
             animate={{ opacity: 1, height: "auto", marginTop: "0.75rem" }}
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 0.61, 0.36, 1], layout: { duration: 0.3 } }}
+            transition={{
+              duration: 0.3,
+              ease: [0.22, 0.61, 0.36, 1],
+              layout: { duration: 0.3 },
+            }}
             className="relative z-10 overflow-hidden"
           >
             <motion.div
@@ -85,7 +88,9 @@ const PassbookCard = ({
             >
               <div className="bg-[#0C49BE] rounded-lg p-3 space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-white font-bold">Reference No.</span>
+                  <span className="text-xs text-white font-bold">
+                    Reference No.
+                  </span>
                   <span className="text-xs text-white font-medium">
                     {reference || "N/A"}
                   </span>
@@ -94,38 +99,35 @@ const PassbookCard = ({
                 {utr && (
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-white font-bold">UTR:</span>
-                    <span className="text-xs text-white font-medium">{utr}</span>
+                    <span className="text-xs text-white font-medium">
+                      {utr}
+                    </span>
                   </div>
                 )}
 
                 {gameId && (
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-white font-bold">Game ID:</span>
-                    <span className="text-xs text-white font-medium">{gameId}</span>
+                    <span className="text-xs text-white font-bold">
+                      Game ID:
+                    </span>
+                    <span className="text-xs text-white font-medium">
+                      {gameId}
+                    </span>
                   </div>
                 )}
 
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
                   <div className="flex items-center">
-                    {image ? (
-                      <PassbookImagePreview image={image} />
-                    ) : (
-                      <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
-                        <svg
-                          className="w-3 h-3 text-white/60"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"
-                          />
-                        </svg>
-                      </div>
-                    )}
+                    {/* Receipt component replacing image */}
+                    <PassbookReceipt
+                      amount={amount}
+                      dateTime={dateTime}
+                      gameId={gameId}
+                      reference={reference}
+                      status={status}
+                      txntype={txntype}
+                      url={url}
+                    />
                   </div>
 
                   <div className="flex items-center">

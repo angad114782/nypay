@@ -118,7 +118,8 @@ export const AdminRoute = ({ children }) => {
     <RoleProtectedRoute
       allowedRoles={["admin", "manager", "auditor", "deposit", "withdrawal"]}
     >
-{children}</RoleProtectedRoute>
+      {children}
+    </RoleProtectedRoute>
   );
 };
 

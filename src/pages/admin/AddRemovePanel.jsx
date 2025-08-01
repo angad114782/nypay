@@ -197,8 +197,8 @@ const AddRemovePanel = () => {
               <TableCell className={"align-middle"}>
                 <div className="flex justify-center items-center gap-1">
                   <Switch
-                    checked={item.isActive}
-                    onCheckedChange={(val) => togglePanelStatus(item._id, val)}
+                    checked={!item.isActive}
+                    onCheckedChange={(val) => togglePanelStatus(item._id, !val)}
                   />
                 </div>
               </TableCell>
@@ -396,7 +396,7 @@ const TransactionCard = ({
           <div className="flex items-center justify-center text-xs gap-1">
             Activate/Deactivate
             <Switch
-              checked={transaction.isActive}
+              checked={!transaction.isActive}
               onCheckedChange={(val) => togglePanelStatus(transaction._id, val)}
             />
           </div>
