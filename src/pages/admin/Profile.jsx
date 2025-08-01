@@ -47,11 +47,14 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
       const fetchProfile = async () => {
         try {
           const token = localStorage.getItem("token");
-          const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const res = await axios.get(
+            `${import.meta.env.VITE_URL}/api/auth/me`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
 
           setFormData({
             fullName: res.data.name || "",
@@ -61,7 +64,9 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
           });
 
           if (res.data.profilePic) {
-            setSelectedImage(`${import.meta.env.VITE_URL}/${res.data.profilePic}`);
+            setSelectedImage(
+              `${import.meta.env.VITE_URL}/${res.data.profilePic}`
+            );
           } else {
             setSelectedImage(Logo);
           }
@@ -95,6 +100,10 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
       alert("✅ Profile updated successfully");
       onClose();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Update error:", err.response?.data || err.message);
       alert("❌ Failed to update profile");
     }
@@ -141,7 +150,6 @@ export const ProfileEditDialog = ({ isOpen, onClose }) => {
                   {formData.fullName || "Admin"}
                 </h2>
                 <p className="text-gray-600">{formData.roleAss || "Admin"}</p>
-
               </div>
             </div>
           </div>

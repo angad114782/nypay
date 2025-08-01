@@ -51,10 +51,10 @@ exports.getMyPassbook = async (req, res) => {
         } else if (type === "idcreation" || type === "game-id") {
           const gid = await UserGameId.findById(txn.linkedId);
           if (gid?.status) dynamicStatus = gid.status;
-        } else if (type === "paneldeposit") {
+        } else if (type === "panel-deposit") {
           const pd = await PanelDeposit.findById(txn.linkedId);
           if (pd?.status) dynamicStatus = pd.status;
-        } else if (type === "panelwithdraw") {
+        } else if (type === "panel-withdraw") {
           const pw = await PanelWithdraw.findById(txn.linkedId);
           if (pw?.status) dynamicStatus = pw.status;
         }
@@ -74,9 +74,9 @@ exports.getMyPassbook = async (req, res) => {
           base.txntype = `Wallet Deposit of ₹${txn.amount}`;
         } else if (type === "wallet-withdraw") {
           base.txntype = `Wallet Withdraw of ₹${txn.amount}`;
-        } else if (type === "paneldeposit") {
+        } else if (type === "panel-deposit") {
           base.txntype = `Panel Deposit of ₹${txn.amount}`;
-        } else if (type === "panelwithdraw") {
+        } else if (type === "panel-withdraw") {
           base.txntype = `Panel Withdraw of ₹${txn.amount}`;
         } else if (type === "idcreation" || type === "game-id") {
           base.txntype = "ID Created via Panel";

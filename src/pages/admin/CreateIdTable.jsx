@@ -150,6 +150,10 @@ const CreateIdTable = ({ data, fetchData }) => {
       toast.success(`ID creation ${newStatus} successfully`);
       await fetchData();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       const msg = err?.response?.data?.message || "Failed to update status.";
       toast.error(msg);
     }

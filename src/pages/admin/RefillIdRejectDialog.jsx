@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import axios from "axios";
+import { toast } from "sonner";
 
 const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
   const [remark, setRemark] = useState("");
@@ -39,8 +40,12 @@ const RefillIdRejectDialog = ({ id, onStatusUpdated, buttonLogo }) => {
         setRemark(""); // optional: clear remark field
       }
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Rejection failed:", err);
-      alert(err?.response?.data?.message || "Rejection failed");
+      toast.error(err?.response?.data?.message || "Rejection failed");
     } finally {
       setLoading(false);
     }

@@ -21,7 +21,7 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
     profileName: "",
     userId: "",
     password: "",
-    type: []
+    type: [],
   });
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -38,8 +38,6 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
       setImage(null);
     }
   }, [panel, isEdit]);
-
-
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -73,6 +71,10 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
       }
       fetchPanels();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error(err);
       toast.error(isEdit ? "Update failed." : "Creation failed.");
     } finally {
@@ -84,9 +86,10 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
     <Dialog>
       {
         <DialogTrigger
-          className={`${!isEdit &&
+          className={`${
+            !isEdit &&
             "bg-[#FAB906] text-black cursor-pointer lg:px-6 px-3 lg:py-2 lg:h-full rounded-lg hover:bg-[#fab940]"
-            }`}
+          }`}
         >
           {isEdit ? <SquarePen /> : "Add New Panel"}
         </DialogTrigger>
@@ -157,7 +160,11 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
                     <label
                       key={typeOption}
                       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer border 
-          ${isSelected ? "bg-blue-600 text-white border-blue-600" : "bg-gray-100 text-gray-800 border-gray-300"}`}
+          ${
+            isSelected
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-gray-100 text-gray-800 border-gray-300"
+          }`}
                     >
                       <input
                         type="radio"
@@ -170,13 +177,13 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
                         className="hidden"
                       />
                       <span className="text-sm capitalize">{typeOption}</span>
-                      {isSelected && <span className="text-white text-sm">✔️</span>}
+                      {isSelected && (
+                        <span className="text-white text-sm">✔️</span>
+                      )}
                     </label>
                   );
                 })}
               </div>
-
-
             </div>
 
             <div>
@@ -245,8 +252,8 @@ export default function AddOrEditPanelDialog({ fetchPanels, panel }) {
                         ? "Updating..."
                         : "Submitting..."
                       : isEdit
-                        ? "Update"
-                        : "Submit"}
+                      ? "Update"
+                      : "Submit"}
                   </Button>
                 </DialogClose>
               </div>

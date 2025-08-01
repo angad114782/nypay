@@ -50,6 +50,10 @@ const AddRemovePanel = () => {
       toast.success(`Panel ${userId} deleted successfully`);
       fetchPanels();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Failed to delete Panels", err);
     }
   };
@@ -70,6 +74,10 @@ const AddRemovePanel = () => {
         `Panel ${checked ? "activated" : "deactivated"} successfully`
       );
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Failed to toggle Panel status", err);
       // Revert on failure
       setData((prev) =>

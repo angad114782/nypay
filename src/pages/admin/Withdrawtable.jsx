@@ -1,4 +1,5 @@
 import CopyButton from "@/components/CopyButton";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -9,19 +10,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useTableFilter } from "@/hooks/AdminTableFilterHook";
+import axios from "axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Copy, CreditCard, Hash, MapPin, MessageSquare } from "lucide-react";
-import React, { useState } from "react";
+import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
-import WithdrawLogo from "/asset/Group 48095823.png";
-import axios from "axios";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import WithdrawalRejectDialog from "./WithdrawalRejectDialog";
-import DepositRejectDialog from "./DepositRejectDialog";
+import WithdrawLogo from "/asset/Group 48095823.png";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -135,6 +133,10 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
       toast.success(`Status updated successfully`);
       await fetchWithdraws();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       const msg = err?.response?.data?.message || "Failed to update status.";
       toast.error(msg);
     }

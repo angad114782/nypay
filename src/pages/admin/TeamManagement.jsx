@@ -1,7 +1,16 @@
 import CopyButton from "@/components/CopyButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,32 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { getBadgeClasses } from "@/utils/RolesBadgeColor";
 import axios from "axios";
-import { toast } from "sonner";
-import {
-  Copy,
-  KeyRound,
-  ShieldPlus,
-  SquarePen,
-  Trash2Icon,
-  User,
-} from "lucide-react";
+import { Copy, KeyRound, ShieldPlus, User } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ModifyRolesDialog } from "./ModifyRolesDialog";
 import { TeamManagementDialog } from "./TeamManagementDialog";
 import latestLogo from "/asset/Group.png";
-import { ModifyRolesDialog } from "./ModifyRolesDialog";
-import { getBadgeClasses } from "@/utils/RolesBadgeColor";
 
 const TeamManagement = () => {
   const [entries, setEntries] = useState(10);

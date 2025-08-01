@@ -39,6 +39,10 @@ const RejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
         setRemark(""); // optional: clear remark field
       }
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Rejection failed:", err);
       alert(err?.response?.data?.message || "Rejection failed");
     } finally {

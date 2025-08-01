@@ -58,6 +58,10 @@ const SliderManagement = () => {
       toast.success(res.data.message || "Images uploaded");
       fetchSliders();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("Upload error:", err);
       toast.error("Failed to upload images");
     } finally {
@@ -79,6 +83,10 @@ const SliderManagement = () => {
       // remove any others that share the same URL
       setImages((prev) => prev.filter((i) => i.imageUrl !== img.imageUrl));
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       toast.error("Failed to delete image");
     } finally {
       setLoading(false);

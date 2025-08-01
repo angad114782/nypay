@@ -58,6 +58,10 @@ export const PasswordChangeDialog = ({ isOpen, onClose }) => {
       toast.success("✅ Password changed successfully");
       onClose();
     } catch (err) {
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("❌ Update error:", err.response?.data || err.message);
       toast.error("❌ Failed to change password");
     } finally {

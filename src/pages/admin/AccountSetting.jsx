@@ -104,8 +104,12 @@ export const AddAccountBankTabList = ({
   );
 };
 
-
-const AddAccountBankTabCard = ({ data, isSelected, onSelect, onDeleteSuccess }) => {
+const AddAccountBankTabCard = ({
+  data,
+  isSelected,
+  onSelect,
+  onDeleteSuccess,
+}) => {
   const handleSelect = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -121,6 +125,12 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect, onDeleteSuccess }) 
       toast.success("Bank set as active");
       onSelect(data._id); // Update selected ID in parent
     } catch (err) {
+      // Handle error
+      if (err.response && err.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
+
       console.error("Set active bank failed", err);
       toast.error("Failed to update active bank");
     }
@@ -142,6 +152,10 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect, onDeleteSuccess }) 
       toast.success("Bank deleted successfully");
       onDeleteSuccess(); // Refetch data
     } catch (error) {
+      if (error.response && error.response.status === 403) {
+        toast.warning("You are not authorized to perform this action");
+        return;
+      }
       console.error("Delete Bank Failed", error);
       toast.error("Failed to delete bank");
     }
@@ -197,13 +211,13 @@ const AddAccountBankTabCard = ({ data, isSelected, onSelect, onDeleteSuccess }) 
           <span className="font-medium text-right break-all">
             {data?.createdAt
               ? new Date(data.createdAt).toLocaleString("en-IN", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: true,
+                })
               : "N/A"}
           </span>
         </div>

@@ -8,6 +8,7 @@ function AddBank({ onClose }) {
   const [accountHolder, setAccountHolder] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [ifscCode, setIfscCode] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,6 +19,13 @@ function AddBank({ onClose }) {
     }
 
     try {
+      if (loading) return; // Prevent multiple submissions
+      setLoading(true);
+      setbankName("");
+      setAccountHolder("");
+      setAccountNumber("");
+      setIfscCode("");
+      // Reset the form fields after submission
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
@@ -40,6 +48,8 @@ function AddBank({ onClose }) {
     } catch (err) {
       console.error("Add Bank Error:", err);
       toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false); // Reset loading state after submission
     }
   };
 

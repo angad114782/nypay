@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Lock, ShieldPlus, AlertCircle } from "lucide-react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
 export const TeamManagementDialog = ({ onSuccess }) => {
   const [open, setOpen] = useState(false);
@@ -25,7 +27,6 @@ export const TeamManagementDialog = ({ onSuccess }) => {
     password: "",
     selectedRole: "",
   });
-
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({}); // Add state for field-specific errors
@@ -63,12 +64,13 @@ export const TeamManagementDialog = ({ onSuccess }) => {
     if (!teamManagementData.userId.trim()) {
       newErrors.userId = "User ID is required";
     }
-    if (!teamManagementData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
-    } else if (!/^[6-9]\d{9}$/.test(teamManagementData.mobile.trim())) {
-      newErrors.mobile = "Enter a valid 10-digit mobile number";
-    }
 
+    // // Updated validation for the new PhoneInput component
+    // if (!teamManagementData.mobile.trim()) {
+    //   newErrors.mobile = "Mobile number is required";
+    // } else if (!isValidPhoneNumber(teamManagementData.mobile)) {
+    //     newErrors.mobile = "Enter a valid mobile number";
+    // }
 
     if (!teamManagementData.password.trim()) {
       newErrors.password = "Password is required";
@@ -79,7 +81,6 @@ export const TeamManagementDialog = ({ onSuccess }) => {
     if (!teamManagementData.selectedRole) {
       newErrors.roles = "Please select a role";
     }
-
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -97,18 +98,18 @@ export const TeamManagementDialog = ({ onSuccess }) => {
     setLoading(true);
     setErrors({}); // Clear any previous errors
 
-    const role = teamManagementData.selectedRole === "createID"
-      ? "user"
-      : teamManagementData.selectedRole;
+    const role =
+      teamManagementData.selectedRole === "createID"
+        ? "user"
+        : teamManagementData.selectedRole;
 
     const payload = {
       profileName: teamManagementData.profileName.trim(),
       userId: teamManagementData.userId.trim(),
-      mobile: teamManagementData.mobile.trim(),
+      mobile: teamManagementData.mobile, // Send the full phone number with country code
       password: teamManagementData.password,
       role,
     };
-
 
     try {
       const res = await axios.post(
@@ -127,6 +128,10 @@ export const TeamManagementDialog = ({ onSuccess }) => {
       resetForm();
       if (onSuccess) onSuccess();
     } catch (err) {
+      if (err.response.status === 403) {
+        toast.error("You are not authorized to perform this action");
+        return;
+      }
       console.error(err);
 
       // Handle different types of errors
@@ -209,8 +214,9 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                     handleInputChange("profileName", e.target.value)
                   }
                   placeholder="Enter team member name"
-                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.profileName ? "border border-red-500" : ""
-                    }`}
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.profileName ? "border border-red-500" : ""
+                  }`}
                   required
                 />
                 {errors.profileName && (
@@ -228,8 +234,9 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   value={teamManagementData.userId}
                   onChange={(e) => handleInputChange("userId", e.target.value)}
                   placeholder="Enter required Email ID"
-                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.userId ? "border border-red-500" : ""
-                    }`}
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.userId ? "border border-red-500" : ""
+                  }`}
                   required
                 />
                 {errors.userId && (
@@ -241,15 +248,25 @@ export const TeamManagementDialog = ({ onSuccess }) => {
               </div>
 
               <div>
-                <Label className="text-gray-800 font-medium">Mobile Number</Label>
-                <Input
-                  type="tel"
+                <Label className="text-gray-800 font-medium">
+                  Mobile Number
+                </Label>
+                {/* PhoneInput Component */}
+                <PhoneInput
+                  country={"in"}
                   value={teamManagementData.mobile}
-                  onChange={(e) => handleInputChange("mobile", e.target.value)}
-                  placeholder="Enter 10-digit mobile number"
-                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.mobile ? "border border-red-500" : ""
-                    }`}
-                  required
+                  onChange={(value) => handleInputChange("mobile", value)}
+                  inputClass={`!w-full !bg-gray-100 !border-0 !focus:bg-white !shadow-none !h-10 !rounded-md ${
+                    errors.mobile ? "border border-red-500" : ""
+                  }`}
+                  containerClass="mt-2"
+                  inputProps={{
+                    name: "mobile",
+                    required: true,
+                    placeholder: "Enter 10-digit mobile number",
+                    disabled: loading,
+                  }}
+                  disabled={loading}
                 />
                 {errors.mobile && (
                   <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
@@ -258,7 +275,6 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   </div>
                 )}
               </div>
-
 
               <div>
                 <Label className="text-gray-800 font-medium">
@@ -271,8 +287,9 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                     handleInputChange("password", e.target.value)
                   }
                   placeholder="Enter password (min 6 characters)"
-                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${errors.password ? "border border-red-500" : ""
-                    }`}
+                  className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
+                    errors.password ? "border border-red-500" : ""
+                  }`}
                   required
                 />
                 {errors.password && (
@@ -290,7 +307,14 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   <span className="text-sm text-black">Role Assign</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3 ml-auto">
-                  {["admin", "deposit", "manager", "withdrawal", "auditor", "createID"].map((role) => (
+                  {[
+                    "admin",
+                    "deposit",
+                    "manager",
+                    "withdrawal",
+                    "auditor",
+                    "createID",
+                  ].map((role) => (
                     <label key={role} className="flex items-center gap-2">
                       <input
                         type="radio"
@@ -305,7 +329,6 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                     </label>
                   ))}
                 </div>
-
               </div>
               {errors.roles && (
                 <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
