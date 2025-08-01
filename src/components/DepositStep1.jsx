@@ -192,8 +192,10 @@ function DepositStep1({
         <button
           className="bgt-blue2 rounded-lg px-6 py-2.5 w-full t-shadow5"
           type="submit"
+          disabled={loading}
+          style={{ opacity: loading ? 0.6 : 1 }}
         >
-          Submit
+          {depositPanel ? (loading ? "Submitting..." : "Submit") : "Submit"}
         </button>
       </form>
     </div>

@@ -43,15 +43,12 @@ exports.createPanelDeposit = async (req, res) => {
       linkedId: deposit._id,
     });
 
-
     res.status(200).json({ message: "Deposit request submitted." });
   } catch (err) {
     console.error("Deposit Error:", err);
     res.status(500).json({ error: "Server error." });
   }
 };
-
-
 
 exports.getAllPanelDeposits = async (req, res) => {
   try {
@@ -71,11 +68,13 @@ exports.getAllPanelDeposits = async (req, res) => {
 
         return {
           ...deposit.toObject(),
-          gameIdInfo: userGame ? {
-            username: userGame.username,
-            password: userGame.password,
-            status: userGame.status,
-          } : null,
+          gameIdInfo: userGame
+            ? {
+                username: userGame.username,
+                password: userGame.password,
+                status: userGame.status,
+              }
+            : null,
         };
       })
     );
@@ -87,14 +86,20 @@ exports.getAllPanelDeposits = async (req, res) => {
   }
 };
 
-
-
 exports.updatePanelDepositStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    let { status, remark } = req.body;
+    let { status, remark = "" } = req.body;
 
-    // 🔁 Normalize status input
+    // ✅ Validate required fields
+    if (!id || !status) {
+      return res.status(400).json({
+        success: false,
+        message: "ID and status are required.",
+      });
+    }
+
+    // 🔁 Normalize and validate status
     const statusMap = {
       pending: "Pending",
       approve: "Approved",
@@ -107,41 +112,76 @@ exports.updatePanelDepositStatus = async (req, res) => {
     };
 
     status = statusMap[status?.toLowerCase()] || null;
-    if (!status) {
-      return res.status(400).json({ message: "Invalid status" });
+    if (!["Approved", "Rejected", "Pending"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status value.",
+      });
     }
 
+    // 🔍 Find the panel deposit
     const deposit = await PanelDeposit.findById(id);
     if (!deposit) {
-      return res.status(404).json({ message: "Deposit not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Deposit request not found.",
+      });
     }
 
+    // 💰 Deduct wallet if first-time approval
     if (status === "Approved" && deposit.status !== "Approved") {
       const gameId = await UserGameId.findOne({ panelId: deposit.panelId });
-      if (!gameId) return res.status(404).json({ message: "Game ID not found" });
+      if (!gameId) {
+        return res.status(404).json({
+          success: false,
+          message: "Game ID not found for panel.",
+        });
+      }
 
       const user = await User.findById(gameId.userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found.",
+        });
+      }
 
-      // ✅ Deduct instead of credit
       user.wallet = (user.wallet || 0) - deposit.amount;
 
-      // Optional: Prevent negative wallet
+      // Prevent negative balance
       if (user.wallet < 0) user.wallet = 0;
 
       await user.save();
+
+      // 🧾 Log deduction to passbook (optional)
+      await Passbook.create({
+        userId: user._id,
+        type: "panel-deposit",
+        direction: "debit",
+        amount: deposit.amount,
+        balance: user.wallet,
+        description: `₹${deposit.amount} deducted for panel deposit (Panel ID: ${deposit.panelId})`,
+        status: "Success",
+        linkedId: deposit._id,
+      });
     }
 
-
-    // 💾 Update deposit
+    // 💾 Update deposit status and remark
     deposit.status = status;
     deposit.remark = remark;
     deposit.statusUpdatedAt = new Date();
     await deposit.save();
 
-    return res.status(200).json({ message: "Deposit status updated.", deposit });
-  } catch (err) {
-    console.error("🔥 Status Update Error:", err);
-    return res.status(500).json({ message: "Server Error" });
+    return res.status(200).json({
+      success: true,
+      message: "Panel deposit status updated successfully.",
+      updated: deposit,
+    });
+  } catch (error) {
+    console.error("❌ Error updating panel deposit status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error.",
+    });
   }
 };

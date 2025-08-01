@@ -15,6 +15,10 @@ const PanelWithdrawSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  remark: {
+    type: String,
+    default: "",
+  },
   status: {
     type: String,
     enum: ["Pending", "Approved", "Rejected"],
