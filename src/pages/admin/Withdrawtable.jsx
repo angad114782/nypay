@@ -171,6 +171,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
             <TableHead className="w-[100px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
             {/* <TableHead>User Name</TableHead> */}
+            <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
@@ -207,6 +208,15 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                   />
                 </div>
               </TableCell> */}
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {item.wallet}
+                  <CopyButton
+                    textToCopy={item.wallet}
+                    title="Copy amount Number"
+                  />
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}

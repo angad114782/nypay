@@ -171,6 +171,7 @@ const DepositTable = ({ data, fetchDeposits }) => {
             <TableHead className="w-[100px] rounded-tl-lg">S.No</TableHead>
             <TableHead>Profile Name</TableHead>
             {/* <TableHead>User Name</TableHead> */}
+            <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>UTR</TableHead>
@@ -207,6 +208,12 @@ const DepositTable = ({ data, fetchDeposits }) => {
                   />
                 </div>
               </TableCell> */}
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {item.wallet}
+                  <CopyButton textToCopy={item.wallet} title="Copy Amount" />
+                </div>
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.amount}

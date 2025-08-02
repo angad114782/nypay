@@ -53,7 +53,7 @@ exports.createPanelDeposit = async (req, res) => {
 exports.getAllPanelDeposits = async (req, res) => {
   try {
     const deposits = await PanelDeposit.find()
-      .populate("userId", "name email") // Optional
+      .populate("userId", "name email lastLoginIp wallet") // Optional
       .populate("panelId", "profileName") // Optional
       .sort({ requestedAt: -1 });
 

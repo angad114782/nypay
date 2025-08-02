@@ -48,6 +48,25 @@ const AccessDenied = ({ requiredRole, userRole }) => {
             {userRole || "None"}
           </span>
         </p>
+
+        {/* ✅ Show redirection button based on role */}
+        {userRole === "user" ? (
+          <button
+            onClick={() => (window.location.href = "/")}
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg mb-4 transition-colors"
+          >
+            Go to Home
+          </button>
+        ) : (
+          <button
+            onClick={() => (window.location.href = "/admin")}
+            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg mb-4 transition-colors"
+          >
+            Go to Admin Dashboard
+          </button>
+        )}
+
+        {/* ✅ Logout button */}
         <button
           onClick={() => {
             localStorage.removeItem("token");
@@ -57,9 +76,9 @@ const AccessDenied = ({ requiredRole, userRole }) => {
           }}
           className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
         >
-          {" "}
           Logout - {userRole || "None"}
         </button>
+
       </div>
     </div>
   );
@@ -122,7 +141,7 @@ export const ClientRoute = ({ children }) => {
 export const AdminRoute = ({ children }) => {
   return (
     <RoleProtectedRoute
-      allowedRoles={["admin", "manager", "auditor", "deposit", "withdrawal"]}
+      allowedRoles={["admin", "manager", "auditor", "deposit", "withdrawal", "createID"]}
     >
       {children}
     </RoleProtectedRoute>

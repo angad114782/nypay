@@ -18,8 +18,8 @@ const createTeamUser = async (req, res) => {
       return res.status(400).json({ message: "All fields are required including role" });
     }
 
-    // ✅ 2. Convert createID -> user
-    const selectedRole = role === "createID" ? "user" : role;
+    // ✅ 2. Use role as-is (createID allowed)
+    const selectedRole = role;
 
     // ✅ 3. Check if user exists
     const existingUser = await User.findOne({
@@ -57,6 +57,7 @@ const createTeamUser = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
 
 const getAllTeamUsers = async (req, res) => {
   try {

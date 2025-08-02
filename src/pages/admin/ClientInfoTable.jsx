@@ -226,13 +226,13 @@ const ClientInfoTable = () => {
               Mobile <br /> Number
             </TableHead>
             <TableHead>
+              Wallet Bal.
+            </TableHead>
+            <TableHead>
               Created <br /> Date
             </TableHead>
             <TableHead>
               Last <br /> Deposit
-            </TableHead>
-            <TableHead>
-              Last <br /> Deposit <br /> Date
             </TableHead>
             <TableHead>
               Last <br /> Login <br /> Date
@@ -272,9 +272,9 @@ const ClientInfoTable = () => {
                   />
                 </div>
               </TableCell>
+              <TableCell>{item.wallet}</TableCell>
               <TableCell>{item.createdAt}</TableCell>
               <TableCell>{item.lastDeposit}</TableCell>
-              <TableCell>{item.lastDepositDate}</TableCell>
               <TableCell>{item.lastLoginDate}</TableCell>
               <TableCell>{item.totalDeposit}</TableCell>
 

@@ -264,6 +264,7 @@ const RefillUnload = ({ onTabChange }) => {
           parentIp: d.parentIp || "—",
           paymentType: "Panel Deposit",
           website: d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+          wallet: d.userId?.wallet || 0,
         }));
         setDepositData(transformedDeposits);
       } else {
@@ -284,6 +285,7 @@ const RefillUnload = ({ onTabChange }) => {
           parentIp: w.parentIp || "—",
           paymentType: "Panel Withdraw",
           website: w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+          wallet: w.userId?.wallet || 0,
         }));
         setWithdrawData(transformedWithdrawals);
       } else {

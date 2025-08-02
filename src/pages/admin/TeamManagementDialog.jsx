@@ -98,10 +98,8 @@ export const TeamManagementDialog = ({ onSuccess }) => {
     setLoading(true);
     setErrors({}); // Clear any previous errors
 
-    const role =
-      teamManagementData.selectedRole === "createID"
-        ? "user"
-        : teamManagementData.selectedRole;
+    const role = teamManagementData.selectedRole; // ✅ keep it exact
+
 
     const payload = {
       profileName: teamManagementData.profileName.trim(),

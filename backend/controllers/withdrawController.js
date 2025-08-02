@@ -65,11 +65,12 @@ exports.getAllWithdraws = async (req, res) => {
   try {
     const withdraws = await Withdraw.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "name email");
+      .populate("userId", "name email phone lastLoginIp wallet");
     const formatted = withdraws.map((dep) => ({
       id: dep._id,
       profileName: dep.userId?.name || "N/A",
       userName: dep.userId?.email || "N/A",
+      wallet: dep.userId?.wallet || 0,
       amount: dep.amount,
       paymentType: dep.paymentMethod,
       selectedAccount: dep.selectedAccount,

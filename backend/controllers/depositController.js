@@ -65,12 +65,13 @@ exports.getAllDeposits = async (req, res) => {
   try {
     const deposits = await Deposit.find()
       .sort({ createdAt: -1 })
-      .populate("userId", "name email phone lastLoginIp");
+      .populate("userId", "name email phone lastLoginIp wallet");
 
     const formatted = deposits.map((dep) => ({
       id: dep._id,
       profileName: dep.userId?.name || "N/A",
       userName: dep.userId?.email || "N/A",
+      wallet: dep.userId?.wallet || 0,
       amount: dep.amount,
       paymentType: dep.paymentMethod,
       utr: dep.utr,

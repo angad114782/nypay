@@ -58,7 +58,7 @@ exports.createPanelWithdraw = async (req, res) => {
 exports.getAllPanelWithdraws = async (req, res) => {
   try {
     const withdraws = await PanelWithdraw.find()
-      .populate("userId", "name email")
+      .populate("userId", "name email lastLoginIp wallet")
       .populate("panelId", "profileName")
       .sort({ requestedAt: -1 });
 

@@ -140,46 +140,66 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    if (!email || !password)
+    // ✅ 1. Basic validation
+    if (!email || !password) {
       return res.status(400).json({ message: "Email and password required" });
+    }
 
+    // ✅ 2. Find user and validate password
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    // ✅ 3. Check active and verified
     if (!user.isActive) {
       return res.status(403).json({ message: "Your account is inactive" });
     }
-
-
-    if (!user.isVerified)
+    if (!user.isVerified) {
       return res.status(403).json({ message: "User not verified via OTP" });
-
-    const ip =
-      req.headers["x-forwarded-for"]?.split(",")[0] ||
-      req.socket?.remoteAddress;
-
-    let locationData = {};
-    try {
-      const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
-      locationData = {
-        city: geoRes.data.city,
-        region: geoRes.data.region,
-        latitude: geoRes.data.latitude,
-        longitude: geoRes.data.longitude,
-      };
-
-      user.lastLoginIp = ip;
-      user.city = locationData.city;
-      user.region = locationData.region;
-      user.latitude = locationData.latitude;
-      user.longitude = locationData.longitude;
-      await user.save();
-    } catch (e) {
-      console.error("📍 Location fetch failed:", e.message);
     }
 
+    // ✅ 4. Get IP address
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      req.ip;
+
+    let locationData = {
+      city: "",
+      region: "",
+      latitude: null,
+      longitude: null,
+    };
+
+    try {
+      // ✅ 5. Fetch geolocation based on IP
+      const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
+      locationData = {
+        city: geoRes.data.city || "",
+        region: geoRes.data.region || "",
+        latitude: geoRes.data.latitude || null,
+        longitude: geoRes.data.longitude || null,
+      };
+
+      console.log("📌 Saving login IP & location:", {
+        ip,
+        ...locationData,
+      });
+    } catch (geoErr) {
+      console.warn("📍 Location fetch failed:", geoErr.message);
+    }
+
+    // ✅ 6. Save IP and location to user record
+    user.lastLoginIp = ip;
+    user.city = locationData.city;
+    user.region = locationData.region;
+    user.latitude = locationData.latitude;
+    user.longitude = locationData.longitude;
+    await user.save();
+
+    // ✅ 7. Send response with token and user info
     res.status(200).json({
       message: "Login successful",
       token: generateToken(user),
@@ -197,20 +217,23 @@ exports.login = async (req, res) => {
       },
     });
   } catch (err) {
-    console.error("Login Error:", err.message);
+    console.error("❌ Login Error:", err.message);
     res.status(500).json({ message: "Login failed" });
   }
 };
+
 
 exports.verifyLoginOtp = async (req, res) => {
   const { phone, otp } = req.body;
 
   try {
+    // ✅ 1. Find OTP record
     const record = await Otp.findOne({ phone, type: "login" });
     if (!record || record.otp !== otp || record.expiresAt < Date.now()) {
       return res.status(401).json({ message: "Invalid or expired OTP" });
     }
 
+    // ✅ 2. Find user
     const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -218,32 +241,50 @@ exports.verifyLoginOtp = async (req, res) => {
       return res.status(403).json({ message: "Your account is inactive" });
     }
 
-
+    // ✅ 3. Extract IP address
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
-      req.socket?.remoteAddress;
+      req.connection?.remoteAddress ||
+      req.socket?.remoteAddress ||
+      req.ip;
 
-    let locationData = {};
+    let locationData = {
+      city: "",
+      region: "",
+      latitude: null,
+      longitude: null,
+    };
+
     try {
+      // ✅ 4. Fetch geolocation data
       const geoRes = await axios.get(`https://ipapi.co/${ip}/json/`);
       locationData = {
-        city: geoRes.data.city,
-        region: geoRes.data.region,
-        latitude: geoRes.data.latitude,
-        longitude: geoRes.data.longitude,
+        city: geoRes.data.city || "",
+        region: geoRes.data.region || "",
+        latitude: geoRes.data.latitude || null,
+        longitude: geoRes.data.longitude || null,
       };
 
-      user.lastLoginIp = ip;
-      user.city = locationData.city;
-      user.region = locationData.region;
-      user.latitude = locationData.latitude;
-      user.longitude = locationData.longitude;
-      await user.save();
-    } catch (e) {
-      console.error("📍 Location fetch failed:", e.message);
+      console.log("📌 OTP login IP & location:", {
+        ip,
+        ...locationData,
+      });
+    } catch (geoErr) {
+      console.warn("📍 Location fetch failed:", geoErr.message);
     }
 
+    // ✅ 5. Update user login details
+    user.lastLoginIp = ip;
+    user.city = locationData.city;
+    user.region = locationData.region;
+    user.latitude = locationData.latitude;
+    user.longitude = locationData.longitude;
+    await user.save();
+
+    // ✅ 6. Clean up OTP
     await Otp.deleteOne({ phone, type: "login" });
+
+    // ✅ 7. Return response
     res.status(200).json({
       message: "Login successful",
       token: generateToken(user),
@@ -265,6 +306,7 @@ exports.verifyLoginOtp = async (req, res) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
+
 
 // ✅ Protected profile route
 exports.getProfile = async (req, res) => {
