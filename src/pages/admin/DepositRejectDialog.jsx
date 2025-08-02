@@ -36,6 +36,7 @@ const DepositRejectDialog = ({ gameId, onStatusUpdated, buttonLogo }) => {
       );
       if (res.data.success) {
         onStatusUpdated(res.data.updated);
+        toast.success(`Deposit rejected successfully`);
         setOpen(false); // ✅ close the dialog
         setRemark(""); // optional: clear remark field
       }

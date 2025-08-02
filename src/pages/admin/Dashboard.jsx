@@ -68,7 +68,6 @@ const DashboardTab = ({ onTabChange }) => {
           },
         ]);
 
-
         setWithdrawalData([
           {
             title: "Total Withdrawal",
@@ -100,7 +99,6 @@ const DashboardTab = ({ onTabChange }) => {
           },
         ]);
 
-
         setClientData([
           {
             title: "Total Clients",
@@ -124,7 +122,10 @@ const DashboardTab = ({ onTabChange }) => {
           },
         ]);
       } catch (err) {
-        console.error("❌ Failed to load dashboard stats:", err.response?.data || err.message);
+        console.error(
+          "❌ Failed to load dashboard stats:",
+          err.response?.data || err.message
+        );
       }
     };
 
@@ -147,7 +148,7 @@ const DashboardTab = ({ onTabChange }) => {
               Deposit Information
             </h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
             {depositData.map((item, index) => (
               <InfoCard
                 key={index}
@@ -156,11 +157,11 @@ const DashboardTab = ({ onTabChange }) => {
                 amount={item.amount}
                 bgColor={item.bgColor}
                 textColor={item.textColor}
-                className={
-                  index === depositData.length - 1
-                    ? "col-span-2 md:col-span-1"
-                    : ""
-                }
+                // className={
+                //   index === depositData.length - 1
+                //     ? "col-span-2 md:col-span-1"
+                //     : ""
+                // }
               />
             ))}
           </div>
@@ -173,7 +174,7 @@ const DashboardTab = ({ onTabChange }) => {
               Withdrawal Information
             </h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
             {withdrawalData.map((item, index) => (
               <InfoCard
                 key={index}
@@ -182,11 +183,11 @@ const DashboardTab = ({ onTabChange }) => {
                 amount={item.amount}
                 bgColor={item.bgColor}
                 textColor={item.textColor}
-                className={
-                  index === withdrawalData.length - 1
-                    ? "col-span-2 md:col-span-1"
-                    : ""
-                }
+                // className={
+                //   index === withdrawalData.length - 1
+                //     ? "col-span-2 md:col-span-1"
+                //     : ""
+                // }
               />
             ))}
           </div>

@@ -15,49 +15,55 @@ const LoadingSpinner = () => (
 );
 
 // Access Denied Component
-const AccessDenied = ({ requiredRole, userRole }) => (
-  <div className="min-h-screen flex items-center justify-center bg-white">
-    <div className="text-center max-w-md mx-4">
-      <div className="mb-6">
-        <svg
-          className="w-16 h-16 mx-auto text-red-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+const AccessDenied = ({ requiredRole, userRole }) => {
+  const { setUserProfile } = React.useContext(GlobalContext); // Add this line
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center max-w-md mx-4">
+        <div className="mb-6">
+          <svg
+            className="w-16 h-16 mx-auto text-red-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
+        <p className="text-gray-600 mb-6">
+          You don't have permission to access this page.
+          <br />
+          Required role:{" "}
+          <span className="font-semibold text-red-600">{requiredRole}</span>
+          <br />
+          Your role:{" "}
+          <span className="font-semibold text-blue-600">
+            {userRole || "None"}
+          </span>
+        </p>
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("userProfile");
+            setUserProfile(null);
+            window.location.href = "/login";
+          }}
+          className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.232 16.5c-.77.833.192 2.5 1.732 2.5z"
-          />
-        </svg>
+          {" "}
+          Logout - {userRole || "None"}
+        </button>
       </div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Access Denied</h2>
-      <p className="text-gray-600 mb-6">
-        You don't have permission to access this page.
-        <br />
-        Required role:{" "}
-        <span className="font-semibold text-red-600">{requiredRole}</span>
-        <br />
-        Your role:{" "}
-        <span className="font-semibold text-blue-600">
-          {userRole || "None"}
-        </span>
-      </p>
-      <button
-        onClick={() => {
-          localStorage.removeItem("token");
-          window.location.href = "/login";
-        }}
-        className="bg-red-500 hover:bg-red-600 text-white px-6 cursor-pointer py-2 rounded-lg transition-colors"
-      >
-        {" "}
-        Logout - {userRole || "None"}
-      </button>
     </div>
-  </div>
-);
+  );
+};
 
 // Protected Route for authenticated users (any role)
 export const ProtectedRoute = ({ children }) => {
@@ -144,9 +150,9 @@ export const AdminOrSuperAdminRoute = ({ children }) => {
 // Public Route (only accessible when NOT logged in)
 export const PublicRoute = ({ children }) => {
   const { isLoggedIn, isLoading } = useAuth();
-  const { userProfile } = useContext(GlobalContext);
+  const { userProfile, loadingProfile } = useContext(GlobalContext);
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || (isLoggedIn && loadingProfile)) return <LoadingSpinner />;
 
   // If logged in, redirect based on role
   if (isLoggedIn && userProfile) {

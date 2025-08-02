@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
-import logonew from "/asset/latest logo.svg";
+import logonew from "/asset/loginlogo.svg";
 import { useAuth } from "../utils/AuthContext";
 import { toast } from "sonner";
 import { GlobalContext } from "@/utils/globalData";

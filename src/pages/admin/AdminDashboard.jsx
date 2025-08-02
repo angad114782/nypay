@@ -27,7 +27,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AccountSetting from "./AccountSetting";
 import AddRemovePanel from "./AddRemovePanel";
@@ -48,10 +48,12 @@ import { FaLandmark } from "react-icons/fa";
 import { toast } from "sonner";
 import { useAuth } from "@/utils/AuthContext";
 import axios from "axios";
+import { GlobalContext } from "@/utils/globalData";
 
 const Dashboard = () => {
   const { tab } = useParams();
   const { setIsLoggedIn } = useAuth();
+  const { setUserProfile } = useContext(GlobalContext); // global context
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -77,6 +79,7 @@ const Dashboard = () => {
       localStorage.removeItem("token");
       localStorage.removeItem("userProfile");
       setIsLoggedIn(false);
+      setUserProfile(null); // <-- clear context profile
       navigate("/login");
       toast.success("Logged out successfully");
     } catch (error) {
@@ -147,7 +150,7 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState(getCurrentTab());
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState({
+  const [localUserProfile, setLocalUserProfile] = useState({
     name: "",
     role: "",
     profilePic: "",
@@ -163,7 +166,7 @@ const Dashboard = () => {
           },
         });
 
-        setUserProfile({
+        setLocalUserProfile({
           fullName: res.data.name || "Admin",
           role: res.data.role || "user",
           profilePic: res.data.profilePic
@@ -184,7 +187,6 @@ const Dashboard = () => {
       ? "Super Admin"
       : role.charAt(0).toUpperCase() + role.slice(1);
   };
-
 
   useEffect(() => {
     setActiveTab(getCurrentTab());
@@ -347,9 +349,8 @@ const Dashboard = () => {
               <Menu className="h-5 w-5" />
             </Button>
             <h1 className="text-lg md:text-xl font-semibold">
-              {formatRole(userProfile.role)} Dashboard
+              {formatRole(localUserProfile.role)} Dashboard
             </h1>
-
           </div>
           <div className="flex items-center gap-2 md:gap-4">
             <ModeToggle />
@@ -357,7 +358,7 @@ const Dashboard = () => {
               <DropdownMenuTrigger>
                 <Avatar>
                   <AvatarImage
-                    src={userProfile.profilePic || Logo}
+                    src={localUserProfile.profilePic || Logo}
                     alt="User Avatar"
                     className="h-10 w-10 md:h-12 md:w-12  hover:cursor-pointer rounded-full object-cover"
                   />
@@ -410,45 +411,51 @@ const Dashboard = () => {
         `}
       >
         <div
-          className={`flex items-center justify-center ${!isSidebarOpen ? "flex-col gap-0" : "flex"
-            }  gap-0.5`}
+          className={`flex items-center justify-center ${
+            !isSidebarOpen ? "flex-col gap-0" : "flex"
+          }  gap-0.5`}
         ></div>
         <Avatar
-          className={`${isSidebarOpen && !isMobileMenuOpen
-            ? "h-[93px] w-[93px]"
-            : "h-[30px] w-[30px]"
-            } mx-auto my-2 bg-amber-600 border-1`}
+          className={`${
+            isSidebarOpen && !isMobileMenuOpen
+              ? "h-[93px] w-[93px]"
+              : "h-[30px] w-[30px]"
+          } mx-auto my-2 bg-amber-600 border-1`}
         >
           <AvatarImage
-            src={userProfile.profilePic || Logo}
+            src={localUserProfile.profilePic || Logo}
             alt="User Avatar"
-            className={`${isSidebarOpen ? "h-[93px] w-[93px]" : "h-[30px] w-[30px]"
-              } mx-auto my-2 transition-all duration-300 object-contain `}
+            className={`${
+              isSidebarOpen ? "h-[93px] w-[93px]" : "h-[30px] w-[30px]"
+            } mx-auto my-2 transition-all duration-300 object-contain `}
           />
 
           <AvatarFallback>
             <User
-              className={`${isSidebarOpen ? "h-[93px] w-[93px]" : "h-[30px] w-[30px]"
-                }`}
+              className={`${
+                isSidebarOpen ? "h-[93px] w-[93px]" : "h-[30px] w-[30px]"
+              }`}
             />
           </AvatarFallback>
         </Avatar>
         {isSidebarOpen && (
           <div className="mx-auto text-center flex flex-col text-lg items-center">
-            <span className="font-semibold">{formatRole(userProfile.fullName)}</span>
+            <span className="font-semibold">
+              {formatRole(localUserProfile.fullName)}
+            </span>
             <span className="text-[15px] font-normal text-gray-600">
-              {formatRole(userProfile.role)} Role
+              {formatRole(localUserProfile.role)} Role
             </span>
           </div>
-
         )}
         <nav className="p-2 space-y-1 ">
           {sidebarItems.map((item, idx) => (
             <React.Fragment key={item.id}>
               <Button
                 variant={activeTab === item.id ? "secondary" : "ghost"}
-                className={`w-full justify-start ${isSidebarOpen ? "px-2" : "px-2"
-                  }`}
+                className={`w-full justify-start ${
+                  isSidebarOpen ? "px-2" : "px-2"
+                }`}
                 onClick={() => handleTabChange(item.id)}
               >
                 <item.icon className="h-10 w-10" />
@@ -470,8 +477,9 @@ const Dashboard = () => {
       {/* Main Content */}
 
       <main
-        className={`transition-all duration-300 bg-white dark:bg-white dark:text-black font-display pt-16 ${isSidebarOpen ? "md:ml-68" : "md:ml-20"
-          }`}
+        className={`transition-all duration-300 bg-white dark:bg-white dark:text-black font-display pt-16 ${
+          isSidebarOpen ? "md:ml-68" : "md:ml-20"
+        }`}
       >
         <div className="p-4  md:p-6">
           {tab === "client-details" ? <ClientDetails /> : renderContent()}

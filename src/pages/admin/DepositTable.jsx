@@ -88,73 +88,7 @@ const DepositTable = ({ data, fetchDeposits }) => {
       toast.error(msg);
     }
   };
-  const updateStatus = async (id, newStatus) => {
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_URL}/api/deposit/admin/status/${id}`,
-        { status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success(`Deposit ${newStatus}`); // e.g. “Withdrawal Completed”
-      fetchDeposits(); // or refetch data
-      console.log(res, "updateStatus");
-    } catch (err) {
-      console.error("Status update failed", err);
-      toast.error("Unable to update status.");
-    }
-  };
 
-  const updateRemark = async (id) => {
-    const remark = prompt("Enter remark for this withdrawal:");
-    if (remark == null) return; // user cancelled
-    try {
-      await axios.put(
-        `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${id}`,
-        { remark },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Remark saved");
-      fetchDeposits();
-    } catch (err) {
-      console.error("Remark update failed", err);
-      toast.error("Unable to save remark.");
-    }
-  };
-  // const handleAction = async (depositId, type) => {
-  //   try {
-  //     let url = "";
-  //     let data = {};
-
-  //     if (type === "approve") {
-  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
-  //       data = { status: "approved" };
-  //     } else if (type === "reject") {
-  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/status/${depositId}`;
-  //       data = { status: "rejected" }; // make sure lowercase matches backend check
-  //     } else if (type === "remark") {
-  //       const remark = prompt("Enter remark:");
-  //       if (!remark) return;
-  //       url = `${import.meta.env.VITE_URL}/api/deposit/admin/remark/${depositId}`;
-  //       data = { remark };
-  //     }
-
-  //     const res = await axios.patch(url, data, {
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-  //       },
-  //     });
-
-  //     toast.success(res.data.message || `${type}d successfully`);
-  //     window.location.reload();
-  //   } catch (err) {
-  //     toast.error("❌ " + (err.response?.data?.message || "Something went wrong"));
-  //   }
-  // };
-
-  // React.useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [entries, search, searchColumn]);
-  // PDF Download handler
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     autoTable(doc, {
@@ -339,8 +273,8 @@ const DepositTable = ({ data, fetchDeposits }) => {
           <TransactionCard
             key={item.id}
             transaction={item}
-            updateStatus={updateStatus}
-            updateRemark={updateRemark}
+            fetchDeposits={fetchDeposits}
+            handleStatusUpdate={handleStatusUpdate}
           />
         ))}
       </div>
@@ -467,7 +401,11 @@ export const TransactionCard = ({
             utr={transaction.utr}
           />
 
-          <Copy className={"h-6 w-6"} />
+          <CopyButton
+            textToCopy={`Username - ${transaction.userName}\nAmount - ${transaction.amount}\nUTR - ${transaction.utr}`}
+            title="Copy User Name, Amount, UTR"
+            className="h-6 w-6"
+          />
         </div>
         <div className="flex  gap-2">
           <button
@@ -479,7 +417,7 @@ export const TransactionCard = ({
               )
             }
             disabled={transaction.status !== "Pending"}
-            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+            className="bg-green-500 disabled:bg-gray-100 disabled:text-gray-700 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
@@ -487,7 +425,7 @@ export const TransactionCard = ({
             buttonLogo={
               <button
                 disabled={transaction.status !== "Pending"}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                className="bg-red-500 hover:bg-red-600  disabled:bg-gray-100 disabled:text-gray-700 text-white px-3 py-1 rounded-full text-xs"
               >
                 Reject
               </button>
