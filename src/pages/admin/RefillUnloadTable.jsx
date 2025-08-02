@@ -22,6 +22,7 @@ import TableFilterBar from "./TableFilters";
 import logonew from "/asset/new.png";
 import RefillIdRejectDialog from "./RefillIdRejectDialog";
 import UnloadIdRejectDialog from "./UnloadIdRejectDialog";
+import { Badge } from "@/components/ui/badge";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -211,7 +212,7 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
             <TableHead>Payment Type</TableHead>
             <TableHead>Website</TableHead>
             <TableHead>Entry Date</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className={"text-center"}>Status</TableHead>
             <TableHead>Remark</TableHead>
             {type === "unload" && <TableHead>Withdraw Date</TableHead>}
             <TableHead className="text-center">Action</TableHead>
@@ -257,7 +258,9 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                 </div>
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
-              <TableCell>{item.status}</TableCell>
+              <TableCell className={" text-center"}>
+                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              </TableCell>
               <TableCell>{item.remark}</TableCell>
               {type === "unload" && <TableCell>{item.withdrawDate}</TableCell>}
               <TableCell className="text-center align-middle">
@@ -446,7 +449,11 @@ export const TransactionCard = ({
       {/* Action Buttons */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <Copy className={"h-6 w-6"} />
+          <CopyButton
+            textToCopy={`Username - ${transaction.userName}\nAmount - ${transaction.amount}\nWebsite - ${transaction.website}`}
+            title="Copy User Name, Amount, UTR"
+            className="h-6 w-6"
+          />
         </div>
         <div className="flex  gap-2">
           <button

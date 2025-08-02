@@ -28,6 +28,7 @@ import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 import Pagination from "./Pagination";
 import { toast } from "sonner";
 import RejectDialog from "./RejectDialog";
+import { Badge } from "@/components/ui/badge";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -273,7 +274,7 @@ const CreateIdTable = ({ data, fetchData }) => {
             <TableHead>Password</TableHead>
             <TableHead>Panel</TableHead>
             <TableHead>Date Created</TableHead>
-            <TableHead>Status</TableHead>
+            <TableHead className={"text-center"}>Status</TableHead>
             <TableHead>Remark</TableHead>
             <TableHead>Block/Unblock</TableHead>
             <TableHead className="text-center">Action</TableHead>
@@ -319,7 +320,9 @@ const CreateIdTable = ({ data, fetchData }) => {
 
               <TableCell>{item.panel}</TableCell>
               <TableCell>{item.createdAt}</TableCell>
-              <TableCell>{item.status}</TableCell>
+              <TableCell className={" text-center"}>
+                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              </TableCell>
               <TableCell>{item.remark}</TableCell>
 
               <TableCell className="text-center align-middle">

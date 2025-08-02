@@ -118,20 +118,38 @@ const ScreenshotProof = ({ url, utr }) => {
         <Camera className={"h-6 w-6 block lg:hidden"} />
         <div className="hidden lg:block">Proof</div>
       </DialogTrigger>
-      <DialogContent className="p-0 w-full bg-[#8AAA08] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent
+        showCloseButton
+        className="p-0 w-full bg-[#8AAA08] max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
         <DialogDescription className={"hidden"}></DialogDescription>
-        <DialogHeader className="pt-2 flex-shrink-0">
-          <DialogTitle className="flex items-center justify-around">
-            <div className="mt-2 border-2 p-2 rounded-lg">Proof Image</div>
-            <div className="flex gap-2 mt-2">
-              <Button onClick={handleDownload}>Download</Button>
-              <Button onClick={handleCopy}>Copy</Button>
+        <DialogHeader className="px-2 sm:px-4 flex-shrink-0 relative">
+          <DialogTitle className="flex items-center justify-around mt-1 sm:mt-2 h-12 sm:h-14">
+            {/* Left side - Proof Image title - aligned with close button height */}
+            <div className="border-2 p-1.5 sm:p-2 rounded-lg text-sm sm:text-base font-semibold flex items-center h-8 sm:h-10">
+              Proof Image
+            </div>
+
+            {/* Right side - Action buttons, positioned to avoid close button */}
+            <div className="flex gap-1 sm:gap-2 items-center">
+              <Button
+                onClick={handleDownload}
+                className="text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2 h-8 sm:h-10"
+              >
+                Download
+              </Button>
+              <Button
+                onClick={handleCopy}
+                className="text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-2 h-8 sm:h-10"
+              >
+                Copy
+              </Button>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         {/* Image container with proper constraints */}
-        <div className="flex-1 overflow-auto min-h-0">
+        <div className="flex-1 overflow-auto min-h-0 px-2 sm:px-4 pb-2 sm:pb-4">
           <div className="w-full h-full flex items-center justify-center">
             <img
               src={url}

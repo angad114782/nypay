@@ -556,7 +556,11 @@ export const TransactionCard = ({
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           {/* Placeholder for Screenshot/UTR actions */}
-          <Copy className="h-6 w-6" />
+          <CopyButton
+            textToCopy={`ProfileName - ${transaction.profileName}\nAmount - ${transaction.amount}\nDetails - Name: ${transaction.selectedAccount.accountHolder}, Account: ${transaction.selectedAccount.accountNumber}, IFSC: ${transaction.selectedAccount.IFSCCode}, Bank: ${transaction.selectedAccount.bankName}`}
+            title="Copy User Name, Amount, Details"
+            className="h-6 w-6"
+          />
         </div>
         <div className="flex gap-2">
           <button
@@ -568,7 +572,7 @@ export const TransactionCard = ({
               )
             }
             disabled={transaction.status !== "Pending"}
-            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+            className="bg-green-500 disabled:bg-gray-100 disabled:text-gray-700 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
@@ -576,7 +580,7 @@ export const TransactionCard = ({
             buttonLogo={
               <button
                 disabled={transaction.status !== "Pending"}
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                className="bg-red-500 hover:bg-red-600  disabled:bg-gray-100 disabled:text-gray-700 text-white px-3 py-1 rounded-full text-xs"
               >
                 Reject
               </button>

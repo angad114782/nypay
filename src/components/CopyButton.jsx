@@ -1,7 +1,7 @@
+import { Copy, CopyCheck } from "lucide-react";
 import { useState } from "react";
-import { Copy, ClipboardCheck, CopyCheck } from "lucide-react";
 
-const CopyButton = ({ textToCopy, title }) => {
+const CopyButton = ({ textToCopy, title, className = "" }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -14,12 +14,12 @@ const CopyButton = ({ textToCopy, title }) => {
     <button
       onClick={handleCopy}
       title={title || "Copy"}
-      className="ml-1 p-1  rounded transition"
+      className={`ml-1 p-1 rounded transition `}
     >
       {copied ? (
-        <CopyCheck className="h-4 w-4 text-green-600" />
+        <CopyCheck className={`${className} h-4 w-4  text-green-600`} />
       ) : (
-        <Copy className="h-4 w-4" />
+        <Copy className={`${className} h-4 w-4`} />
       )}
     </button>
   );

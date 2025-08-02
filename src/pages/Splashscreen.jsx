@@ -1,5 +1,5 @@
 import React from "react";
-import logo from "/asset/Bookiehub Site.svg";
+import logo from "/asset/logoSplash.svg";
 
 const Splashscreen = () => {
   return (

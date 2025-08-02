@@ -3,7 +3,7 @@ import Button1 from "../components/Button1";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import WalletBalance from "../components/WalletBalance";
-import logonew from "/asset/Bookiehub Site.svg";
+import logonew from "/asset/logoSplash.svg";
 import { useAuth } from "../utils/AuthContext";
 import { GlobalContext } from "../utils/globalData";
 
@@ -67,10 +67,7 @@ function Header() {
             </div>
           ) : (
             <div>
-              <WalletBalance
-                padBal="py-[4px]"
-                bal={walletBalance}
-              />
+              <WalletBalance padBal="py-[4px]" bal={walletBalance} />
             </div>
           )}
         </div>

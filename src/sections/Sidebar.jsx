@@ -1,17 +1,15 @@
+import { useAuth } from "@/utils/AuthContext";
+import { GlobalContext } from "@/utils/globalData";
+import axios from "axios";
+import { useContext, useState } from "react";
 import { BsHexagonFill } from "react-icons/bs";
-import { CiSettings } from "react-icons/ci";
 import { FaHome, FaLandmark, FaQuestionCircle, FaUser } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
-import { MdNotifications, MdPassword, MdSettings } from "react-icons/md";
+import { MdNotifications, MdPassword } from "react-icons/md";
+import { RiProfileFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import MenuItem from "../components/MenuItem";
-import { RiProfileFill } from "react-icons/ri";
-import logonew from "/asset/latest logo.svg";
-import axios from "axios";
-import { useAuth } from "@/utils/AuthContext";
-import { useContext, useState } from "react";
-import { GlobalContext } from "@/utils/globalData";
-import { User2 } from "lucide-react";
+import logonew from "/asset/loginlogo.svg";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();

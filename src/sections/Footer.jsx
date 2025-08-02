@@ -26,7 +26,7 @@ function Footer() {
       onClick: () => navigate("/passbook"),
     },
     {
-      label: "Casino",
+      label: "Coming Soon",
       img: "asset/casino.svg",
       onClick: handleGameClick,
     },

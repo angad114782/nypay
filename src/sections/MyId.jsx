@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useMemo, useContext } from "react";
-import axios from "axios";
+import MyIdCard from "@/components/MyIdCard";
+import { GlobalContext } from "@/utils/globalData";
+import { useContext, useEffect, useMemo, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import DepositPanel from "./DepositPanel";
 import WithdrawPanel from "./WithdrawPanel";
-import { toast } from "react-toastify";
-import { GlobalContext } from "@/utils/globalData";
-import MyIdCard from "@/components/MyIdCard";
 
 function MyId() {
   const [searchTerm, setSearchTerm] = useState("");
