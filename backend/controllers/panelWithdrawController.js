@@ -143,7 +143,7 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
         });
       }
 
-      const user = await User.findById(gameId.userId);
+      const user = await User.findById(withdraw.userId);
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -153,18 +153,6 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
 
       user.wallet = (user.wallet || 0) + withdraw.amount;
       await user.save();
-
-      // 🧾 Log to passbook
-      await Passbook.create({
-        userId: user._id,
-        type: "panel-withdraw",
-        direction: "credit",
-        amount: withdraw.amount,
-        balance: user.wallet,
-        description: `₹${withdraw.amount} withdrawn from panel credited to wallet (Panel ID: ${withdraw.panelId})`,
-        status: "Success",
-        linkedId: withdraw._id,
-      });
     }
 
     // ✅ Update status and remark

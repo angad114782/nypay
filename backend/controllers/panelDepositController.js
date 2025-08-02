@@ -138,7 +138,7 @@ exports.updatePanelDepositStatus = async (req, res) => {
         });
       }
 
-      const user = await User.findById(gameId.userId);
+      const user = await User.findById(deposit.userId);
       if (!user) {
         return res.status(404).json({
           success: false,
@@ -152,18 +152,6 @@ exports.updatePanelDepositStatus = async (req, res) => {
       if (user.wallet < 0) user.wallet = 0;
 
       await user.save();
-
-      // 🧾 Log deduction to passbook (optional)
-      await Passbook.create({
-        userId: user._id,
-        type: "panel-deposit",
-        direction: "debit",
-        amount: deposit.amount,
-        balance: user.wallet,
-        description: `₹${deposit.amount} deducted for panel deposit (Panel ID: ${deposit.panelId})`,
-        status: "Success",
-        linkedId: deposit._id,
-      });
     }
 
     // 💾 Update deposit status and remark
