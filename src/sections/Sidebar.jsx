@@ -13,7 +13,7 @@ import logonew from "/asset/loginlogo.svg";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const { isLoggedIn, setIsLoggedIn } = useAuth();
-  const { userProfile } = useContext(GlobalContext);
+  const { userProfile, setUserProfile } = useContext(GlobalContext); // <-- add setUserProfile
   const navigate = useNavigate();
   const [logoutLoading, setLogoutLoading] = useState(false);
 
@@ -40,6 +40,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       localStorage.removeItem("token");
       localStorage.removeItem("userProfile");
       setIsLoggedIn(false);
+      setUserProfile(null); // <-- clear context profile
       setIsOpen(false);
       navigate("/login");
     } catch (error) {
