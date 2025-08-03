@@ -5,7 +5,7 @@ const Passbook = require("../models/Passbook");
 
 exports.createPanelDeposit = async (req, res) => {
   try {
-    const { amount, panelId } = req.body;
+    const { amount, panelId , gameUsername } = req.body;
 
     if (!amount || amount < 500) {
       return res.status(400).json({ error: "Minimum deposit is 500 coins." });
@@ -26,6 +26,7 @@ exports.createPanelDeposit = async (req, res) => {
       userId: req.user.id,
       panelId,
       amount,
+      gameUsername,
     });
 
     await deposit.save();
@@ -38,12 +39,12 @@ exports.createPanelDeposit = async (req, res) => {
       amount,
       balance: Number(user.wallet),
       panelId: panelId, // ✅ Correct
-      description: `Panel Deposit of ₹${amount} requested (Panel ID: ${panelId})`,
+      description: `Panel Deposit of ₹${amount} requested (Panel ID: ${gameUsername})`,
       status: "Pending",
       linkedId: deposit._id,
     });
 
-    res.status(200).json({ message: "Deposit request submitted." });
+    res.status(200).json({ message: "Deposit request submitted.",gameUsername });
   } catch (err) {
     console.error("Deposit Error:", err);
     res.status(500).json({ error: "Server error." });
@@ -53,28 +54,35 @@ exports.createPanelDeposit = async (req, res) => {
 exports.getAllPanelDeposits = async (req, res) => {
   try {
     const deposits = await PanelDeposit.find()
-      .populate("userId", "name email lastLoginIp wallet") // Optional
-      .populate("panelId", "profileName") // Optional
-      .sort({ requestedAt: -1 });
+      .populate("userId", "name email lastLoginIp wallet")
+      .populate("panelId", "profileName")
+      .sort({ requestedAt: -1 })
+      .lean(); // ✅ use lean for performance
 
-    // Add username from usergameid
     const enriched = await Promise.all(
       deposits.map(async (deposit) => {
-        const userGame = await UserGameId.findOne({
-          userId: deposit.userId._id,
-          panelId: deposit.panelId?._id,
-          status: "Active",
-        });
+        let gameId = null;
+
+        // Optional: enrich with full game ID info
+        if (deposit.userId?._id && deposit.panelId?._id) {
+          const userGame = await UserGameId.findOne({
+            userId: deposit.userId._id,
+            panelId: deposit.panelId._id,
+          }).lean();
+
+          if (userGame) {
+            gameId = {
+              username: userGame.username,
+              password: userGame.password,
+              status: userGame.status,
+            };
+          }
+        }
 
         return {
-          ...deposit.toObject(),
-          gameIdInfo: userGame
-            ? {
-                username: userGame.username,
-                password: userGame.password,
-                status: userGame.status,
-              }
-            : null,
+          ...deposit,
+          gameUsername: deposit.gameUsername || gameId?.username || null, // ✅ prefer saved username
+          gameId, // ✅ extra full object for UI or admin panel
         };
       })
     );
@@ -85,6 +93,7 @@ exports.getAllPanelDeposits = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch deposits." });
   }
 };
+
 
 exports.updatePanelDepositStatus = async (req, res) => {
   try {

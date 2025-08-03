@@ -253,9 +253,9 @@ const RefillUnload = ({ onTabChange }) => {
       if (depositRes.status === "fulfilled" && Array.isArray(depositRes.value.data)) {
         const transformedDeposits = depositRes.value.data.map((d) => ({
           id: d._id,
-          profileName: d.panelId?.profileName || "N/A",
+          profileName: d.gameUsername || "N/A",
           // userNamep: w.userId?.name || "N/A",
-          userName: d.userId?.name || d.gameIdInfo?.username || "N/A",
+          userName: d.userId?.email || d.gameIdInfo?.username || "N/A",
           password: d.gameIdInfo?.password || "N/A",
           status: d.status || "Pending",
           amount: d.amount,
@@ -275,8 +275,8 @@ const RefillUnload = ({ onTabChange }) => {
       if (withdrawRes.status === "fulfilled" && Array.isArray(withdrawRes.value.data)) {
         const transformedWithdrawals = withdrawRes.value.data.map((w) => ({
           id: w._id,
-          profileName: w.panelId?.profileName || "N/A",
-          userName: w.userId?.name || "N/A",
+          profileName: w.gameUsername  || "N/A",
+          userName: w.userId?.email || "N/A",
           status: w.status || "Pending",
           amount: w.amount,
           withdrawDate: new Date(w.requestedAt).toLocaleString(),

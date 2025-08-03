@@ -210,7 +210,6 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
             <TableHead>User Name</TableHead>
             <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
-            <TableHead>Payment Type</TableHead>
             <TableHead>Website</TableHead>
             <TableHead>Entry Date</TableHead>
             <TableHead className={"text-center"}>Status</TableHead>
@@ -230,7 +229,7 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nWebsite - ${item.website}`}
+                    textToCopy={`Profile Username - ${item.userName}\nAmount - ${item.amount}\nPanel Username - ${item.profileName}\nWebsite - ${item.website}`}
                     title="Copy User Name, Amount, UTR"
                   />
                 </div>
@@ -257,7 +256,6 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                   <CopyButton textToCopy={item.amount} title="Copy Amount" />
                 </div>
               </TableCell>
-              <TableCell>{item.paymentType}</TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.website}

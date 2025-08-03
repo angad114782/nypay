@@ -56,6 +56,7 @@ function DepositStep1({
           amount: Number(inputAmount),
           panelId: cardData.panelId._id, // Use the panel ID
           // cardId: cardData._id, // Include card ID if needed
+          gameUsername: cardData.username,
         },
         {
           headers: {

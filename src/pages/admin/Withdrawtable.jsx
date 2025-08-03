@@ -193,12 +193,25 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`ProfileName - ${item.profileName}\nAmount - ${item.amount}\nDetails - Name: ${item.selectedAccount.accountHolder}, Account: ${item.selectedAccount.accountNumber}, IFSC: ${item.selectedAccount.IFSCCode}, Bank: ${item.selectedAccount.bankName}`}
-                    title="Copy User Name, Amount, Details"
+                    textToCopy={
+                      item.withdrawMethod === "bank"
+                        ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nName: ${item.selectedAccount.accountHolder}\nAccount: ${item.selectedAccount.accountNumber}\nIFSC: ${item.selectedAccount.ifscCode}\nBank: ${item.selectedAccount.bankName}`
+                        : item.withdrawMethod === "upi"
+                          ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nUPI Id: ${item.selectedAccount.upiId}\nUPI Name: ${item.selectedAccount.upiName}`
+                          : "No payment details"
+                    }
+                    title={
+                      item.withdrawMethod === "bank"
+                        ? "Copy Bank All Details"
+                        : item.withdrawMethod === "upi"
+                          ? "Copy UPI All Details"
+                          : "Copy Details"
+                    }
                   />
+
                 </div>
               </TableCell>
-              <TableCell>{item.profileName}</TableCell>
+              <TableCell>{item.userName}</TableCell>
               {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}

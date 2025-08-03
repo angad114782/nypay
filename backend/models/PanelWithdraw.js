@@ -15,6 +15,10 @@ const PanelWithdrawSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  gameUsername: {
+    type: String,       // ✅ Add this
+    default: "",
+  },
   remark: {
     type: String,
     default: "",

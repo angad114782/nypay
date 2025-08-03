@@ -38,6 +38,7 @@ function WithdrawPanel1({ onClose, goNext, cardData }) {
         {
           amount: Number(amount),
           panelId: cardData?.panelId?._id || cardData?.panelId, // handle nested or direct
+          gameUsername: cardData.username,
         },
         {
           headers: {

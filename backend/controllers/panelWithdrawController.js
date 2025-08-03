@@ -6,7 +6,7 @@ const UserGameId = require("../models/UserGameId");
 // ✅ CREATE Withdraw Request (Deduct coins, log in Passbook)
 exports.createPanelWithdraw = async (req, res) => {
   try {
-    const { amount, panelId } = req.body;
+    const { amount, panelId, gameUsername } = req.body;
 
     if (!amount || amount < 1200) {
       return res
@@ -32,6 +32,7 @@ exports.createPanelWithdraw = async (req, res) => {
       userId: req.user.id,
       panelId,
       amount,
+      gameUsername
     });
 
     // 🧾 Log in Passbook
@@ -41,7 +42,7 @@ exports.createPanelWithdraw = async (req, res) => {
       direction: "debit",
       amount,
       balance: Number(user?.coins) || 0, // ✅ ensure a valid number
-      description: `Panel Withdraw request of ₹${amount} (Panel ID: ${panelId})`,
+      description: `Panel Withdraw request of ₹${amount} (Panel ID: ${gameUsername})`,
       status: "Pending",
       panelId: panelId,
       linkedId: withdraw._id,
@@ -54,31 +55,38 @@ exports.createPanelWithdraw = async (req, res) => {
   }
 };
 
-// ✅ GET All Withdraw Requests
 exports.getAllPanelWithdraws = async (req, res) => {
   try {
     const withdraws = await PanelWithdraw.find()
       .populate("userId", "name email lastLoginIp wallet")
       .populate("panelId", "profileName")
-      .sort({ requestedAt: -1 });
+      .sort({ requestedAt: -1 })
+      .lean(); // improve performance by returning plain JS objects
 
     const enriched = await Promise.all(
       withdraws.map(async (withdraw) => {
-        const userGame = await UserGameId.findOne({
-          userId: withdraw.userId._id,
-          panelId: withdraw.panelId._id,
-          status: "Active",
-        });
+        let gameIdInfo = null;
+
+        if (withdraw.userId?._id && withdraw.panelId?._id) {
+          const userGame = await UserGameId.findOne({
+            userId: withdraw.userId._id,
+            panelId: withdraw.panelId._id,
+            status: "Active",
+          }).lean();
+
+          if (userGame) {
+            gameIdInfo = {
+              username: userGame.username,
+              password: userGame.password,
+              status: userGame.status,
+            };
+          }
+        }
 
         return {
-          ...withdraw.toObject(),
-          gameIdInfo: userGame
-            ? {
-                username: userGame.username,
-                password: userGame.password,
-                status: userGame.status,
-              }
-            : null,
+          ...withdraw,
+          gameUsername: withdraw.gameUsername || gameIdInfo?.username || null, // ✅ prefer saved one
+          gameIdInfo, // ✅ optional extra info
         };
       })
     );
@@ -89,6 +97,7 @@ exports.getAllPanelWithdraws = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch withdrawals." });
   }
 };
+
 
 // ✅ UPDATE Withdraw Status (Add wallet on approval)
 exports.updatePanelWithdrawStatus = async (req, res) => {

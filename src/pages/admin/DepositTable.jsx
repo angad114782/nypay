@@ -198,7 +198,7 @@ const DepositTable = ({ data, fetchDeposits }) => {
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.profileName}</TableCell>
+              <TableCell>{item.userName}</TableCell>
               {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}

@@ -257,7 +257,7 @@ const ClientInfoTable = () => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.name}\nMobile - ${item.phone}`}
+                    textToCopy={`Username - ${item.name}\nMobile - ${item.phone}\nWallet Balance - ${item.wallet}`}
                     title="Copy User Name, Mobile"
                   />
                 </div>

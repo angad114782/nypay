@@ -290,7 +290,7 @@ const CreateIdTable = ({ data, fetchData }) => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nPassword - ${item.password}`}
+                    textToCopy={`Profile Name - ${item.profileName}\nUsername - ${item.userName}\nPassword - ${item.password}\nWebsite - ${item.panel}`}
                     title="Copy User Name, Password"
                   />
                 </div>
