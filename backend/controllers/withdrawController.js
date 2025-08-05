@@ -15,12 +15,12 @@ exports.requestWithdraw = async (req, res) => {
     }
 
     if (!amount || amount < 500) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Minimum withdrawal is 1200 coins." });
+      return res.status(400).json({
+        success: false,
+        message: "Minimum withdrawal is 1200 coins.",
+      });
     }
 
-    // ✅ Check wallet balance before creating the request
     if (Number(user.wallet) < amount) {
       return res
         .status(400)
@@ -36,7 +36,6 @@ exports.requestWithdraw = async (req, res) => {
 
     await newWithdraw.save();
 
-    // 💳 Create passbook entry (No deduction yet)
     await Passbook.create({
       userId: user._id,
       type: "withdraw",
@@ -48,6 +47,17 @@ exports.requestWithdraw = async (req, res) => {
       linkedId: newWithdraw._id,
     });
 
+    // ✅ Emit to admins
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("withdrawal-updated", {
+        action: "new",
+        withdrawId: newWithdraw._id,
+        user: user.name,
+        amount: newWithdraw.amount,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Withdraw request submitted",
@@ -58,6 +68,77 @@ exports.requestWithdraw = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// ✅ Combined: Update Withdraw Status and Remark
+exports.updateWithdrawStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, remark = "" } = req.body;
+
+    if (!["Approved", "Rejected", "Pending"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status",
+      });
+    }
+
+    const withdrawal = await Withdraw.findById(id);
+    if (!withdrawal) {
+      return res.status(404).json({
+        success: false,
+        message: "Withdrawal not found",
+      });
+    }
+
+    if (status === "Approved" && withdrawal.status !== "Approved") {
+      const user = await User.findById(withdrawal.userId);
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+
+      if ((user.wallet || 0) < withdrawal.amount) {
+        return res.status(400).json({
+          success: false,
+          message: "Insufficient wallet balance",
+        });
+      }
+
+      user.wallet -= withdrawal.amount;
+      await user.save();
+    }
+
+    withdrawal.status = status;
+    withdrawal.remark = remark;
+    await withdrawal.save();
+
+    // ✅ Emit status update
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("withdrawal-status-updated", {
+        action: "status-update",
+        withdrawId: withdrawal._id,
+        status,
+        remark,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Status updated successfully",
+      updated: withdrawal,
+    });
+  } catch (error) {
+    console.error("❌ Error updating withdrawal status:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 
 
 // ✅ Get all withdraws
@@ -180,64 +261,3 @@ exports.getAllWithdraws = async (req, res) => {
 // };
 
 // ✅ Combined: Update Withdraw Status and Remark
-exports.updateWithdrawStatus = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, remark = "" } = req.body;
-
-    // ✅ Only allow these statuses
-    if (!["Approved", "Rejected", "Pending"].includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid status",
-      });
-    }
-
-    // ✅ Get the withdraw
-    const withdrawal = await Withdraw.findById(id);
-    if (!withdrawal) {
-      return res.status(404).json({
-        success: false,
-        message: "Withdrawal not found",
-      });
-    }
-
-    // ✅ Deduct wallet on first approval only
-    if (status === "Approved" && withdrawal.status !== "Approved") {
-      const user = await User.findById(withdrawal.userId);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-
-      if ((user.wallet || 0) < withdrawal.amount) {
-        return res.status(400).json({
-          success: false,
-          message: "Insufficient wallet balance",
-        });
-      }
-
-      user.wallet -= withdrawal.amount;
-      await user.save();
-    }
-
-    // ✅ Update status and remark
-    withdrawal.status = status;
-    withdrawal.remark = remark;
-    await withdrawal.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Status updated successfully",
-      updated: withdrawal,
-    });
-  } catch (error) {
-    console.error("❌ Error updating withdrawal status:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};

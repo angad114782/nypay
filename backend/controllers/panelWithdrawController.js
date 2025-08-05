@@ -8,10 +8,10 @@ exports.createPanelWithdraw = async (req, res) => {
   try {
     const { amount, panelId, gameUsername } = req.body;
 
-    if (!amount || amount < 1200) {
+    if (!amount || amount < 500) {
       return res
         .status(400)
-        .json({ error: "Minimum withdrawal is 1200 coins." });
+        .json({ error: "Minimum withdrawal is 500 coins." });
     }
 
     if (!panelId) {
@@ -32,7 +32,7 @@ exports.createPanelWithdraw = async (req, res) => {
       userId: req.user.id,
       panelId,
       amount,
-      gameUsername
+      gameUsername,
     });
 
     // 🧾 Log in Passbook
@@ -41,12 +41,24 @@ exports.createPanelWithdraw = async (req, res) => {
       type: "panel-withdraw",
       direction: "debit",
       amount,
-      balance: Number(user?.coins) || 0, // ✅ ensure a valid number
+      balance: Number(user?.coins) || 0,
       description: `Panel Withdraw request of ₹${amount} (Panel ID: ${gameUsername})`,
       status: "Pending",
       panelId: panelId,
       linkedId: withdraw._id,
     });
+
+    
+  if (req.app.get("io")) {
+      req.app.get("io").emit("panel-withdrawal-created", {
+          id: withdraw._id,
+        userId: withdraw.userId,
+        amount,
+        status: "Pending",
+        panelId,
+        gameUsername,
+      });
+    }
 
     res.status(200).json({ message: "Withdrawal request submitted." });
   } catch (err) {
@@ -54,6 +66,7 @@ exports.createPanelWithdraw = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 exports.getAllPanelWithdraws = async (req, res) => {
   try {
@@ -105,7 +118,6 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
     const { id } = req.params;
     let { status, remark = "" } = req.body;
 
-    // ✅ Validate ID and status
     if (!id || !status) {
       return res.status(400).json({
         success: false,
@@ -113,7 +125,6 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
       });
     }
 
-    // ✅ Normalize and validate status
     const statusMap = {
       pending: "Pending",
       approve: "Approved",
@@ -133,7 +144,6 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
       });
     }
 
-    // ✅ Fetch panel withdraw
     const withdraw = await PanelWithdraw.findById(id);
     if (!withdraw) {
       return res.status(404).json({
@@ -142,7 +152,6 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
       });
     }
 
-    // ✅ First-time approval credit
     if (status === "Approved" && withdraw.status !== "Approved") {
       const gameId = await UserGameId.findOne({ panelId: withdraw.panelId });
       if (!gameId) {
@@ -164,20 +173,29 @@ exports.updatePanelWithdrawStatus = async (req, res) => {
       await user.save();
     }
 
-    // ✅ Update status and remark
     withdraw.status = status;
     withdraw.remark = remark;
     withdraw.statusUpdatedAt = new Date();
     await withdraw.save();
 
-    return res.status(200).json({
+
+      if (req.app.get("io")) {
+      req.app.get("io").emit("panel-withdrawal-status-updated", {
+        id: withdraw._id,
+        userId: withdraw.userId,
+        status,
+        remark,
+      });
+    }
+
+    res.status(200).json({
       success: true,
       message: "Panel withdrawal status updated successfully.",
       updated: withdraw,
     });
   } catch (error) {
     console.error("❌ Error updating panel withdrawal status:", error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
       message: "Internal server error.",
     });

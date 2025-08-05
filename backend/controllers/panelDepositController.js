@@ -5,7 +5,7 @@ const Passbook = require("../models/Passbook");
 
 exports.createPanelDeposit = async (req, res) => {
   try {
-    const { amount, panelId , gameUsername } = req.body;
+    const { amount, panelId, gameUsername } = req.body;
 
     if (!amount || amount < 500) {
       return res.status(400).json({ error: "Minimum deposit is 500 coins." });
@@ -31,6 +31,17 @@ exports.createPanelDeposit = async (req, res) => {
 
     await deposit.save();
 
+    if (req.app.get("io")) {
+      req.app.get("io").emit("panel-deposit-created", {
+        id: deposit._id,
+        amount,
+        userId: req.user.id,
+        panelId,
+        gameUsername,
+        createdAt: deposit.createdAt,
+      });
+    }
+
     // 🧾 Add to Passbook (Pending status)
     await Passbook.create({
       userId: req.user.id,
@@ -44,7 +55,7 @@ exports.createPanelDeposit = async (req, res) => {
       linkedId: deposit._id,
     });
 
-    res.status(200).json({ message: "Deposit request submitted.",gameUsername });
+    res.status(200).json({ message: "Deposit request submitted.", gameUsername });
   } catch (err) {
     console.error("Deposit Error:", err);
     res.status(500).json({ error: "Server error." });
@@ -168,6 +179,15 @@ exports.updatePanelDepositStatus = async (req, res) => {
     deposit.remark = remark;
     deposit.statusUpdatedAt = new Date();
     await deposit.save();
+
+    if (req.app.get("io")) {
+      req.app.get("io").emit("panel-deposit-status-updated", {
+        id: deposit._id,
+        status,
+        userId: deposit.userId,
+      });
+    }
+
 
     return res.status(200).json({
       success: true,

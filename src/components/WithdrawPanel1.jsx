@@ -24,8 +24,8 @@ function WithdrawPanel1({ onClose, goNext, cardData }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!amount || Number(amount) < 1200) {
-      toast.error("Minimum withdrawal amount is 1200 coins.");
+    if (!amount || Number(amount) < 500) {
+      toast.error("Minimum withdrawal amount is 500 coins.");
       return;
     }
 
@@ -107,12 +107,12 @@ function WithdrawPanel1({ onClose, goNext, cardData }) {
             onChange={(e) => setAmount(e.target.value)}
             placeholder="Enter Coins"
             className="font-inter font-normal h-[45px] ct-black5 w-full rounded-[10px] px-3 py-2 bg-[var(--theme-grey5)] text-sm outline-none"
-            min={1200}
+            min={500}
             required
           />
 
           <div className="flex items-start space-x-2 text-xs font-light py-3">
-            <p>Minimum withdrawal amount is 1200 coins.</p>
+            <p>Minimum withdrawal amount is 500 coins.</p>
           </div>
         </div>
 

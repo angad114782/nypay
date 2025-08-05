@@ -1,8 +1,10 @@
 import axios from "axios";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { io } from "socket.io-client";
+import { toast } from "sonner";
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ClientInfoTable from "./ClientInfoTable";
 import CreateIdTable from "./CreateIdTable";
 import QuickActionCards from "./QuickActionCards";
@@ -26,46 +28,47 @@ const withdrawdata = [
     parentIp: "1232313",
   },
 ];
+
 const CreateIdAndClientInfo = ({ onTabChange }) => {
   const location = useLocation();
-
   const [createIdData, setCreateIdData] = useState([]);
-  // Get sub-tab from route state or default to 'createId'
+
   const initialTab = location.state?.subTab || "createId";
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  // Update tab when route state changes
   useEffect(() => {
     if (location.state?.subTab) {
       setActiveTab(location.state.subTab);
     }
   }, [location.state]);
+
   const fetchData = async () => {
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_URL}/api/game/admin/all-requests`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`, // Replace this as needed
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
+
       const formatted = res.data.gameIds.map((item) => ({
         id: item._id,
         userName: item.username,
         password: item.password,
-        profileName: item.userId?.name || "N/A", // ✅ Requesting user name
+        profileName: item.userId?.name || "N/A",
         panel: item.panelId?.userId
           ? item.panelId.userId.startsWith("http")
             ? item.panelId.userId
             : `https://${item.panelId.userId}`
-          : "N/A", // ✅ Panel URL or fallback
+          : "N/A",
         createdAt: new Date(item.createdAt).toLocaleDateString(),
         status: item.status || "Pending",
         remark: item.remark || "",
         isBlocked: item.isBlocked || false,
         parentIp: item.parentIp || "N/A",
-        type: item.type?.join(", ") || "", // ✅ Optional: show type if needed
+        type: item.type?.join(", ") || "",
       }));
 
       setCreateIdData(formatted);
@@ -73,28 +76,56 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       console.error("❌ Error fetching createIdData", err);
     }
   };
+
+  // 🔁 Initial fetch
   useEffect(() => {
     fetchData();
   }, []);
 
+  // ✅ Socket listener for real-time Game ID creation
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const socket = io(import.meta.env.VITE_URL, {
+      withCredentials: true,
+      auth: { token },
+    });
+
+    socket.on("connect", () => {
+      console.log("🧩 Connected to socket for Game ID updates");
+    });
+
+    socket.on("game-id-created", (data) => {
+      console.log("📥 Game ID Created Event:", data);
+      toast.success(`Game ID created for panel: ${data.panelName}`);
+      fetchData(); // 🔁 refresh table
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
   return (
     <>
-      {/* Quick Action Cards */}
       <QuickActionCards onTabChange={onTabChange} />
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
+
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        // defaultValue="createId"
         className="w-full"
       >
         <TabsList>
           <TabsTrigger value="createId">Create Id</TabsTrigger>
           <TabsTrigger value="clientInfo">Client Information</TabsTrigger>
         </TabsList>
+
         <TabsContent value="createId">
           <CreateIdTable data={createIdData} fetchData={fetchData} />
         </TabsContent>
+
         <TabsContent value="clientInfo">
           <ClientInfoTable data={withdrawdata} />
         </TabsContent>

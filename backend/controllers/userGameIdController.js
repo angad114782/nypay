@@ -41,11 +41,23 @@ const createGameId = async (req, res) => {
       panelId: panel._id,
       status: "Pending",
       description: `Game ID created for panel: ${panel.profileName}`,
-      linkedId: newGameId._id, // ✅ Add this
+      linkedId: newGameId._id,
     });
 
-
     await passbookEntry.save();
+
+    // ✅ Real-time emit to frontend
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("game-id-created", {
+        userId,
+        panelId: panel._id,
+        username,
+        gameId: newGameId._id,
+        panelName: panel.profileName,
+        createdAt: newGameId.createdAt,
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -256,7 +268,7 @@ const changeGameIdStatus = async (req, res) => {
       });
     }
 
-    // ❌ Reject if status already changed
+    // ❌ Reject if status already changed from Pending
     if (gameId.status !== "Pending") {
       return res.status(403).json({
         success: false,
@@ -268,6 +280,17 @@ const changeGameIdStatus = async (req, res) => {
     gameId.status = status;
     gameId.remark = remark;
     await gameId.save();
+
+    // ✅ Emit via Socket.io (real-time update)
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("game-id-status-updated", {
+        gameId: gameId._id,
+        status: gameId.status,
+        remark: gameId.remark,
+        userId: gameId.userId,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -282,6 +305,7 @@ const changeGameIdStatus = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   createGameId,

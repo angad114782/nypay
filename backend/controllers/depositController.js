@@ -1,6 +1,7 @@
 const Deposit = require("../models/Deposit");
 const User = require("../models/User");
 const Passbook = require("../models/Passbook");
+
 exports.createDeposit = async (req, res) => {
   try {
     const { amount, paymentMethod, utr } = req.body;
@@ -15,9 +16,9 @@ exports.createDeposit = async (req, res) => {
     // ✅ Check for duplicate UTR
     const existingUTR = await Deposit.findOne({ utr });
     if (existingUTR) {
-      return res
-        .status(400)
-        .json({ message: "This UTR has already been used. Please check again." });
+      return res.status(400).json({
+        message: "This UTR has already been used. Please check again.",
+      });
     }
 
     const newDeposit = new Deposit({
@@ -40,10 +41,17 @@ exports.createDeposit = async (req, res) => {
       amount,
       balance: user.wallet || 0,
       description: `Deposit of ₹${amount} requested via ${paymentMethod} (UTR: ${utr})`,
-      linkedId: newDeposit._id, // ✅ Add this
+      linkedId: newDeposit._id,
     });
 
-
+    // 🚀 Emit real-time update to admin
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("deposit-updated", {
+        action: "new",
+        depositId: newDeposit._id,
+      });
+    }
 
     res.status(201).json({
       message: "Deposit submitted successfully",
@@ -175,13 +183,11 @@ exports.getMyWalletBalance = async (req, res) => {
 //     res.status(500).json({ success: false, message: "Server Error" });
 //   }
 // };
-
 exports.updateDepositStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, remark = "" } = req.body;
 
-    // ✅ Only allow these statuses
     if (!["Approved", "Rejected", "Pending"].includes(status)) {
       return res.status(400).json({
         success: false,
@@ -189,7 +195,6 @@ exports.updateDepositStatus = async (req, res) => {
       });
     }
 
-    // ✅ Get the deposit
     const deposit = await Deposit.findById(id);
     if (!deposit) {
       return res.status(404).json({
@@ -198,7 +203,6 @@ exports.updateDepositStatus = async (req, res) => {
       });
     }
 
-    // ✅ Only update wallet if this is the first approval
     if (status === "Approved" && deposit.status !== "Approved") {
       const user = await User.findById(deposit.userId);
       if (!user) {
@@ -212,10 +216,20 @@ exports.updateDepositStatus = async (req, res) => {
       await user.save();
     }
 
-    // ✅ Update status and remark
     deposit.status = status;
     deposit.remark = remark;
     await deposit.save();
+
+    // 🚀 Emit status update
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("deposit-status-updated", {
+        action: "status-update",
+        depositId: deposit._id,
+        status: deposit.status,
+        remark: deposit.remark,
+      });
+    }
 
     return res.status(200).json({
       success: true,
