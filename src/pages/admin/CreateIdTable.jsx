@@ -457,7 +457,7 @@ export const TransactionCard = ({
         return "bg-gray-100 text-gray-800";
     }
   };
-
+  // console.log(transaction, "transaction");
   return (
     <div className="bg-gray-300 rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
@@ -543,7 +543,7 @@ export const TransactionCard = ({
       {/* Footer Actions */}
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
-          <Trash2 className="h-6 w-6 text-red-500 cursor-pointer" />
+          {/* <Trash2 className="h-6 w-6 text-red-500 cursor-pointer" /> */}
           <Copy className="h-6 w-6 cursor-pointer" />
         </div>
         <div className="flex gap-2">

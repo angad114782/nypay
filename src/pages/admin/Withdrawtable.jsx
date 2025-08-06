@@ -20,6 +20,7 @@ import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import WithdrawalRejectDialog from "./WithdrawalRejectDialog";
 import WithdrawLogo from "/asset/Group 48095823.png";
+import { getStatusColor } from "@/utils/RolesBadgeColor";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -197,18 +198,17 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                       item.withdrawMethod === "bank"
                         ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nName: ${item.selectedAccount.accountHolder}\nAccount: ${item.selectedAccount.accountNumber}\nIFSC: ${item.selectedAccount.ifscCode}\nBank: ${item.selectedAccount.bankName}`
                         : item.withdrawMethod === "upi"
-                          ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nUPI Id: ${item.selectedAccount.upiId}\nUPI Name: ${item.selectedAccount.upiName}`
-                          : "No payment details"
+                        ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nUPI Id: ${item.selectedAccount.upiId}\nUPI Name: ${item.selectedAccount.upiName}`
+                        : "No payment details"
                     }
                     title={
                       item.withdrawMethod === "bank"
                         ? "Copy Bank All Details"
                         : item.withdrawMethod === "upi"
-                          ? "Copy UPI All Details"
-                          : "Copy Details"
+                        ? "Copy UPI All Details"
+                        : "Copy Details"
                     }
                   />
-
                 </div>
               </TableCell>
               <TableCell>{item.userName}</TableCell>
@@ -310,7 +310,14 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
               <TableCell className={"align-middle text-center"}>
-                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+                <Badge
+                  className={`${getStatusColor(
+                    item.status
+                  )} border-none min-w-full `}
+                  variant={"outline"}
+                >
+                  {item.status.toUpperCase()}
+                </Badge>
               </TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
