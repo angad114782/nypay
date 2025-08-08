@@ -225,9 +225,7 @@ const ClientInfoTable = () => {
             <TableHead>
               Mobile <br /> Number
             </TableHead>
-            <TableHead>
-              Wallet Bal.
-            </TableHead>
+            <TableHead>Wallet Bal.</TableHead>
             <TableHead>
               Created <br /> Date
             </TableHead>
@@ -296,13 +294,13 @@ const ClientInfoTable = () => {
               </TableCell> */}
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 flex-col items-center justify-center">
-                  <button className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
+                  <button className="w-32 px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition">
                     A/c Statement
                   </button>
-                  <button className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
+                  <button className="w-32 px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition">
                     Deposit Report
                   </button>
-                  <button className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
+                  <button className="w-32 px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition">
                     Withdraw Report
                   </button>
                 </div>
@@ -348,6 +346,8 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  console.log(transaction, "transaction");
   return (
     <div className="bg-gray-300 rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
@@ -438,18 +438,22 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           {/* Placeholder for Screenshot/UTR actions */}
-          <Trash2 className="h-6 w-6 text-red-500" />
-          <Copy className="h-6 w-6" />
+          {/* <Trash2 className="h-6 w-6 text-red-500" /> */}
+          <CopyButton
+            textToCopy={`ProfileName - ${transaction.profileName}\nWalletBalance - ${transaction.wallet}\nPhone - ${transaction.phone}`}
+            title="Copy ProfileName, WalletBalance, Phone"
+            className="h-6 w-6"
+          />
         </div>
-        <div className="flex gap-2">
-          <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs">
-            Approve
+        <div className="flex gap-2 ">
+          <button className="bg-green-500 hover:bg-green-600 text-white p-1 rounded-full text-xs">
+            A/C Statement
           </button>
-          <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs">
-            Reject
+          <button className="bg-red-500 hover:bg-red-600 text-white p-1 rounded-full text-xs">
+            Deposit Report
           </button>
-          <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-full text-xs">
-            Remark
+          <button className="bg-yellow-500 hover:bg-yellow-600 text-white p-1 rounded-full text-xs">
+            Withdraw Report
           </button>
         </div>
       </div>

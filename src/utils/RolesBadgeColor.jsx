@@ -13,3 +13,16 @@ export const roleBadgeClasses = {
 export function getBadgeClasses(role) {
   return roleBadgeClasses[role] || roleBadgeClasses.default;
 }
+
+export const getStatusColor = (status) => {
+  switch (status) {
+    case "Approved":
+      return "bg-emerald-600 text-white";
+    case "Pending":
+      return "bg-amber-500 text-white";
+    case "Rejected":
+      return "bg-rose-600 text-white";
+    default:
+      return "bg-slate-600 text-white";
+  }
+};

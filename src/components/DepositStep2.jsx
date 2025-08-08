@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FaCopy } from "react-icons/fa";
 import { IoCopy, IoCopyOutline } from "react-icons/io5";
 import { Progress } from "./ui/progress";
+import { QRCodeSVG } from "qrcode.react"; // Add this import
 
 import axios from "axios";
 import CopyButton from "./CopyButton";
@@ -10,12 +11,15 @@ import { toast } from "sonner";
 const paymentModes = [
   {
     mode: "paytm",
+    name: "PayTM",
   },
   {
     mode: "gpay",
+    name: "Google Pay",
   },
   {
     mode: "phonepe",
+    name: "PhonePe",
   },
 ];
 
@@ -29,6 +33,137 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
   const [editableUtr, setEditableUtr] = useState("");
   const [bankDetails, setBankDetails] = useState({});
   const [upiDetails, setUpiDetails] = useState({});
+  const [qrUrl, setQrUrl] = useState(""); // Add this state
+
+  // Add QR generation function
+  const handleGenerateQr = async () => {
+    if (!upiDetails?.upiId || !depositAmount) return;
+
+    const upiId = upiDetails.upiId;
+    const upiUri = `upi://pay?pa=${upiId}&am=${depositAmount}&cu=INR`;
+    setQrUrl(upiUri);
+    console.log("Generated UPI URI:", upiUri);
+  };
+
+  // Function to handle payment app clicks
+  const handlePaymentAppClick = (appMode) => {
+    if (!upiDetails?.upiId || !depositAmount) {
+      toast.error("UPI details not available");
+      return;
+    }
+
+    const upiId = upiDetails.upiId;
+    const amount = depositAmount;
+    const appName = paymentModes.find((p) => p.mode === appMode)?.name;
+
+    // Create UPI payment URL based on the app
+    let paymentUrl = "";
+    let fallbackUrl = `upi://pay?pa=${upiId}&am=${amount}&cu=INR`;
+
+    switch (appMode) {
+      case "paytm":
+        paymentUrl = `paytmmp://pay?pa=${upiId}&am=${amount}&cu=INR&mode=02&purpose=00`;
+        break;
+      case "gpay":
+        paymentUrl = `tez://upi/pay?pa=${upiId}&am=${amount}&cu=INR&mode=02&purpose=00`;
+        break;
+      case "phonepe":
+        paymentUrl = `phonepe://pay?pa=${upiId}&am=${amount}&cu=INR&mode=02&purpose=00`;
+        break;
+      default:
+        paymentUrl = fallbackUrl;
+    }
+
+    // Create a temporary link to test if app is available
+    const tempLink = document.createElement("a");
+    tempLink.href = paymentUrl;
+
+    // Set up a timer to detect if app didn't open
+    const startTime = Date.now();
+
+    // Show initial loading message
+    toast.loading(`Opening ${appName}...`, { id: `opening-${appMode}` });
+
+    // Try to blur the window (this happens when an app opens)
+    let appOpened = false;
+
+    const handleBlur = () => {
+      appOpened = true;
+      toast.dismiss(`opening-${appMode}`);
+      toast.success(`${appName} opened successfully!`);
+      window.removeEventListener("blur", handleBlur);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        appOpened = true;
+        toast.dismiss(`opening-${appMode}`);
+        toast.success(`${appName} opened successfully!`);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+      }
+    };
+
+    // Add event listeners to detect if app opened
+    window.addEventListener("blur", handleBlur);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Try to open the specific app
+    window.location.href = paymentUrl;
+
+    // Set timeout to check if app opened, if not show fallback options
+    setTimeout(() => {
+      if (!appOpened) {
+        // Remove event listeners
+        window.removeEventListener("blur", handleBlur);
+        document.removeEventListener(
+          "visibilitychange",
+          handleVisibilityChange
+        );
+
+        // Dismiss loading toast
+        toast.dismiss(`opening-${appMode}`);
+
+        // Show app not found message with options
+        const toastId = toast.error(
+          <div className="flex flex-col gap-2">
+            <span>{`${appName} not found on your device`}</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId);
+                  window.location.href = fallbackUrl;
+                  toast.info("Opening any available UPI app...");
+                }}
+                className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+              >
+                Use Any UPI App
+              </button>
+              <button
+                onClick={() => {
+                  toast.dismiss(toastId);
+                  // Copy UPI ID to clipboard for manual entry
+                  navigator.clipboard.writeText(upiId);
+                  toast.success(
+                    "UPI ID copied! You can manually enter it in any UPI app"
+                  );
+                }}
+                className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+              >
+                Copy UPI ID
+              </button>
+            </div>
+          </div>,
+          {
+            duration: 8000,
+            style: { maxWidth: "400px" },
+          }
+        );
+      }
+    }, 2000); // Wait 2 seconds to determine if app opened
+  };
 
   const fetchBankDetails = async () => {
     const token = localStorage.getItem("token");
@@ -45,6 +180,7 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
       console.error("Failed to fetch bank details:", error);
     }
   };
+
   const fetchUpiDetails = async () => {
     const token = localStorage.getItem("token");
     try {
@@ -64,6 +200,13 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
     fetchBankDetails();
     fetchUpiDetails();
   }, []);
+
+  // Add auto-generation useEffect
+  useEffect(() => {
+    if (upiDetails?.upiId && depositAmount) {
+      handleGenerateQr();
+    }
+  }, [upiDetails, depositAmount]);
 
   const handleSubmitDeposit = async () => {
     if (!editableUtr || editableUtr.length < 6) {
@@ -119,13 +262,35 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
     }
   };
 
+  // Updated QR download function
   const handleQrDownload = () => {
-    const link = document.createElement("a");
-    link.href = selectedUpi.qrCode;
-    link.download = "qr-code.png";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // For generated SVG QR, we need to convert it to image
+    const svgElement = document.querySelector(".qr-code-svg");
+    if (svgElement) {
+      const svgData = new XMLSerializer().serializeToString(svgElement);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `qr-code-${depositAmount}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        });
+      };
+
+      img.src = "data:image/svg+xml;base64," + btoa(svgData);
+    }
   };
 
   return (
@@ -194,23 +359,32 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
             </label>
           </div>
           <p className="text-xl font-semibold text-yellow-400 leading-tight">
-            {depositAmount || 0}
+            ₹{depositAmount || 0}
           </p>
         </div>
 
         {depositMethod === "upi" ? (
           <>
-            {/* QR & UPI ID */}
+            {/* Updated QR & UPI ID section */}
             <div className="bgt-grey5 rounded-[10px] mt-3 p-3 text-center text-black">
-              <button onClick={handleQrDownload}>
-                <img
-                  src={`${import.meta.env.VITE_URL}${upiDetails?.qrImage}`}
-                  alt="QR Code"
-                  className="w-40 h-40 mx-auto"
-                />
-              </button>
+              <div
+                className="w-40 h-40 mx-auto flex items-center justify-center cursor-pointer"
+                onClick={handleQrDownload}
+              >
+                {qrUrl ? (
+                  <QRCodeSVG
+                    value={qrUrl}
+                    size={160}
+                    bgColor={"#ffffff"}
+                    fgColor={"#000000"}
+                    className="qr-code-svg"
+                  />
+                ) : (
+                  <div className="text-gray-500">Loading QR...</div>
+                )}
+              </div>
 
-              <p className="text-xl font-medium">Scan QR Code</p>
+              <p className="text-xl font-medium mt-2">Pay ₹{depositAmount}</p>
               <p className="text-sm text-gray-700 mt-1">{upiDetails?.upiId}</p>
               <button
                 onClick={() => handleCopy(upiDetails.upiId)}
@@ -227,14 +401,19 @@ function DepositStep2({ goNext, onClose, depositAmount }) {
               <span className="flex-1 border-t border-white/40" />
             </div>
 
-            {/* Payment Icons */}
+            {/* Updated Payment Icons with Click Handlers */}
             <div className="flex justify-around mt-3">
               {paymentModes.map((payMode, index) => (
-                <button key={index}>
+                <button
+                  key={index}
+                  onClick={() => handlePaymentAppClick(payMode.mode)}
+                  className="transition-transform hover:scale-105 active:scale-95"
+                  title={`Open ${payMode.name} with ₹${depositAmount}`}
+                >
                   <img
                     src={`/asset/${payMode.mode}.png`}
                     alt={payMode.mode}
-                    className="w-14 h-14"
+                    className="w-14 h-14 cursor-pointer"
                   />
                 </button>
               ))}

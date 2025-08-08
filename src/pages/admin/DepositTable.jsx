@@ -24,6 +24,7 @@ import { useTableFilter } from "@/hooks/AdminTableFilterHook";
 import { Badge } from "@/components/ui/badge";
 import RejectDialog from "./RejectDialog";
 import DepositRejectDialog from "./DepositRejectDialog";
+import { getStatusColor } from "@/utils/RolesBadgeColor";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -173,7 +174,7 @@ const DepositTable = ({ data, fetchDeposits }) => {
             {/* <TableHead>User Name</TableHead> */}
             <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
-            <TableHead>Payment Type</TableHead>
+            <TableHead className={"text-center"}>Payment Type</TableHead>
             <TableHead>UTR</TableHead>
             <TableHead>Entry Date</TableHead>
             <TableHead className={"text-center"}>Status</TableHead>
@@ -220,7 +221,9 @@ const DepositTable = ({ data, fetchDeposits }) => {
                   <CopyButton textToCopy={item.amount} title="Copy Amount" />
                 </div>
               </TableCell>
-              <TableCell>{item.paymentType}</TableCell>
+              <TableCell className={"uppercase text-center"}>
+                {item.paymentType}
+              </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
                   {item.utr}
@@ -229,7 +232,14 @@ const DepositTable = ({ data, fetchDeposits }) => {
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
               <TableCell className={"align-middle text-center"}>
-                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+                <Badge
+                  className={`${getStatusColor(
+                    item.status
+                  )} border-none min-w-full `}
+                  variant={"outline"}
+                >
+                  {item.status.toUpperCase()}
+                </Badge>
               </TableCell>
               <TableCell>{item.remark}</TableCell>
               <TableCell>
