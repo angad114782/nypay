@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import ExCard from "../components/ExCard";
 import { useNavigate } from "react-router-dom";
 import { GlobalContext } from "../utils/globalData";
@@ -53,11 +53,14 @@ const LoginPromptModal = ({ onClose, onLogin }) => (
 );
 
 function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
-  const { myIdCardData } = useContext(GlobalContext);
+  const { myIdCardData, fetchGameIds } = useContext(GlobalContext);
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
+  useEffect(() => {
+    fetchGameIds();
+  }, []);
   const handleViewAllClick = () => {
     if (!isLoggedIn) {
       setShowLoginPrompt(true);
