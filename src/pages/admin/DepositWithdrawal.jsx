@@ -104,10 +104,62 @@ const DepositWithdrawal = ({ onTabChange }) => {
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="deposit">Deposit</TabsTrigger>
-          <TabsTrigger value="withdrawal">Withdrawal</TabsTrigger>
-        </TabsList>
+        {/* Tabs and Count Cards in the same row */}
+        {/* Tabs and Count Cards in the same row */}
+        {/* Tabs + Counts Row */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* Tabs */}
+          <TabsList className="inline-flex flex-shrink-0 w-auto">
+            <TabsTrigger value="deposit">Deposit</TabsTrigger>
+            <TabsTrigger value="withdrawal">Withdrawal</TabsTrigger>
+          </TabsList>
+
+          {/* Counts */}
+          <div className="inline-flex flex-shrink-0 gap-2">
+            {/* Total */}
+            <div className="flex items-center gap-1 bg-white shadow-sm rounded-lg px-2 py-1 border border-gray-200">
+              <span className="text-xs text-gray-500">Total:</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {activeTab === "withdrawal"
+                  ? withdrawData.length
+                  : depositData.length}
+              </span>
+            </div>
+
+            {/* Pending */}
+            <div
+              className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
+      ${
+        activeTab === "withdrawal"
+          ? withdrawData.filter((w) => w.status === "Pending").length > 0
+            ? "bg-amber-50"
+            : "bg-green-50"
+          : depositData.filter((d) => d.status === "Pending").length > 0
+          ? "bg-amber-50"
+          : "bg-green-50"
+      }`}
+            >
+              <span className="text-xs text-gray-500">Pending:</span>
+              <span
+                className={`text-sm font-semibold
+          ${
+            activeTab === "withdrawal"
+              ? withdrawData.filter((w) => w.status === "Pending").length > 0
+                ? "text-amber-600"
+                : "text-green-600"
+              : depositData.filter((d) => d.status === "Pending").length > 0
+              ? "text-amber-600"
+              : "text-green-600"
+          }`}
+              >
+                {activeTab === "withdrawal"
+                  ? withdrawData.filter((w) => w.status === "Pending").length
+                  : depositData.filter((d) => d.status === "Pending").length}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <TabsContent value="deposit">
           <DepositTable data={depositData} fetchDeposits={fetchDeposits} />
         </TabsContent>

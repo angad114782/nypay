@@ -112,15 +112,49 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       <QuickActionCards onTabChange={onTabChange} />
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
-        <TabsList>
-          <TabsTrigger value="createId">Create Id</TabsTrigger>
-          <TabsTrigger value="clientInfo">Client Information</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* Tabs */}
+          <TabsList>
+            <TabsTrigger value="createId">Create Id</TabsTrigger>
+            <TabsTrigger value="clientInfo">Client Information</TabsTrigger>
+          </TabsList>
+
+          {/* ✅ Show counts only in Create Id tab */}
+          {activeTab === "createId" && (
+            <div className="flex gap-2">
+              {/* Total */}
+              <div className="flex items-center gap-1 bg-white shadow-sm rounded-lg px-2 py-1 border border-gray-200">
+                <span className="text-xs text-gray-500">Total:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {createIdData.length}
+                </span>
+              </div>
+
+              {/* Pending */}
+              <div
+                className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
+          ${
+            createIdData.filter((d) => d.status === "Pending").length > 0
+              ? "bg-amber-50"
+              : "bg-green-50"
+          }`}
+              >
+                <span className="text-xs text-gray-500">Pending:</span>
+                <span
+                  className={`text-sm font-semibold ${
+                    createIdData.filter((d) => d.status === "Pending").length >
+                    0
+                      ? "text-amber-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {createIdData.filter((d) => d.status === "Pending").length}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <TabsContent value="createId">
           <CreateIdTable data={createIdData} fetchData={fetchData} />

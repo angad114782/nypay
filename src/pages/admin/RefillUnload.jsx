@@ -29,7 +29,10 @@ const RefillUnload = ({ onTabChange }) => {
         axios.get(`${baseURL}/api/panel-withdraw/all`, headers),
       ]);
 
-      if (depositRes.status === "fulfilled" && Array.isArray(depositRes.value.data)) {
+      if (
+        depositRes.status === "fulfilled" &&
+        Array.isArray(depositRes.value.data)
+      ) {
         const transformedDeposits = depositRes.value.data.map((d) => ({
           id: d._id,
           profileName: d.gameUsername || "N/A",
@@ -41,13 +44,17 @@ const RefillUnload = ({ onTabChange }) => {
           remark: d.remark || "",
           parentIp: d.parentIp || "—",
           paymentType: "Panel Deposit",
-          website: d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+          website:
+            d.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
           wallet: d.userId?.wallet || 0,
         }));
         setDepositData(transformedDeposits);
       }
 
-      if (withdrawRes.status === "fulfilled" && Array.isArray(withdrawRes.value.data)) {
+      if (
+        withdrawRes.status === "fulfilled" &&
+        Array.isArray(withdrawRes.value.data)
+      ) {
         const transformedWithdrawals = withdrawRes.value.data.map((w) => ({
           id: w._id,
           profileName: w.gameUsername || "N/A",
@@ -59,7 +66,8 @@ const RefillUnload = ({ onTabChange }) => {
           remark: w.remark || "",
           parentIp: w.parentIp || "—",
           paymentType: "Panel Withdraw",
-          website: w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
+          website:
+            w.panelId?.profileName?.toLowerCase().replace(/\s/g, "") + ".com",
           wallet: w.userId?.wallet || 0,
         }));
         setWithdrawData(transformedWithdrawals);
@@ -122,15 +130,68 @@ const RefillUnload = ({ onTabChange }) => {
       <QuickActionCards onTabChange={onTabChange} />
       <div className="text-2xl lg:text-3xl font-bold mb-3">Receipt List</div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList>
-          <TabsTrigger value="refillID">Refill ID</TabsTrigger>
-          <TabsTrigger value="unloadID">Unload ID</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          {/* Tabs */}
+          <TabsList className="flex-shrink-0">
+            <TabsTrigger value="refillID">Refill ID</TabsTrigger>
+            <TabsTrigger value="unloadID">Unload ID</TabsTrigger>
+          </TabsList>
+
+          {/* Counts */}
+          <div className="flex gap-2">
+            {/* Total */}
+            <div className="flex items-center gap-1 bg-white shadow-sm rounded-lg px-2 py-1 border border-gray-200">
+              <span className="text-xs text-gray-500">Total:</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {activeTab === "refillID"
+                  ? depositData.length
+                  : withdrawData.length}
+              </span>
+            </div>
+
+            {/* Pending */}
+            <div
+              className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
+        ${
+          activeTab === "refillID"
+            ? depositData.filter((w) => w.status === "Pending").length > 0
+              ? "bg-amber-50"
+              : "bg-green-50"
+            : withdrawData.filter((d) => d.status === "Pending").length > 0
+            ? "bg-amber-50"
+            : "bg-green-50"
+        }`}
+            >
+              <span className="text-xs text-gray-500">Pending:</span>
+              <span
+                className={`text-sm font-semibold
+            ${
+              activeTab === "refillID"
+                ? depositData.filter((w) => w.status === "Pending").length > 0
+                  ? "text-amber-600"
+                  : "text-green-600"
+                : withdrawData.filter((d) => d.status === "Pending").length > 0
+                ? "text-amber-600"
+                : "text-green-600"
+            }`}
+              >
+                {activeTab === "refillID"
+                  ? depositData.filter((w) => w.status === "Pending").length
+                  : withdrawData.filter((d) => d.status === "Pending").length}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <TabsContent value="refillID">
           <RefillUnloadTable data={depositData} fetchData={fetchData} />
         </TabsContent>
         <TabsContent value="unloadID">
-          <RefillUnloadTable type="unload" data={withdrawData} fetchData={fetchData} />
+          <RefillUnloadTable
+            type="unload"
+            data={withdrawData}
+            fetchData={fetchData}
+          />
         </TabsContent>
       </Tabs>
     </>
