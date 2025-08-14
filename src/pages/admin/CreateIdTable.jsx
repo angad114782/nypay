@@ -29,6 +29,7 @@ import Pagination from "./Pagination";
 import { toast } from "sonner";
 import RejectDialog from "./RejectDialog";
 import { Badge } from "@/components/ui/badge";
+import EditGameIdDialog from "./EditGameIdDialog";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -363,6 +364,28 @@ const CreateIdTable = ({ data, fetchData }) => {
                     gameId={item.id}
                     onStatusUpdated={fetchData}
                   />
+
+                  <EditGameIdDialog
+                    gameId={item.id}
+                    initialUsername={item.userName}     // table data key → backend 'username'
+                    initialPassword={item.password}
+                    buttonLogo={
+                      <button className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 transition">
+                        Edit
+                      </button>
+                    }
+                    onUpdated={(updated) => {
+                      // update your local row (depends on your data shape)
+                      // backend returns fields as 'username' and 'password'
+                      updateItem(item.id, {
+                        userName: updated?.username,
+                        password: updated?.password,
+                      });
+                      // or do a hard refresh:
+                      // fetchData();
+                    }}
+                  />
+
                 </div>
               </TableCell>
 
@@ -572,6 +595,21 @@ export const TransactionCard = ({
             gameId={transaction.id}
             onStatusUpdated={fetchData}
           />
+          <EditGameIdDialog
+            gameId={transaction.id}
+            initialUsername={transaction.userName}
+            initialPassword={transaction.password}
+            buttonLogo={
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-full text-xs transition">
+                Edit
+              </button>
+            }
+            onUpdated={(updated) => {
+              // ideally call fetchData to refresh card list
+              fetchData();
+            }}
+          />
+
           {/* <button
             className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs transition"
             onClick={() => handleStatusUpdate(transaction.id, "Rejected")}

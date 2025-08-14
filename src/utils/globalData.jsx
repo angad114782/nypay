@@ -1,5 +1,11 @@
 import axios from "axios";
-import React, { createContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  useRef,
+  useCallback,
+} from "react";
 import { toast } from "sonner";
 import { io } from "socket.io-client";
 
@@ -12,16 +18,42 @@ export const GlobalProvider = ({ children }) => {
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
+  // Panels + Game IDs
+  const [allCreateIDList, setAllCreateIdList] = useState([]);
+  const [myIdCardData, setMyIdCardData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // Keep a single socket instance per token
+  const socketRef = useRef(null);
+
   const token = localStorage.getItem("token");
 
-  // ✅ 1. Wallet Balance Fetch
-  const fetchWalletBalance = async () => {
+  // ----------------------------
+  // Helpers
+  // ----------------------------
+
+  const safeMyUserId = useCallback(() => {
+    // prefer fresh state
+    if (userProfile?._id) return userProfile._id;
+    // fallback to cached profile
+    const cached = localStorage.getItem("userProfile");
+    try {
+      const parsed = cached ? JSON.parse(cached) : null;
+      return parsed?._id || null;
+    } catch {
+      return null;
+    }
+  }, [userProfile]);
+
+  // ----------------------------
+  // API: Wallet
+  // ----------------------------
+  const fetchWalletBalance = useCallback(async () => {
+    if (!token) return;
     try {
       const res = await axios.get(
         `${import.meta.env.VITE_URL}/api/deposit/wallet/balance`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       const formatted = Number(res.data.balance || 0).toLocaleString("en-IN");
       setWalletBalance(formatted);
@@ -29,56 +61,138 @@ export const GlobalProvider = ({ children }) => {
       console.error("❌ Failed to fetch wallet balance:", err);
       setWalletBalance("0");
     }
-  };
+  }, [token]);
 
-  // ✅ 2. Real-time Socket Events for Wallet
+  // ----------------------------
+  // API: Panels
+  // ----------------------------
+  const fetchSliders = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/panels/panel`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAllCreateIdList(res.data.panels || []);
+    } catch (err) {
+      console.error("Error fetching id card:", err);
+      toast.error("Failed to load id card");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // ----------------------------
+  // API: Game IDs
+  // ----------------------------
+  const fetchGameIds = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const res = await axios.get(
+        `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (res.data?.success) {
+        setMyIdCardData(res.data.gameIds || []);
+      } else {
+        toast.error("Failed to fetch Game IDs");
+      }
+    } catch (err) {
+      console.error("❌ Error fetching Game IDs:", err);
+      toast.error("Something went wrong while loading Game IDs.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // ----------------------------
+  // Socket: Setup + Listeners
+  // ----------------------------
   useEffect(() => {
     if (!token) return;
+
+    // disconnect old
+    if (socketRef.current) {
+      try {
+        socketRef.current.disconnect();
+      } catch {}
+      socketRef.current = null;
+    }
 
     const socket = io(import.meta.env.VITE_URL, {
       withCredentials: true,
       auth: { token },
     });
+    socketRef.current = socket;
 
     socket.on("connect", () => {
       console.log("🌐 Socket connected in GlobalContext");
     });
 
-    socket.on("deposit-status-updated", () => {
-      fetchWalletBalance();
+    // Wallet impacting events
+    const refreshWallet = () => fetchWalletBalance();
+    socket.on("deposit-status-updated", refreshWallet);
+    socket.on("withdrawal-status-updated", refreshWallet);
+    socket.on("panel-deposit-status-updated", refreshWallet);
+    socket.on("panel-withdrawal-status-updated", refreshWallet);
+
+    // Game ID status → simply refetch list
+    socket.on("game-id-status-updated", () => {
+      fetchGameIds();
     });
 
-    socket.on("withdrawal-status-updated", () => {
-      fetchWalletBalance();
-    });
-    // ✅ NEW: Panel-specific events
-    socket.on("panel-deposit-status-updated", () => {
-      fetchWalletBalance();
-    });
+    // NEW: Game ID block/unblock → instant hide/show
+    socket.on(
+      "game-id-block-toggled",
+      ({ userId: targetUserId, gameId, isBlocked }) => {
+        const myId = safeMyUserId();
+        if (!myId || myId !== targetUserId) return;
 
-    socket.on("panel-withdrawal-status-updated", () => {
-      fetchWalletBalance();
-    });
+        if (isBlocked) {
+          // 🔴 immediately hide without full refetch
+          setMyIdCardData((prev) => prev.filter((g) => g._id !== gameId));
+        } else {
+          // 🟢 unblocked → refetch to include it back (server filter now allows it)
+          fetchGameIds();
+        }
+      }
+    );
 
-
-    socket.on("game-id-status-updated", (payload) => {
-      fetchGameIds(); // 🔁 Refresh only game IDs
+    socket.on("disconnect", () => {
+      console.log("🔌 Socket disconnected in GlobalContext");
     });
 
     return () => {
-      socket.disconnect();
+      try {
+        socket.disconnect();
+      } catch {}
+      socketRef.current = null;
     };
-  }, [token]);
+  }, [token, fetchWalletBalance, fetchGameIds, safeMyUserId]);
 
-  // ✅ 3. Fetch user profile
+  // ----------------------------
+  // Profile bootstrap + retry
+  // ----------------------------
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const run = async () => {
       if (!token) return;
-
       try {
         setLoadingProfile(true);
+
         const cachedProfile = localStorage.getItem("userProfile");
-        if (cachedProfile) setUserProfile(JSON.parse(cachedProfile));
+        if (cachedProfile) {
+          try {
+            setUserProfile(JSON.parse(cachedProfile));
+          } catch {}
+        }
 
         const res = await axios.get(`${import.meta.env.VITE_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -96,79 +210,23 @@ export const GlobalProvider = ({ children }) => {
         setLoadingProfile(false);
       }
     };
-
-    fetchUserProfile();
+    run();
   }, [token, refreshTrigger, retryCount]);
 
+  // ----------------------------
+  // First loads (token-aware)
+  // ----------------------------
   useEffect(() => {
-    if (token) fetchWalletBalance();
-  }, [token, refreshTrigger]);
+    if (!token) return;
+    fetchWalletBalance();
+    fetchSliders();
+    fetchGameIds();
+  }, [token, fetchWalletBalance, fetchSliders, fetchGameIds]);
 
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile");
     setRefreshTrigger((prev) => !prev);
   };
-
-  // ✅ ID & Game ID Handling (unchanged)
-  const [allCreateIDList, setAllCreateIdList] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const fetchSliders = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/panels/panel`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setAllCreateIdList(res.data.panels);
-    } catch (err) {
-      console.error("Error fetching id card:", err);
-      toast.error("Failed to load id card");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const [myIdCardData, setMyIdCardData] = useState([]);
-  const fetchGameIds = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        toast.error("Please login to continue");
-        return;
-      }
-
-      const res = await axios.get(
-        `${import.meta.env.VITE_URL}/api/game/my-game-ids`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (res.data.success) {
-        setMyIdCardData(res.data.gameIds);
-      } else {
-        toast.error("Failed to fetch Game IDs");
-      }
-    } catch (err) {
-      console.error("❌ Error fetching Game IDs:", err);
-      toast.error("Something went wrong while loading Game IDs.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSliders();
-    fetchGameIds();
-  }, []);
 
   return (
     <GlobalContext.Provider

@@ -16,7 +16,8 @@ const { protect, roleCheck } = require("../middlewares/auth");
 
 router.post("/create-game-id", protect, createGameId);
 router.get("/my-game-ids", protect, getMyGameIds);
-router.put("/update/:id", protect, updateGameId);
+router.put("/update/:id", protect, roleCheck("admin","manager","auditor","createID"), updateGameId);
+router.patch("/update/:id", protect, roleCheck("admin","manager","auditor","createID"), updateGameId);
 router.put("/close/:id", protect, closeGameId);
 router.delete("/delete/:id",   protect,
   roleCheck("admin", "manager", "auditor", "createID"), deleteGameId);

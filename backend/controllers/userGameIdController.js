@@ -228,23 +228,46 @@ const deleteGameId = async (req, res) => {
 const toggleGameIdBlock = async (req, res) => {
   try {
     const { id } = req.params;
-    const { isBlocked } = req.body;
+    let { isBlocked } = req.body;
+
+    // ✅ normalize boolean: true/false, "true"/"false", 1/0, "1"/"0", "yes"/"no"
+    const truthy = [true, "true", 1, "1", "yes", "on"];
+    const falsy  = [false, "false", 0, "0", "no", "off", "", null, undefined];
+    if (!truthy.includes(isBlocked) && !falsy.includes(isBlocked)) {
+      return res.status(400).json({ success: false, message: "Invalid isBlocked value" });
+    }
+    isBlocked = truthy.includes(isBlocked);
 
     const updated = await UserGameId.findByIdAndUpdate(
       id,
       { isBlocked },
-      { new: true }
+      { new: true, select: "_id userId panelId isBlocked" } // return only what's needed
     );
 
-    if (!updated)
-      return res.status(404).json({ success: false, message: "Not found" });
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Game ID not found" });
+    }
 
-    res.status(200).json({ success: true, updated });
+    // ✅ emit realtime event
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("game-id-block-toggled", {
+        gameId: String(updated._id),
+        userId: String(updated.userId),
+        panelId: updated.panelId ? String(updated.panelId) : null,
+        isBlocked,
+        // (optional) timestamp to help client resolve races
+        ts: Date.now(),
+      });
+    }
+
+    return res.status(200).json({ success: true, updated });
   } catch (error) {
     console.error("❌ Error toggling block:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
 
 const changeGameIdStatus = async (req, res) => {
   try {
