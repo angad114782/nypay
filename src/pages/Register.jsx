@@ -289,7 +289,7 @@ function Register() {
               User Registration
             </h6>
             <p className="text-sm font-light ct-grey2">
-              Enter Valid email and phone number to send one time Password
+              Enter Valid email and whatsapp number(OTP On Whatsapp) to send one time Password
             </p>
 
             <FloatingInput

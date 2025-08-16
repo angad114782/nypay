@@ -129,7 +129,7 @@ export default function FloatingInput({
                 : "peer-focus:text-[var(--theme-orange2)] text-[var(--theme-grey3)]"
               }`}
           >
-            Email
+            Email (Optional)
           </label>
         </div>
       )}

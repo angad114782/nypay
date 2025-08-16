@@ -106,6 +106,7 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       socket.disconnect();
     };
   }, []);
+  const pendingCreateCount = createIdData.filter(d => d.status === "Pending").length;
 
   return (
     <>
@@ -115,9 +116,21 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           {/* Tabs */}
-          <TabsList>
-            <TabsTrigger value="createId">Create Id</TabsTrigger>
-            <TabsTrigger value="clientInfo">Client Information</TabsTrigger>
+          <TabsList className="inline-flex flex-shrink-0 w-auto gap-2">
+            {/* Create Id */}
+            <TabsTrigger value="createId" className="relative flex items-center gap-1">
+              Create Id
+              {pendingCreateCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {pendingCreateCount}
+                </span>
+              )}
+            </TabsTrigger>
+
+            {/* Client Information (no pending concept, so no badge) */}
+            <TabsTrigger value="clientInfo" className="relative flex items-center gap-1">
+              Client Information
+            </TabsTrigger>
           </TabsList>
 
           {/* ✅ Show counts only in Create Id tab */}
@@ -134,20 +147,18 @@ const CreateIdAndClientInfo = ({ onTabChange }) => {
               {/* Pending */}
               <div
                 className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
-          ${
-            createIdData.filter((d) => d.status === "Pending").length > 0
-              ? "bg-amber-50"
-              : "bg-green-50"
-          }`}
+          ${createIdData.filter((d) => d.status === "Pending").length > 0
+                    ? "bg-amber-50"
+                    : "bg-green-50"
+                  }`}
               >
                 <span className="text-xs text-gray-500">Pending:</span>
                 <span
-                  className={`text-sm font-semibold ${
-                    createIdData.filter((d) => d.status === "Pending").length >
-                    0
+                  className={`text-sm font-semibold ${createIdData.filter((d) => d.status === "Pending").length >
+                      0
                       ? "text-amber-600"
                       : "text-green-600"
-                  }`}
+                    }`}
                 >
                   {createIdData.filter((d) => d.status === "Pending").length}
                 </span>

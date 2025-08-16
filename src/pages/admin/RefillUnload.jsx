@@ -125,6 +125,11 @@ const RefillUnload = ({ onTabChange }) => {
     };
   }, []);
 
+  // ...inside component, before return()
+  const pendingRefillCount = depositData.filter(d => d.status === "Pending").length;
+  const pendingUnloadCount = withdrawData.filter(d => d.status === "Pending").length;
+
+
   return (
     <>
       <QuickActionCards onTabChange={onTabChange} />
@@ -132,9 +137,26 @@ const RefillUnload = ({ onTabChange }) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           {/* Tabs */}
-          <TabsList className="flex-shrink-0">
-            <TabsTrigger value="refillID">Refill ID</TabsTrigger>
-            <TabsTrigger value="unloadID">Unload ID</TabsTrigger>
+          <TabsList className="flex-shrink-0 gap-2">
+            {/* Refill ID */}
+            <TabsTrigger value="refillID" className="relative flex items-center gap-1">
+              Refill ID
+              {pendingRefillCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {pendingRefillCount}
+                </span>
+              )}
+            </TabsTrigger>
+
+            {/* Unload ID */}
+            <TabsTrigger value="unloadID" className="relative flex items-center gap-1">
+              Unload ID
+              {pendingUnloadCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {pendingUnloadCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Counts */}
@@ -152,28 +174,26 @@ const RefillUnload = ({ onTabChange }) => {
             {/* Pending */}
             <div
               className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
-        ${
-          activeTab === "refillID"
-            ? depositData.filter((w) => w.status === "Pending").length > 0
-              ? "bg-amber-50"
-              : "bg-green-50"
-            : withdrawData.filter((d) => d.status === "Pending").length > 0
-            ? "bg-amber-50"
-            : "bg-green-50"
-        }`}
+        ${activeTab === "refillID"
+                  ? depositData.filter((w) => w.status === "Pending").length > 0
+                    ? "bg-amber-50"
+                    : "bg-green-50"
+                  : withdrawData.filter((d) => d.status === "Pending").length > 0
+                    ? "bg-amber-50"
+                    : "bg-green-50"
+                }`}
             >
               <span className="text-xs text-gray-500">Pending:</span>
               <span
                 className={`text-sm font-semibold
-            ${
-              activeTab === "refillID"
-                ? depositData.filter((w) => w.status === "Pending").length > 0
-                  ? "text-amber-600"
-                  : "text-green-600"
-                : withdrawData.filter((d) => d.status === "Pending").length > 0
-                ? "text-amber-600"
-                : "text-green-600"
-            }`}
+            ${activeTab === "refillID"
+                    ? depositData.filter((w) => w.status === "Pending").length > 0
+                      ? "text-amber-600"
+                      : "text-green-600"
+                    : withdrawData.filter((d) => d.status === "Pending").length > 0
+                      ? "text-amber-600"
+                      : "text-green-600"
+                  }`}
               >
                 {activeTab === "refillID"
                   ? depositData.filter((w) => w.status === "Pending").length

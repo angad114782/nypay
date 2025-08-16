@@ -17,6 +17,13 @@ export const GlobalProvider = ({ children }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+   const [pendingCounts, setPendingCounts] = useState({
+    deposit: 0,
+    withdraw: 0,
+    refill: 0,   // panel deposit
+    unload: 0,   // panel withdraw
+    createId: 0,
+  });
 
   // Panels + Game IDs
   const [allCreateIDList, setAllCreateIdList] = useState([]);
@@ -44,6 +51,53 @@ export const GlobalProvider = ({ children }) => {
       return null;
     }
   }, [userProfile]);
+
+   const fetchPendingCounts = useCallback(async () => {
+    if (!token) return;
+    try {
+      const base = import.meta.env.VITE_URL;
+      const headers = { headers: { Authorization: `Bearer ${token}` } };
+
+      const [
+        depositsRes,
+        withdrawsRes,
+        panelDepositsRes,
+        panelWithdrawsRes,
+        createIdsRes,
+      ] = await Promise.allSettled([
+        axios.get(`${base}/api/deposit/admin/deposits`, headers),
+        axios.get(`${base}/api/withdraw/admin/withdraws`, headers),
+        axios.get(`${base}/api/panel-deposit/all`, headers),
+        axios.get(`${base}/api/panel-withdraw/all`, headers),
+        axios.get(`${base}/api/game/admin/all-requests`, headers),
+      ]);
+
+      const safeArr = (r, path) =>
+        r.status === "fulfilled" && Array.isArray(path ? r.value?.data?.[path] : r.value?.data)
+          ? (path ? r.value.data[path] : r.value.data)
+          : [];
+
+      const deposits = safeArr(depositsRes, "data");        // BE returns {data: [...]}
+      const withdraws = safeArr(withdrawsRes, "data");       // BE returns {data: [...]}
+      const panelDeposits = safeArr(panelDepositsRes);       // BE returns [...]
+      const panelWithdraws = safeArr(panelWithdrawsRes);     // BE returns [...]
+      const createIds = safeArr(createIdsRes, "gameIds");    // BE returns {gameIds: [...]}
+
+      const countPending = (arr, key = "status") =>
+        arr.filter((x) => (x?.[key] || "Pending") === "Pending").length;
+
+      setPendingCounts({
+        deposit: countPending(deposits),
+        withdraw: countPending(withdraws),
+        refill: countPending(panelDeposits),
+        unload: countPending(panelWithdraws),
+        createId: countPending(createIds),
+      });
+    } catch (err) {
+      console.error("❌ fetchPendingCounts error:", err);
+    }
+  }, [token]);
+
 
   // ----------------------------
   // API: Wallet
@@ -119,11 +173,8 @@ export const GlobalProvider = ({ children }) => {
   useEffect(() => {
     if (!token) return;
 
-    // disconnect old
     if (socketRef.current) {
-      try {
-        socketRef.current.disconnect();
-      } catch {}
+      try { socketRef.current.disconnect(); } catch {}
       socketRef.current = null;
     }
 
@@ -137,46 +188,57 @@ export const GlobalProvider = ({ children }) => {
       console.log("🌐 Socket connected in GlobalContext");
     });
 
-    // Wallet impacting events
+    // Wallet update listeners (as-is)
     const refreshWallet = () => fetchWalletBalance();
     socket.on("deposit-status-updated", refreshWallet);
     socket.on("withdrawal-status-updated", refreshWallet);
     socket.on("panel-deposit-status-updated", refreshWallet);
     socket.on("panel-withdrawal-status-updated", refreshWallet);
 
-    // Game ID status → simply refetch list
-    socket.on("game-id-status-updated", () => {
-      fetchGameIds();
-    });
+    // 🔁 Pending counters should refresh on these events
+    const refreshPending = () => fetchPendingCounts();
 
-    // NEW: Game ID block/unblock → instant hide/show
-    socket.on(
-      "game-id-block-toggled",
-      ({ userId: targetUserId, gameId, isBlocked }) => {
-        const myId = safeMyUserId();
-        if (!myId || myId !== targetUserId) return;
+    // Deposit/Withdraw create + status
+    socket.on("deposit-updated", refreshPending);
+    socket.on("deposit-status-updated", refreshPending);
+    socket.on("withdrawal-updated", refreshPending);
+    socket.on("withdrawal-status-updated", refreshPending);
 
-        if (isBlocked) {
-          // 🔴 immediately hide without full refetch
-          setMyIdCardData((prev) => prev.filter((g) => g._id !== gameId));
-        } else {
-          // 🟢 unblocked → refetch to include it back (server filter now allows it)
-          fetchGameIds();
-        }
+    // Panel Deposit/Withdraw create + status
+    socket.on("panel-deposit-created", refreshPending);
+    socket.on("panel-deposit-status-updated", refreshPending);
+    socket.on("panel-withdrawal-created", refreshPending);
+    socket.on("panel-withdrawal-status-updated", refreshPending);
+
+    // Create ID create + status
+    socket.on("game-id-created", refreshPending);
+    socket.on("game-id-status-updated", refreshPending);
+
+    // Game ID list updates (as-is)
+    socket.on("game-id-status-updated", () => { fetchGameIds(); });
+
+    socket.on("game-id-block-toggled", ({ userId: targetUserId, gameId, isBlocked }) => {
+      const myId = safeMyUserId();
+      if (!myId || myId !== targetUserId) return;
+      if (isBlocked) {
+        setMyIdCardData((prev) => prev.filter((g) => g._id !== gameId));
+      } else {
+        fetchGameIds();
       }
-    );
+      // Also refresh pending since block/unblock may affect visibility
+      fetchPendingCounts();
+    });
 
     socket.on("disconnect", () => {
       console.log("🔌 Socket disconnected in GlobalContext");
     });
 
     return () => {
-      try {
-        socket.disconnect();
-      } catch {}
+      try { socket.disconnect(); } catch {}
       socketRef.current = null;
     };
-  }, [token, fetchWalletBalance, fetchGameIds, safeMyUserId]);
+  }, [token, fetchWalletBalance, fetchGameIds, safeMyUserId, fetchPendingCounts]);
+
 
   // ----------------------------
   // Profile bootstrap + retry
@@ -216,12 +278,13 @@ export const GlobalProvider = ({ children }) => {
   // ----------------------------
   // First loads (token-aware)
   // ----------------------------
-  useEffect(() => {
+useEffect(() => {
     if (!token) return;
     fetchWalletBalance();
     fetchSliders();
     fetchGameIds();
-  }, [token, fetchWalletBalance, fetchSliders, fetchGameIds]);
+    fetchPendingCounts(); // ✅ pull counters on boot
+  }, [token, fetchWalletBalance, fetchSliders, fetchGameIds, fetchPendingCounts]);
 
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile");
@@ -240,6 +303,10 @@ export const GlobalProvider = ({ children }) => {
         myIdCardData,
         allCreateIDList,
         fetchGameIds,
+         // ✅ expose counters
+        pendingCounts,
+        // (optional) force refresh
+        fetchPendingCounts,
       }}
     >
       {children}
