@@ -367,7 +367,7 @@ const CreateIdTable = ({ data, fetchData }) => {
 
                   <EditGameIdDialog
                     gameId={item.id}
-                    initialUsername={item.userName}     // table data key → backend 'username'
+                    initialUsername={item.userName} // table data key → backend 'username'
                     initialPassword={item.password}
                     buttonLogo={
                       <button className="px-2 py-1 rounded bg-blue-100 text-blue-700 text-xs font-semibold hover:bg-blue-200 transition">
@@ -385,7 +385,6 @@ const CreateIdTable = ({ data, fetchData }) => {
                       // fetchData();
                     }}
                   />
-
                 </div>
               </TableCell>
 
@@ -567,7 +566,11 @@ export const TransactionCard = ({
       <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-100">
         <div className="flex items-center gap-2">
           {/* <Trash2 className="h-6 w-6 text-red-500 cursor-pointer" /> */}
-          <Copy className="h-6 w-6 cursor-pointer" />
+          <CopyButton
+            textToCopy={`Username - ${transaction.userName}\nPassword - ${transaction.password}\nPanel - ${transaction.panel}\nParentIp - ${transaction.parentIp}`}
+            title="Copy username, password, panel, parent IP"
+            className="h-6 w-6"
+          />
         </div>
         <div className="flex gap-2">
           <button

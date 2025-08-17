@@ -19,14 +19,17 @@ import {
   CreditCard,
   MapPin,
   MessageSquare,
+  PhoneCallIcon,
   Trash2,
   User2,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import Pagination from "./Pagination";
 import TableFilterBar from "./TableFilters";
 import WithdrawLogo from "/asset/Group 48095823.png";
+import { FaSortAmountUp } from "react-icons/fa";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -395,9 +398,15 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
 
       {/* Payment Type */}
       <div className="flex items-center p-2 gap-2">
-        <CreditCard className="w-4 h-4 text-black" />
+        <PhoneCallIcon className="w-4 h-4 text-black" />
         <span className="text-sm text-black">Mobile No.</span>
         <span className="ml-auto text-sm text-black">{transaction.phone}</span>
+      </div>
+      {/* Wallet Balance */}
+      <div className="flex items-center p-2 gap-2">
+        <Wallet className="w-4 h-4 text-black" />
+        <span className="text-sm text-black">Wallet Bal.</span>
+        <span className="ml-auto text-sm text-black">{transaction.wallet}</span>
       </div>
 
       {/* Payment Type */}
