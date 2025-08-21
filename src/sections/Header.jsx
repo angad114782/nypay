@@ -50,26 +50,29 @@ function Header() {
             </button>
           </div>
 
-          {!isLoggedIn ? (
-            <div className="flex items-center gap-1">
-              <Button1
-                bg="bgt-black"
-                color="text-white"
-                text="Register"
-                onclick={() => navigate("/register")}
-              />
-              <Button1
-                bg="bgt-grey1"
-                color="ct-black"
-                text="Login"
-                onclick={() => navigate("/login")}
-              />
-            </div>
-          ) : (
-            <div>
-              <WalletBalance padBal="py-[4px]" bal={walletBalance} />
-            </div>
-          )}
+          {
+            !isLoggedIn && (
+              <div className="flex items-center gap-1">
+                <Button1
+                  bg="bgt-black"
+                  color="text-white"
+                  text="Register"
+                  onclick={() => navigate("/register")}
+                />
+                <Button1
+                  bg="bgt-grey1"
+                  color="ct-black"
+                  text="Login"
+                  onclick={() => navigate("/login")}
+                />
+              </div>
+            )
+            //  : (
+            //   <div>
+            //     <WalletBalance padBal="py-[4px]" bal={walletBalance} />
+            //   </div>
+            // )
+          }
         </div>
       </div>
 

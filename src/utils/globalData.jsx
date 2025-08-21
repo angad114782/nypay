@@ -17,11 +17,11 @@ export const GlobalProvider = ({ children }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-   const [pendingCounts, setPendingCounts] = useState({
+  const [pendingCounts, setPendingCounts] = useState({
     deposit: 0,
     withdraw: 0,
-    refill: 0,   // panel deposit
-    unload: 0,   // panel withdraw
+    refill: 0, // panel deposit
+    unload: 0, // panel withdraw
     createId: 0,
   });
 
@@ -52,7 +52,7 @@ export const GlobalProvider = ({ children }) => {
     }
   }, [userProfile]);
 
-   const fetchPendingCounts = useCallback(async () => {
+  const fetchPendingCounts = useCallback(async () => {
     if (!token) return;
     try {
       const base = import.meta.env.VITE_URL;
@@ -73,15 +73,18 @@ export const GlobalProvider = ({ children }) => {
       ]);
 
       const safeArr = (r, path) =>
-        r.status === "fulfilled" && Array.isArray(path ? r.value?.data?.[path] : r.value?.data)
-          ? (path ? r.value.data[path] : r.value.data)
+        r.status === "fulfilled" &&
+        Array.isArray(path ? r.value?.data?.[path] : r.value?.data)
+          ? path
+            ? r.value.data[path]
+            : r.value.data
           : [];
 
-      const deposits = safeArr(depositsRes, "data");        // BE returns {data: [...]}
-      const withdraws = safeArr(withdrawsRes, "data");       // BE returns {data: [...]}
-      const panelDeposits = safeArr(panelDepositsRes);       // BE returns [...]
-      const panelWithdraws = safeArr(panelWithdrawsRes);     // BE returns [...]
-      const createIds = safeArr(createIdsRes, "gameIds");    // BE returns {gameIds: [...]}
+      const deposits = safeArr(depositsRes, "data"); // BE returns {data: [...]}
+      const withdraws = safeArr(withdrawsRes, "data"); // BE returns {data: [...]}
+      const panelDeposits = safeArr(panelDepositsRes); // BE returns [...]
+      const panelWithdraws = safeArr(panelWithdrawsRes); // BE returns [...]
+      const createIds = safeArr(createIdsRes, "gameIds"); // BE returns {gameIds: [...]}
 
       const countPending = (arr, key = "status") =>
         arr.filter((x) => (x?.[key] || "Pending") === "Pending").length;
@@ -97,7 +100,6 @@ export const GlobalProvider = ({ children }) => {
       console.error("❌ fetchPendingCounts error:", err);
     }
   }, [token]);
-
 
   // ----------------------------
   // API: Wallet
@@ -174,7 +176,9 @@ export const GlobalProvider = ({ children }) => {
     if (!token) return;
 
     if (socketRef.current) {
-      try { socketRef.current.disconnect(); } catch {}
+      try {
+        socketRef.current.disconnect();
+      } catch {}
       socketRef.current = null;
     }
 
@@ -215,18 +219,34 @@ export const GlobalProvider = ({ children }) => {
     socket.on("game-id-status-updated", refreshPending);
 
     // Game ID list updates (as-is)
-    socket.on("game-id-status-updated", () => { fetchGameIds(); });
+    socket.on("game-id-status-updated", () => {
+      fetchGameIds();
+    });
+    // Panel status listener
+    socket.on("panel-status-updated", () => {
+      fetchSliders(); // ✅ refresh panel list instantly
+      fetchPendingCounts(); // ✅ also refresh counters if needed
+    });
 
-    socket.on("game-id-block-toggled", ({ userId: targetUserId, gameId, isBlocked }) => {
-      const myId = safeMyUserId();
-      if (!myId || myId !== targetUserId) return;
-      if (isBlocked) {
-        setMyIdCardData((prev) => prev.filter((g) => g._id !== gameId));
-      } else {
-        fetchGameIds();
+    socket.on(
+      "game-id-block-toggled",
+      ({ userId: targetUserId, gameId, isBlocked }) => {
+        const myId = safeMyUserId();
+        if (!myId || myId !== targetUserId) return;
+        if (isBlocked) {
+          setMyIdCardData((prev) => prev.filter((g) => g._id !== gameId));
+        } else {
+          fetchGameIds();
+        }
+        // Also refresh pending since block/unblock may affect visibility
+        fetchPendingCounts();
       }
-      // Also refresh pending since block/unblock may affect visibility
-      fetchPendingCounts();
+    );
+
+    // Panel created listener
+    socket.on("panel-created", () => {
+      fetchSliders(); // ✅ refresh panel list instantly
+      fetchPendingCounts(); // ✅ also refresh counters
     });
 
     socket.on("disconnect", () => {
@@ -234,11 +254,18 @@ export const GlobalProvider = ({ children }) => {
     });
 
     return () => {
-      try { socket.disconnect(); } catch {}
+      try {
+        socket.disconnect();
+      } catch {}
       socketRef.current = null;
     };
-  }, [token, fetchWalletBalance, fetchGameIds, safeMyUserId, fetchPendingCounts]);
-
+  }, [
+    token,
+    fetchWalletBalance,
+    fetchGameIds,
+    safeMyUserId,
+    fetchPendingCounts,
+  ]);
 
   // ----------------------------
   // Profile bootstrap + retry
@@ -278,13 +305,19 @@ export const GlobalProvider = ({ children }) => {
   // ----------------------------
   // First loads (token-aware)
   // ----------------------------
-useEffect(() => {
+  useEffect(() => {
     if (!token) return;
     fetchWalletBalance();
     fetchSliders();
     fetchGameIds();
     fetchPendingCounts(); // ✅ pull counters on boot
-  }, [token, fetchWalletBalance, fetchSliders, fetchGameIds, fetchPendingCounts]);
+  }, [
+    token,
+    fetchWalletBalance,
+    fetchSliders,
+    fetchGameIds,
+    fetchPendingCounts,
+  ]);
 
   const refreshUserProfile = () => {
     localStorage.removeItem("userProfile");
@@ -303,7 +336,7 @@ useEffect(() => {
         myIdCardData,
         allCreateIDList,
         fetchGameIds,
-         // ✅ expose counters
+        // ✅ expose counters
         pendingCounts,
         // (optional) force refresh
         fetchPendingCounts,

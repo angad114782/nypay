@@ -232,7 +232,7 @@ const MyIdCard = ({
 
           {/* Site and Status Row */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-xs bg-blue-800 rounded-full px-2 py-1  text-white min-w-0 flex-1">
+            <div className="flex items-center gap-1 bg-blue-800 rounded-full px-2 py-1  text-white min-w-0 flex-1">
               <a
                 href={`https://${site}`}
                 target="_blank"
@@ -242,7 +242,7 @@ const MyIdCard = ({
               >
                 {truncateText(site, 25)}
               </a>
-              <FaExternalLinkAlt className="text-[10px] flex-shrink-0" />
+              <FaExternalLinkAlt className="text-[12px] flex-shrink-0" />
             </div>
 
             {!isActive && (

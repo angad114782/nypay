@@ -143,7 +143,7 @@ const DepositTable = ({ data, fetchDeposits }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
     XLSX.writeFile(wb, "table.xlsx");
   };
-
+  console.log("paginatedData", paginatedData);
   return (
     <>
       <TableFilterBar
@@ -194,12 +194,13 @@ const DepositTable = ({ data, fetchDeposits }) => {
                 <div className="flex items-center gap-1">
                   {(currentPage - 1) * entries + index + 1}
                   <CopyButton
-                    textToCopy={`Username - ${item.userName}\nAmount - ${item.amount}\nUTR - ${item.utr}`}
+                    textToCopy={`ProfileName - ${item.profileName}\nAmount - ${item.amount}\nUTR - ${item.utr}`}
                     title="Copy User Name, Amount, UTR"
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.userName}</TableCell>
+
+              <TableCell>{item.profileName}</TableCell>
               {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}

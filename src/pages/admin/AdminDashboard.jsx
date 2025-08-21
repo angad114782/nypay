@@ -53,7 +53,7 @@ import { GlobalContext } from "@/utils/globalData";
 const Dashboard = () => {
   const { tab } = useParams();
   const { setIsLoggedIn } = useAuth();
-  const { setUserProfile, pendingCounts  } = useContext(GlobalContext); // global context
+  const { setUserProfile, pendingCounts } = useContext(GlobalContext); // global context
   const [logoutLoading, setLogoutLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -246,12 +246,12 @@ const Dashboard = () => {
     { icon: Wallet, label: "Dashboard", id: "dashboard" },
     {
       icon: ArrowUpRight,
-      label: "Deposit/Withdrawals",
+      label: "Deposit to Wallet / Wallet to Bank",
       id: "deposit-withdrawals",
     },
     {
       icon: ArrowUpRight,
-      label: "Refill ID/Unload ID",
+      label: "Wallet to ID / ID to Wallet",
       id: "refill-unload",
     },
     {
@@ -330,7 +330,7 @@ const Dashboard = () => {
     } else if (id === "refill-unload") {
       count = (pendingCounts?.refill || 0) + (pendingCounts?.unload || 0);
     } else if (id === "create-id") {
-      count = (pendingCounts?.createId || 0);
+      count = pendingCounts?.createId || 0;
     }
     if (!count) return null;
     return (
@@ -340,14 +340,13 @@ const Dashboard = () => {
     );
   };
 
-
   return (
     <div className="min-h-screen dark:bg-white  ">
       {/* Header */}
       <header
         className={`fixed top-0 font-display h-16 dark:bg-[#575460] bg-white border-b z-50 transition-all duration-300
         left-0 right-0
-        ${isSidebarOpen ? "md:left-68" : "md:left-20"}
+        ${isSidebarOpen ? "md:left-84" : "md:left-20"}
         md:right-0
       `}
       >
@@ -413,9 +412,9 @@ const Dashboard = () => {
       )}
 
       {/* Sidebar */}
-     <aside
+      <aside
         className={`fixed font-display bg-white border-r dark:bg-[#575460] transition-all duration-300 z-40
-          ${isSidebarOpen ? "w-68" : "w-20"}
+          ${isSidebarOpen ? "w-84" : "w-20"}
           ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
           top-16 bottom-0
           md:top-0 md:bottom-0 md:translate-x-0
@@ -460,7 +459,7 @@ const Dashboard = () => {
             </span>
           </div>
         )}
-         <nav className="p-2 space-y-1">
+        <nav className="p-2 space-y-1">
           {sidebarItems.map((item) => (
             <React.Fragment key={item.id}>
               <Button
@@ -473,30 +472,30 @@ const Dashboard = () => {
                 {/* Left: icon + label */}
                 <div className="flex items-center">
                   <item.icon className="h-10 w-10" />
-                  {isSidebarOpen && (
-                    <span className="ml-3">{item.label}</span>
-                  )}
+                  {isSidebarOpen && <span className="ml-3">{item.label}</span>}
                 </div>
 
                 {/* Right: badge (3 items only) */}
-                {["deposit-withdrawals", "refill-unload", "create-id"].includes(item.id) &&
+                {["deposit-withdrawals", "refill-unload", "create-id"].includes(
+                  item.id
+                ) &&
                   (isSidebarOpen ? (
                     // Expanded: show full badge on right
                     renderBadgeFor(item.id)
                   ) : (
                     // Collapsed: show small dot/number near icon
                     <span className="absolute right-2 top-1.5 inline-flex items-center justify-center min-w-[18px] h-4 px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                      {
-                        (item.id === "deposit-withdrawals" &&
-                          ((pendingCounts?.deposit || 0) + (pendingCounts?.withdraw || 0))) ||
+                      {(item.id === "deposit-withdrawals" &&
+                        (pendingCounts?.deposit || 0) +
+                          (pendingCounts?.withdraw || 0)) ||
                         (item.id === "refill-unload" &&
-                          ((pendingCounts?.refill || 0) + (pendingCounts?.unload || 0))) ||
-                        (item.id === "create-id" && (pendingCounts?.createId || 0)) ||
-                        0
-                      }
+                          (pendingCounts?.refill || 0) +
+                            (pendingCounts?.unload || 0)) ||
+                        (item.id === "create-id" &&
+                          (pendingCounts?.createId || 0)) ||
+                        0}
                     </span>
-                  )
-                )}
+                  ))}
               </Button>
 
               {isSuperAdmin && item.id === "super-admin-banner-slider" && (
@@ -511,7 +510,7 @@ const Dashboard = () => {
 
       <main
         className={`transition-all duration-300 bg-white dark:bg-white dark:text-black font-display pt-16 ${
-          isSidebarOpen ? "md:ml-68" : "md:ml-20"
+          isSidebarOpen ? "md:ml-84" : "md:ml-20"
         }`}
       >
         <div className="p-4  md:p-6">

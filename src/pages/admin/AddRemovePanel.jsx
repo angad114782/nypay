@@ -403,9 +403,15 @@ const TransactionCard = ({
         <div className="flex  gap-2">
           <div className="flex items-center justify-center text-xs gap-1">
             Activate/Deactivate
+            {/* <Switch
+                    checked={!item.isActive}
+                    onCheckedChange={(val) => togglePanelStatus(item._id, !val)}
+                  /> */}
             <Switch
               checked={!transaction.isActive}
-              onCheckedChange={(val) => togglePanelStatus(transaction._id, val)}
+              onCheckedChange={(val) =>
+                togglePanelStatus(transaction._id, !val)
+              }
             />
           </div>
         </div>
