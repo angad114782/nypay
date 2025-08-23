@@ -22,6 +22,7 @@ import {
   ArrowUpRight,
   LogOut,
   Menu,
+  Phone,
   TrendingUp,
   User,
   Users,
@@ -49,13 +50,21 @@ import { toast } from "sonner";
 import { useAuth } from "@/utils/AuthContext";
 import axios from "axios";
 import { GlobalContext } from "@/utils/globalData";
+import ContactSetting from "./Helpline";
 
 const Dashboard = () => {
   const { tab } = useParams();
   const { setIsLoggedIn } = useAuth();
+
   const { setUserProfile, pendingCounts } = useContext(GlobalContext); // global context
   const [logoutLoading, setLogoutLoading] = useState(false);
-
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [localUserProfile, setLocalUserProfile] = useState({
+    name: "",
+    role: "",
+    profilePic: "",
+  });
   const handleLogout = async () => {
     setLogoutLoading(true);
     try {
@@ -89,12 +98,24 @@ const Dashboard = () => {
       setLogoutLoading(false);
     }
   };
+  const [isHelplineDialogOpen, setIsHelplineDialogOpen] = useState(false);
+
+  const openHelplineDialog = () => {
+    setIsHelplineDialogOpen(true);
+  };
+
+  const closeHelplineDialog = () => {
+    setIsHelplineDialogOpen(false);
+    setActiveTab(lastActiveTab); // restore the tab you were on
+  };
+
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isMessageCounterDialogOpen, setIsMessageCounterDialogOpen] =
     useState(false);
   const [isAccountSettingDialogOpen, setIsAccountSettingDialogOpen] =
     useState(false);
+  const [lastActiveTab, setLastActiveTab] = useState("dashboard"); // to remember last tab before account settings
 
   const openProfileDialog = () => {
     setIsProfileDialogOpen(true);
@@ -109,6 +130,9 @@ const Dashboard = () => {
 
   const closeAccountSettingDialog = () => {
     setIsAccountSettingDialogOpen(false);
+    setActiveTab(lastActiveTab); // restore sidebar highlight
+
+    // nothing else needed — activeTab never changed
   };
 
   const openPasswordDialog = () => {
@@ -138,23 +162,6 @@ const Dashboard = () => {
     "edit-client": "super-admin-client-setup",
     "view-client": "super-admin-client-setup",
   };
-
-  const getCurrentTab = () => {
-    const segments = location.pathname.split("/");
-    const base = segments.includes("super-admin") ? "super-admin" : "admin";
-    const tab = segments[segments.indexOf(base) + 1];
-
-    return tabMap[tab] || tab || "dashboard";
-  };
-
-  const [activeTab, setActiveTab] = useState(getCurrentTab());
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [localUserProfile, setLocalUserProfile] = useState({
-    name: "",
-    role: "",
-    profilePic: "",
-  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -193,20 +200,58 @@ const Dashboard = () => {
   }, [location.pathname]);
 
   // Fixed handleTabChange to accept both main tab and sub-tab
-  const handleTabChange = (mainTab, subTab = null) => {
-    setActiveTab(mainTab);
+  // const handleTabChange = (mainTab, subTab = null) => {
+  //   setActiveTab(mainTab);
 
-    if (mainTab !== "LogOut") {
-      const basePath = isSuperAdmin ? "/super-admin" : "/admin";
-      navigate(`${basePath}/${mainTab?.toLowerCase()}`, {
-        state: { subTab },
-      });
+  //   if (mainTab !== "LogOut") {
+  //     const basePath = isSuperAdmin ? "/super-admin" : "/admin";
+  //     navigate(`${basePath}/${mainTab?.toLowerCase()}`, {
+  //       state: { subTab },
+  //     });
+  //   }
+
+  //   if (window.innerWidth < 768) {
+  //     setIsMobileMenuOpen(false);
+  //   }
+  // };
+  const getCurrentTab = () => {
+    const segments = location.pathname.split("/");
+    const base = segments.includes("super-admin") ? "super-admin" : "admin";
+    const tab = segments[segments.indexOf(base) + 1];
+
+    return tabMap[tab] || tab || "dashboard";
+  };
+  const [activeTab, setActiveTab] = useState(getCurrentTab());
+  const handleTabChange = (mainTab, subTab = null) => {
+    if (mainTab === "account-setting") {
+      setLastActiveTab(activeTab); // remember current tab
+      setActiveTab("account-setting"); // highlight Account Setting in sidebar
+      openAccountSettingDialog(); // open dialog
+      return; // 🚫 stop here, no navigate!
     }
+
+    if (mainTab === "helpline") {
+      setLastActiveTab(activeTab); // remember current tab
+      setActiveTab("helpline"); // highlight Helpline in sidebar
+      openHelplineDialog(); // open helpline dialog
+      return; // 🚫 stop here, no navigate!
+    }
+
+    if (mainTab === "LogOut") {
+      setActiveTab(mainTab);
+      return;
+    }
+
+    // Normal tab change with navigation (🔹 unchanged)
+    setActiveTab(mainTab);
+    const basePath = isSuperAdmin ? "/super-admin" : "/admin";
+    navigate(`${basePath}/${mainTab?.toLowerCase()}`, { state: { subTab } });
 
     if (window.innerWidth < 768) {
       setIsMobileMenuOpen(false);
     }
   };
+
   // Super Admin sidebar items (includes all tabs)
   const superAdminSidebarItems = [
     {
@@ -262,6 +307,12 @@ const Dashboard = () => {
     { icon: ArrowUpDown, label: "Platform/Panel", id: "platform-panel" },
     { icon: Users, label: "Banner/Slider", id: "banner-slider" },
     { icon: Users, label: "Team Management", id: "team-management" },
+    { icon: User, label: "Account Setting", id: "account-setting" }, // 👈 added here
+    {
+      id: "helpline",
+      label: "Helpline",
+      icon: Phone,
+    },
     { icon: LogOut, label: "LogOut", id: "LogOut" },
   ];
 
@@ -269,6 +320,28 @@ const Dashboard = () => {
   const sidebarItems = isSuperAdmin
     ? superAdminSidebarItems
     : adminSidebarItems;
+
+  const renderContentFor = (tab) => {
+    switch (tab) {
+      case "dashboard":
+        return <DashboardTab onTabChange={handleTabChange} />;
+      case "deposit-withdrawals":
+        return <DepositWithdrawal onTabChange={handleTabChange} />;
+      case "refill-unload":
+        return <RefillUnload onTabChange={handleTabChange} />;
+      case "create-id":
+        return <CreateIdAndClientInfo onTabChange={handleTabChange} />;
+      case "platform-panel":
+        return <AddRemovePanel />;
+      case "banner-slider":
+        return <SliderManagement />;
+      case "team-management":
+        return <TeamManagement />;
+      // add more if needed
+      default:
+        return <DashboardTab onTabChange={handleTabChange} />;
+    }
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -294,7 +367,7 @@ const Dashboard = () => {
         return <TeamManagement />;
       case "LogOut":
         return (
-          <div className="flex  items-center justify-center h-96">
+          <div className="flex items-center justify-center h-96">
             <Card className="w-96">
               <CardContent className="p-8 text-center">
                 <LogOut className="w-16 h-16 mx-auto mb-4 text-gray-400" />
@@ -317,6 +390,14 @@ const Dashboard = () => {
             </Card>
           </div>
         );
+
+      case "account-setting":
+        // 👇 just render last active tab's content
+        return renderContentFor(lastActiveTab);
+      case "helpline":
+        // 👇 keep background same as last active tab
+        return renderContentFor(lastActiveTab);
+
       default:
         console.log("Current activeTab:", activeTab);
         return <DashboardTab onTabChange={handleTabChange} />;
@@ -394,9 +475,9 @@ const Dashboard = () => {
                 <DropdownMenuItem onClick={openMessageCounterDialog}>
                   Message Counter
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={openAccountSettingDialog}>
+                {/* <DropdownMenuItem onClick={openAccountSettingDialog}>
                   Account Setting
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -534,6 +615,10 @@ const Dashboard = () => {
       <AccountSetting
         isOpen={isAccountSettingDialogOpen}
         onClose={closeAccountSettingDialog}
+      />
+      <ContactSetting
+        isOpen={isHelplineDialogOpen}
+        onClose={closeHelplineDialog}
       />
     </div>
   );

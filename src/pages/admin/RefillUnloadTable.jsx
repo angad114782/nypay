@@ -23,6 +23,7 @@ import logonew from "/asset/new.png";
 import RefillIdRejectDialog from "./RefillIdRejectDialog";
 import UnloadIdRejectDialog from "./UnloadIdRejectDialog";
 import { Badge } from "@/components/ui/badge";
+import { getStatusColor } from "@/utils/RolesBadgeColor";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -263,8 +264,15 @@ const RefillUnloadTable = ({ data, type, fetchData }) => {
                 </div>
               </TableCell>
               <TableCell>{item.entryDate}</TableCell>
-              <TableCell className={" text-center"}>
-                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              <TableCell className={"align-middle text-center"}>
+                <Badge
+                  className={`${getStatusColor(
+                    item.status
+                  )} border-none min-w-full `}
+                  variant={"outline"}
+                >
+                  {item.status.toUpperCase()}
+                </Badge>
               </TableCell>
               <TableCell>{item.remark}</TableCell>
               {type === "unload" && <TableCell>{item.withdrawDate}</TableCell>}
@@ -470,7 +478,7 @@ export const TransactionCard = ({
               )
             }
             disabled={transaction.status !== "Pending"}
-            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+            className="bg-green-500 disabled:bg-gray-100 disabled:text-gray-700 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
           </button>
@@ -480,7 +488,7 @@ export const TransactionCard = ({
               buttonLogo={
                 <button
                   disabled={transaction.status !== "Pending"}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                  className="bg-red-500 hover:bg-red-600  disabled:bg-gray-100 disabled:text-gray-700 text-white px-3 py-1 rounded-full text-xs"
                 >
                   Reject
                 </button>
@@ -493,7 +501,7 @@ export const TransactionCard = ({
               buttonLogo={
                 <button
                   disabled={transaction.status !== "Pending"}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs"
+                  className="bg-red-500 hover:bg-red-600  disabled:bg-gray-100 disabled:text-gray-700 text-white px-3 py-1 rounded-full text-xs"
                 >
                   Reject
                 </button>

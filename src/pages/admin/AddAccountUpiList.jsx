@@ -4,6 +4,7 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import axios from "axios";
 import { toast } from "sonner";
 import UPILogo from "/asset/NY Meta Logo (8) 1.svg";
+import { UpiFormDialog } from "./UpiFormDialog";
 
 const AddAccountUpiList = ({ data, onDelete }) => {
   const [selectedUpiId, setSelectedUpiId] = useState(null);
@@ -100,7 +101,12 @@ const AddAccountUpiCard = ({ data, isSelected, onSelect, onDelete }) => {
           onChange={handleSelect}
           className="accent-[#0C42A8] h-6 w-6"
         />
-        <BiEdit className="h-6 w-6 cursor-pointer" />
+        <UpiFormDialog
+          upiData={data}
+          add={false}
+          triggerText={<BiEdit className="h-6 w-6 cursor-pointer" />}
+          onSuccess={onDelete} // refetch parent list
+        />
         <RiDeleteBin6Line
           onClick={handleDelete}
           className="text-[#FF0000] h-6 w-6 cursor-pointer"

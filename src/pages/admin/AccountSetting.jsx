@@ -16,9 +16,9 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import AddAccountUpiTab from "./AddAccountUpiTab";
 import AddAccountBankTab from "./AddBankAccountTab";
+import { BankFormDialog } from "./BankFormDialog";
 const AccountSetting = ({ isOpen, onClose }) => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const initialTab = searchParams.get("tab") || "upi";
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -48,7 +48,6 @@ const AccountSetting = ({ isOpen, onClose }) => {
           </DialogDescription>
         </DialogHeader>
         <div className="flex p-2 flex-col h-[80vh]">
-          {" "}
           {/* constrain the dialog height */}
           <div className="flex justify-center space-x-1 h-[51px] font-medium text-[15px]  text-white border-b">
             <button
@@ -172,6 +171,7 @@ const AddAccountBankTabCard = ({
             </h3>
           </div>
         </div>
+
         <div className="flex gap-2">
           <input
             type="radio"
@@ -180,7 +180,13 @@ const AddAccountBankTabCard = ({
             onChange={handleSelect}
             className="accent-[#0C42A8] h-6 w-6"
           />
-          <BiEdit className="h-6 w-6 cursor-pointer" />
+          <BankFormDialog
+            bankData={data}
+            add={false}
+            triggerText={<BiEdit className="h-6 w-6 cursor-pointer" />}
+            onSuccess={onDeleteSuccess} // refetch parent list
+          />
+
           <RiDeleteBin6Line
             className="text-[#FF0000] h-6 w-6 cursor-pointer"
             onClick={handleDelete}

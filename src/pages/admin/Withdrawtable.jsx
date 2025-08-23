@@ -181,6 +181,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
             {/* <TableHead>User Name</TableHead> */}
             <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
+            <TableHead>UTR</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
             <TableHead>Entry Date</TableHead>
@@ -244,6 +245,15 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                     textToCopy={item.amount}
                     title="Copy amount Number"
                   />
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {"3424324234234"}
+                  {/* <CopyButton
+                    textToCopy={item.amount}
+                    title="Copy amount Number"
+                  /> */}
                 </div>
               </TableCell>
               <TableCell>{item.withdrawMethod}</TableCell>
@@ -562,6 +572,12 @@ export const TransactionCard = ({
         </div>
       )}
 
+      {/* UTR // TODO */}
+      <div className="flex items-center p-2 gap-2">
+        <MapPin className="w-4 h-4 text-black" />
+        <span className="text-sm text-black">UTR</span>
+        <span className="ml-auto text-sm ">{"326415624271632"}</span>
+      </div>
       {/* Parent IP */}
       <div className="flex items-center p-2 gap-2">
         <MapPin className="w-4 h-4 text-black" />

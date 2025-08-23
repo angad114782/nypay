@@ -10,6 +10,7 @@ const statusStyles = {
   Rejected: "bg-[#CA361C] text-white",
   Cancelled: "bg-gray-400 ct-black",
 };
+
 const PassbookCard = ({
   url,
   amount,
@@ -19,6 +20,7 @@ const PassbookCard = ({
   reference,
   utr,
   gameId,
+  remark, // Added remark prop
   image, // Keep for backward compatibility but won't be used
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -116,9 +118,21 @@ const PassbookCard = ({
                   </div>
                 )}
 
+                {/* Add remark display in dropdown */}
+                {remark && (
+                  <div className="flex justify-between items-start">
+                    <span className="text-xs text-white font-bold">
+                      Remark:
+                    </span>
+                    <span className="text-xs text-white font-medium text-right flex-1 ml-2">
+                      {remark}
+                    </span>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/10">
                   <div className="flex items-center">
-                    {/* Receipt component replacing image */}
+                    {/* Receipt component with remark prop */}
                     <PassbookReceipt
                       amount={amount}
                       dateTime={dateTime}
@@ -127,6 +141,8 @@ const PassbookCard = ({
                       status={status}
                       txntype={txntype}
                       url={url}
+                      utr={utr}
+                      remark={remark} // Pass remark to receipt component
                     />
                   </div>
 

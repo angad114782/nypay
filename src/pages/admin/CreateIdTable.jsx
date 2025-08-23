@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import RejectDialog from "./RejectDialog";
 import { Badge } from "@/components/ui/badge";
 import EditGameIdDialog from "./EditGameIdDialog";
+import { getStatusColor } from "@/utils/RolesBadgeColor";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -321,8 +322,15 @@ const CreateIdTable = ({ data, fetchData }) => {
 
               <TableCell>{item.panel}</TableCell>
               <TableCell>{item.createdAt}</TableCell>
-              <TableCell className={" text-center"}>
-                <Badge variant={"outline"}>{item.status.toUpperCase()}</Badge>
+              <TableCell className={"align-middle text-center"}>
+                <Badge
+                  className={`${getStatusColor(
+                    item.status
+                  )} border-none min-w-full `}
+                  variant={"outline"}
+                >
+                  {item.status.toUpperCase()}
+                </Badge>
               </TableCell>
               <TableCell>{item.remark}</TableCell>
 

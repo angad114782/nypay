@@ -93,7 +93,18 @@ const updatePanel = async (req, res) => {
     if (req.file) updates.logo = req.file.filename;
 
     const panel = await Panel.findByIdAndUpdate(id, updates, { new: true });
-
+    // ✅ Emit socket event after creation
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("panel-updated", {
+        action: "update",
+        panelId: panel._id,
+        profileName: panel.profileName,
+        userId: panel.userId,
+        type: panel.type,
+        logo: panel.logo,
+      });
+    }
     const updatedPanel = {
       ...panel._doc,
       logoUrl: panel.logo ? `/uploads/panels/${panel.logo}` : null,

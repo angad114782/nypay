@@ -222,11 +222,6 @@ export const GlobalProvider = ({ children }) => {
     socket.on("game-id-status-updated", () => {
       fetchGameIds();
     });
-    // Panel status listener
-    socket.on("panel-status-updated", () => {
-      fetchSliders(); // ✅ refresh panel list instantly
-      fetchPendingCounts(); // ✅ also refresh counters if needed
-    });
 
     socket.on(
       "game-id-block-toggled",
@@ -247,6 +242,15 @@ export const GlobalProvider = ({ children }) => {
     socket.on("panel-created", () => {
       fetchSliders(); // ✅ refresh panel list instantly
       fetchPendingCounts(); // ✅ also refresh counters
+    });
+    socket.on("panel-updated", () => {
+      fetchSliders(); // ✅ refresh panel list instantly
+      fetchPendingCounts(); // ✅ also refresh counters
+    });
+    // Panel status listener
+    socket.on("panel-status-updated", () => {
+      fetchSliders(); // ✅ refresh panel list instantly
+      fetchPendingCounts(); // ✅ also refresh counters if needed
     });
 
     socket.on("disconnect", () => {

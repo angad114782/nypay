@@ -103,16 +103,17 @@ function Home() {
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(
     whatsappMessage
   )}`;
-
   return (
     <div className="relative">
       <div className="max-w-3xl mx-auto">
         <Header />
 
-        <WalletCard
-          onDeposit={handleDepositClick}
-          onWithdraw={handleWithdrawClick}
-        />
+        {isLoggedIn && (
+          <WalletCard
+            onDeposit={handleDepositClick}
+            onWithdraw={handleWithdrawClick}
+          />
+        )}
         <Banner
           images={[
             "/asset/Property 1=Slider.svg",

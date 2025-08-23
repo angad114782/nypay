@@ -92,32 +92,44 @@ const ClientInfoTable = () => {
   // const [handleBlockToggle, setHandleBlockToggle] = useState(null);
   const [tableData, setTableData] = useState([]);
   // Handle block/unblock toggle
-  const handleBlockToggleFn = async (id, isActive) => {
-    // Optimistic UI update
-    setUsers((prev) =>
-      prev.map((user) => (user._id === id ? { ...user, isActive } : user))
-    );
+  // replace the existing handleBlockToggleFn with this
+  // ---------- replace handleBlockToggleFn ----------
+  // simple optimistic update but then replace with server user from response
+  const handleBlockToggleFn = async (
+    id,
+    checked /* switch checked => "blocked" */
+  ) => {
+    // checked === true => want "Blocked" => isActive should become false
+    const desiredIsActive = !checked;
+
+    // save previous state for rollback
+    let prevUsers;
+    setUsers((prev) => {
+      prevUsers = prev;
+      return prev.map((u) =>
+        u._id === id ? { ...u, isActive: desiredIsActive } : u
+      );
+    });
 
     try {
       const token = localStorage.getItem("token");
-      await axios.patch(
+      // backend toggles isActive and returns the updated user, but sending an empty body is fine
+      const res = await axios.patch(
         `${import.meta.env.VITE_URL}/api/users/${id}/toggle-active`,
-        { isActive },
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // ✅ Toast on success
-      toast.success(
-        `User ${isActive ? "activated" : "deactivated"} successfully`
-      );
+      // Use returned user as truth (you included `user` in the response)
+      if (res?.data?.user) {
+        setUsers((prev) => prev.map((u) => (u._id === id ? res.data.user : u)));
+      } else {
+        // fallback: keep optimistic state but notify
+        toast.success(desiredIsActive ? "User unblocked" : "User blocked");
+      }
     } catch (err) {
-      // Rollback optimistic update on error
-      setUsers((prev) =>
-        prev.map((user) =>
-          user._id === id ? { ...user, isActive: !isActive } : user
-        )
-      );
-      // ✅ Toast on error
+      // rollback
+      setUsers(prevUsers);
       if (err.response && err.response.status === 403) {
         toast.warning("You are not authorized to perform this action");
         return;
@@ -126,6 +138,8 @@ const ClientInfoTable = () => {
       toast.error("Failed to update user status");
     }
   };
+
+  // ---------- end handleBlockToggleFn ----------
 
   // Enhanced filter logic
   useEffect(() => {
@@ -273,19 +287,20 @@ const ClientInfoTable = () => {
                   />
                 </div>
               </TableCell>
+              {console.log(item)}
               <TableCell>{item.wallet}</TableCell>
               <TableCell>{item.createdAt}</TableCell>
               <TableCell>{item.lastDeposit}</TableCell>
               <TableCell>{item.lastLoginDate}</TableCell>
               <TableCell>{item.totalDeposit}</TableCell>
-
+              {console.log(item)}
               <TableCell className={"text-center align-middle"}>
                 {/* {item.isBlocked} */}
                 <div className="flex items-center justify-center gap-1">
                   <Switch
-                    checked={item.isActive}
-                    onCheckedChange={(val) =>
-                      handleBlockToggleFn(item._id, val)
+                    checked={!Boolean(item.isActive)} // checked = blocked
+                    onCheckedChange={(checked) =>
+                      handleBlockToggleFn(item._id, checked)
                     }
                   />
                 </div>
@@ -350,7 +365,7 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
     }
   };
 
-  console.log(transaction, "transaction");
+  // console.log(transaction, "transaction");
   return (
     <div className="bg-gray-300 rounded-2xl shadow-md border border-gray-200 mb-4 overflow-hidden">
       {/* Header */}
@@ -437,9 +452,10 @@ export const TransactionCard = ({ transaction, handleBlockToggleFn }) => {
       <div className="flex items-center p-2 gap-2">
         <span className="ml-auto text-sm flex  items-center gap-2 ">
           <span className=" text-black">Block/Unblock</span>
+
           <Switch
-            checked={transaction.isBlocked}
-            onCheckedChange={(val) => handleBlockToggleFn(transaction.id, val)}
+            checked={Boolean(transaction.isBlocked)}
+            onCheckedChange={(val) => handleBlockToggleFn(transaction._id, val)}
           />
         </span>
       </div>

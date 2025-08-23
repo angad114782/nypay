@@ -37,11 +37,10 @@ exports.toggleActiveStatus = async (req, res) => {
     user.isActive = !user.isActive;
     await user.save();
 
-    res
-      .status(200)
-      .json({
-        message: `User marked as ${user.isActive ? "active" : "inactive"}`,
-      });
+    res.status(200).json({
+      message: `User marked as ${user.isActive ? "active" : "inactive"}`,
+      user,
+    });
   } catch (err) {
     console.error("Toggle Active Error:", err.message);
     res.status(500).json({ message: "Failed to toggle user status" });

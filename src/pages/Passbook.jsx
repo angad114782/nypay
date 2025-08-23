@@ -39,6 +39,7 @@ function Passbook() {
         reference: item.reference,
         utr: item.utr,
         gameId: item.gameId,
+        remark: item.remark,
       }));
 
       setFilteredData(formattedData);
@@ -103,6 +104,7 @@ function Passbook() {
                 utr={item.utr}
                 gameId={item.gameId}
                 image={logo}
+                remark={"Fake Screenshot"}
               />
             ))
           ) : (

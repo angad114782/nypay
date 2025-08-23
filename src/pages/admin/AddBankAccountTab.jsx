@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { AddAccountBankTabList } from "./AccountSetting";
-import { AddNewBankDialog } from "./AddNewBankDialog";
 import axios from "axios";
 import { toast } from "sonner";
+import { BankFormDialog } from "./BankFormDialog";
 
 const AddAccountBankTab = ({ onClose }) => {
   const [banks, setBanks] = useState([]);
@@ -30,7 +30,6 @@ const AddAccountBankTab = ({ onClose }) => {
       if (activeBank) {
         setSelectedBankId(activeBank._id);
       }
-
     } catch (error) {
       console.error("❌ Fetch Error:", error);
       toast.error("Failed to fetch bank details");
@@ -51,7 +50,10 @@ const AddAccountBankTab = ({ onClose }) => {
     <>
       <div>
         <div className="flex justify-between flex-col">
-          <AddNewBankDialog onSuccess={fetchBankData} />
+          <BankFormDialog
+            triggerText={"Add New Bank Details"}
+            onSuccess={fetchBankData}
+          />
           <button
             onClick={onClose}
             className="bg-[#0C42A8] mx-auto w-full py-2 rounded-lg mb-4 text-white"
@@ -71,7 +73,6 @@ const AddAccountBankTab = ({ onClose }) => {
             onSelect={handleSelect}
             onDeleteSuccess={fetchBankData}
           />
-
         )}
       </div>
     </>

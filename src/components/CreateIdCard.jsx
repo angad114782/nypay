@@ -8,7 +8,7 @@ function CreateIdCard({ logo, title, subtitle, buttonText, onClick }) {
         <img
           src={`${logo}`}
           alt="Logo"
-          className="w-[71px] h-[71px] rounded-full object-cover"
+          className="w-[71px] h-[71px] rounded-full object-contain"
         />
         <div>
           <div className="font-bold text-sm leading-tight">{title}</div>
