@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import AddAccountUpiList from "./AddAccountUpiList";
-import { AddNewUpiDialog } from "./AddNewUpiDialog";
+import { UpiFormDialog } from "./UpiFormDialog";
 
 const AddAccountUpiTab = ({ onClose }) => {
   const [selectedUpiId, setSelectedUpiId] = useState(null);
@@ -39,7 +39,10 @@ const AddAccountUpiTab = ({ onClose }) => {
   return (
     <div>
       <div className="flex justify-between flex-col">
-        <AddNewUpiDialog onAdd={fetchUpis} />
+        <UpiFormDialog
+          triggerText={"Add New UPI Details"}
+          onSuccess={fetchUpis}
+        />
         <button
           onClick={onClose}
           className="bg-[#0C42A8] mx-auto w-full py-2 rounded-lg mb-4 text-white"

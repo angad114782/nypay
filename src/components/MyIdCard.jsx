@@ -4,6 +4,13 @@ import CopyButton from "./CopyButton";
 import axios from "axios";
 import { toast } from "react-toastify";
 import DrawerPanel from "@/sections/DrawerPanel";
+import {
+  Ban,
+  User,
+  MoreVertical,
+  ArrowDownCircle,
+  ArrowUpCircle,
+} from "lucide-react";
 
 const MyIdCard = ({
   cardId,
@@ -101,7 +108,6 @@ const MyIdCard = ({
     setMenuOpen(false);
   };
 
-  // Truncate text helper function
   const truncateText = (text, maxLength) => {
     if (!text) return "";
     return text.length > maxLength
@@ -109,267 +115,151 @@ const MyIdCard = ({
       : text;
   };
 
-  // Handle logo with error fallback
-  const [logoError, setLogoError] = useState(false);
-  const logoSrc = logoError
-    ? "/uploads/panels/default.jpg"
-    : logo || "/uploads/panels/default.jpg";
+  const getStatusBadge = () => {
+    if (status === "Active") return null;
 
-  const handleLogoError = () => {
-    setLogoError(true);
+    const statusConfig = {
+      Pending: { bg: "bg-amber-500", text: "text-white" },
+      Rejected: { bg: "bg-red-500", text: "text-white" },
+      Suspended: { bg: "bg-orange-500", text: "text-white" },
+    };
+
+    const config = statusConfig[status] || {
+      bg: "bg-gray-500",
+      text: "text-white",
+    };
+
+    return (
+      <div
+        className={`absolute -top-1 -right-1 ${config.bg} ${config.text} px-2 py-0.5 rounded-full text-[10px] font-medium shadow-lg z-10`}
+      >
+        {status}
+      </div>
+    );
   };
 
   return (
-    <div className="relative">
-      <div className="bgt-blue3 rounded-xl text-white p-3 sm:p-4 w-full shadow-lg">
-        {/* Mobile Layout: Stack vertically */}
-        <div className="block sm:hidden">
-          {/* Header Row - Game name and status */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <img
-                src={logoSrc}
-                alt="Logo"
-                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                onError={handleLogoError}
-                loading="lazy"
-              />
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold truncate">{gameName}</h3>
-                {status !== "Active" && (
-                  <span
-                    className={`inline-block text-xs rounded-full py-0.5 px-2 font-semibold mt-1 ${
-                      status === "Rejected"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : status === "Closed"
-                        ? "bg-red-100 text-red-700"
-                        : status === "Suspended"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {status}
-                  </span>
+    <div className="relative group">
+      <div className="bgt-blue3 rounded-xl text-white p-3 w-full shadow-lg hover:shadow-xl transition-all duration-300 border border-white/10">
+        {/* Header Section - Logo, Name, Actions */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-xl overflow-hidden bg-white/10 border border-white/20">
+                <img
+                  src={logo || "/uploads/panels/default.jpg"}
+                  alt={gameName}
+                  className="w-full h-full object-cover"
+                />
+                {!isActive && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <Ban className="w-4 h-4 text-red-400" />
+                  </div>
                 )}
               </div>
+              {getStatusBadge()}
             </div>
 
-            {/* Action buttons */}
-            <div
-              className="flex items-center gap-2 flex-shrink-0"
-              ref={menuRef}
-            >
-              <button
-                className="bg-white p-1 rounded-full"
-                onClick={() => onDepositClick(cardData)}
-                title="Deposit"
-              >
-                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-sm font-medium text-white">
-                  D
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-base leading-tight truncate text-white">
+                {gameName}
+              </h3>
+              <div className="flex items-center gap-1 mt-0.5">
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${
+                    isActive ? "bg-green-400" : "bg-red-400"
+                  }`}
+                ></div>
+                <span className="text-xs text-white/70">
+                  {isActive ? "Active" : "Inactive"}
                 </span>
-              </button>
-              <button
-                onClick={() => onWithdrawClick(cardData)}
-                className="bg-white p-1 rounded-full"
-                title="Withdraw"
-              >
-                <span className="w-6 h-6 flex items-center justify-center rounded-full bg-red-600 text-sm font-medium text-white">
-                  W
-                </span>
-              </button>
-
-              {/* Dropdown */}
-              <div
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="cursor-pointer p-1"
-              >
-                <svg width="4" height="16" viewBox="0 0 4 16" fill="none">
-                  <circle cx="2" cy="2" r="2" fill="white" />
-                  <circle cx="2" cy="8" r="2" fill="white" />
-                  <circle cx="2" cy="14" r="2" fill="white" />
-                </svg>
               </div>
+            </div>
+          </div>
+
+          {/* Quick Actions + Menu */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onDepositClick(cardData)}
+              className="p-1.5 rounded-lg bg-green-500/20 hover:bg-green-500/30 border border-green-500/30 transition-all"
+              title="Deposit"
+            >
+              <ArrowDownCircle className="w-4 h-4 text-green-400" />
+            </button>
+            <button
+              onClick={() => onWithdrawClick(cardData)}
+              className="p-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 transition-all"
+              title="Withdraw"
+            >
+              <ArrowUpCircle className="w-4 h-4 text-red-400" />
+            </button>
+
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 transition-all"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </button>
 
               {menuOpen && (
-                <ul className="absolute -right-1 top-12 bgt-blue3 rounded-[10px] shadow-lg z-50 w-36 p-1.5 space-y-1 text-xs font-medium t-shadow4 text-white">
+                <div className="absolute right-0 top-10 w-40 bgt-blue3 rounded-lg shadow-xl z-50 border border-white/20 overflow-hidden">
                   {menuOptions.map((item, i) => (
-                    <li
+                    <button
                       key={i}
                       onClick={() => handleMenuClick(item)}
-                      className={`cursor-pointer px-3 py-2 rounded-[8px] ${
-                        item === "Close ID" ? "bgt-blue2" : ""
+                      className={`w-full text-left px-3 py-2 text-sm transition-all hover:bg-white/10 ${
+                        item === "Close ID"
+                          ? "text-red-300 hover:bg-red-500/20"
+                          : "text-white"
                       }`}
                     >
                       {item}
-                    </li>
+                    </button>
                   ))}
-                </ul>
+                </div>
               )}
             </div>
           </div>
+        </div>
 
-          {/* Credentials Row */}
-          <div className="space-y-2 mb-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs text-gray-300 w-12 flex-shrink-0">
-                User:
-              </span>
-              <span className="text-sm truncate flex-1 min-w-0">
-                {username}
-              </span>
-              <CopyButton textToCopy={username} title="Copy Username" />
-            </div>
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs text-gray-300 w-12 flex-shrink-0">
-                Pass:
-              </span>
-              <span className="text-sm truncate flex-1 min-w-0">
-                {password}
-              </span>
-              <CopyButton textToCopy={password} title="Copy Password" />
-            </div>
+        {/* Credentials Section */}
+        <div className="space-y-2 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/60 w-12 flex-shrink-0">
+              User:
+            </span>
+            <span className="text-sm font-mono truncate flex-1 min-w-0">
+              {username}
+            </span>
+            <CopyButton textToCopy={username} title="Copy Username" />
           </div>
-
-          {/* Site and Status Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 text-xs bg-blue-800 rounded-full px-2 py-1  text-white min-w-0 flex-1">
-              <a
-                href={`https://${site}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline truncate"
-                title={site}
-              >
-                {truncateText(site, 25)}
-              </a>
-              <FaExternalLinkAlt className="text-[10px] flex-shrink-0" />
-            </div>
-
-            {!isActive && (
-              <span className="text-xs px-2 py-1 rounded font-semibold bg-red-100 text-red-700 flex-shrink-0 ml-2">
-                🚫 Suspended
-              </span>
-            )}
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/60 w-12 flex-shrink-0">
+              Pass:
+            </span>
+            <span className="text-sm font-mono truncate flex-1 min-w-0">
+              {password}
+            </span>
+            <CopyButton textToCopy={password} title="Copy Password" />
           </div>
         </div>
 
-        {/* Desktop Layout: Original horizontal layout */}
-        <div className="hidden sm:flex gap-4">
-          {/* Logo */}
-          <img
-            src={logo || "/uploads/panels/default.jpg"}
-            alt="Logo"
-            className="w-16 h-16 lg:w-[71px] lg:h-[71px] rounded-full object-cover flex-shrink-0"
-          />
-
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col justify-between min-w-0">
-            <div className="flex items-start justify-between w-full">
-              <div className="flex flex-col gap-1 min-w-0 flex-1">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base font-bold truncate">
-                    {gameName}
-                  </span>
-                  {status !== "Active" && (
-                    <span
-                      className={`text-xs rounded-full py-1 px-2 font-semibold flex-shrink-0 ${
-                        status === "Rejected"
-                          ? "bg-yellow-100 text-yellow-700"
-                          : status === "Closed"
-                          ? "bg-red-100 text-red-700"
-                          : status === "Suspended"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                    >
-                      {status}
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm truncate">{username}</span>
-                  <CopyButton textToCopy={username} title="Copy Username" />
-                </div>
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm truncate">{password}</span>
-                  <CopyButton textToCopy={password} title="Copy Password" />
-                </div>
-              </div>
-
-              <div
-                className="flex flex-col gap-2 items-end flex-shrink-0 ml-4"
-                ref={menuRef}
-              >
-                <div className="flex items-center gap-2">
-                  <button
-                    className="bg-white p-1 rounded-full"
-                    onClick={() => onDepositClick(cardData)}
-                    title="Deposit"
-                  >
-                    <span className="w-7 h-7 flex items-center justify-center rounded-full bg-green-500 text-lg font-medium text-white">
-                      D
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => onWithdrawClick(cardData)}
-                    className="bg-white p-1 rounded-full"
-                    title="Withdraw"
-                  >
-                    <span className="w-7 h-7 flex items-center justify-center rounded-full bg-red-600 text-lg font-medium text-white">
-                      W
-                    </span>
-                  </button>
-
-                  {/* Dropdown */}
-                  <div
-                    onClick={() => setMenuOpen(!menuOpen)}
-                    className="ml-1 cursor-pointer p-1"
-                  >
-                    <svg width="4" height="16" viewBox="0 0 4 16" fill="none">
-                      <circle cx="2" cy="2" r="2" fill="white" />
-                      <circle cx="2" cy="8" r="2" fill="white" />
-                      <circle cx="2" cy="14" r="2" fill="white" />
-                    </svg>
-                  </div>
-
-                  {menuOpen && (
-                    <ul className="absolute -right-1 top-9 bgt-blue3 rounded-[10px] shadow-lg z-50 w-fit p-1.5 space-y-1 text-xs font-medium t-shadow4 text-white">
-                      {menuOptions.map((item, i) => (
-                        <li
-                          key={i}
-                          onClick={() => handleMenuClick(item)}
-                          className={`cursor-pointer px-3 py-2 rounded-[8px] ${
-                            item === "Close ID" ? "bgt-blue2" : ""
-                          }`}
-                        >
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-1 text-sm text-white">
-                  <a
-                    href={`https://${site}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline truncate max-w-[200px]"
-                    title={site}
-                  >
-                    {site}
-                  </a>
-                  <FaExternalLinkAlt className="text-[11px] flex-shrink-0" />
-                </div>
-
-                {!isActive && (
-                  <span className="text-xs px-2 py-1 rounded font-semibold bg-red-100 text-red-700 whitespace-nowrap">
-                    🚫 Temporarily Suspended
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+        {/* Site Link */}
+        <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+          <a
+            href={`https://${site}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-white/90 hover:text-white transition-colors group"
+            title={site}
+          >
+            <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+            <span className="text-sm font-mono truncate flex-1">
+              {truncateText(site, 25)}
+            </span>
+            <FaExternalLinkAlt className="w-3 h-3 opacity-60 group-hover:opacity-100 transition-opacity" />
+          </a>
         </div>
       </div>
 

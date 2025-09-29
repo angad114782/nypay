@@ -76,7 +76,7 @@ const DepositWithdrawal = ({ onTabChange }) => {
     // 🔁 Admin approved/rejected a deposit
     socket.on("deposit-status-updated", (data) => {
       fetchDeposits();
-      toast.info(`Deposit ${data.status}`);
+      // toast.info(`Deposit ${data.status}`);
     });
 
     // 🟢 New Withdraw Request
@@ -89,7 +89,7 @@ const DepositWithdrawal = ({ onTabChange }) => {
     // 🔁 Admin approved/rejected a withdrawal
     socket.on("withdrawal-status-updated", (data) => {
       fetchWithdraws();
-      toast.info(`Withdrawal ${data.status}`);
+      // toast.info(`Withdrawal ${data.status}`);
     });
 
     return () => {
@@ -111,8 +111,11 @@ const DepositWithdrawal = ({ onTabChange }) => {
           {/* Tabs */}
           <TabsList className="inline-flex flex-shrink-0 w-auto gap-2">
             {/* Deposit Tab */}
-            <TabsTrigger value="deposit" className="relative flex items-center gap-1">
-              Deposit
+            <TabsTrigger
+              value="deposit"
+              className="relative flex items-center gap-1"
+            >
+              Deposit to Wallet
               {depositData.filter((d) => d.status === "Pending").length > 0 && (
                 <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
                   {depositData.filter((d) => d.status === "Pending").length}
@@ -121,16 +124,19 @@ const DepositWithdrawal = ({ onTabChange }) => {
             </TabsTrigger>
 
             {/* Withdrawal Tab */}
-            <TabsTrigger value="withdrawal" className="relative flex items-center gap-1">
-              Withdrawal
-              {withdrawData.filter((w) => w.status === "Pending").length > 0 && (
+            <TabsTrigger
+              value="withdrawal"
+              className="relative flex items-center gap-1"
+            >
+              Wallet to Bank
+              {withdrawData.filter((w) => w.status === "Pending").length >
+                0 && (
                 <span className="ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold text-white bg-red-500 rounded-full">
                   {withdrawData.filter((w) => w.status === "Pending").length}
                 </span>
               )}
             </TabsTrigger>
           </TabsList>
-
 
           {/* Counts */}
           <div className="inline-flex flex-shrink-0 gap-2">
@@ -147,26 +153,28 @@ const DepositWithdrawal = ({ onTabChange }) => {
             {/* Pending */}
             <div
               className={`flex items-center gap-1 shadow-sm rounded-lg px-2 py-1 border border-gray-200
-      ${activeTab === "withdrawal"
-                  ? withdrawData.filter((w) => w.status === "Pending").length > 0
-                    ? "bg-amber-50"
-                    : "bg-green-50"
-                  : depositData.filter((d) => d.status === "Pending").length > 0
-                    ? "bg-amber-50"
-                    : "bg-green-50"
-                }`}
+      ${
+        activeTab === "withdrawal"
+          ? withdrawData.filter((w) => w.status === "Pending").length > 0
+            ? "bg-amber-50"
+            : "bg-green-50"
+          : depositData.filter((d) => d.status === "Pending").length > 0
+          ? "bg-amber-50"
+          : "bg-green-50"
+      }`}
             >
               <span className="text-xs text-gray-500">Pending:</span>
               <span
                 className={`text-sm font-semibold
-          ${activeTab === "withdrawal"
-                    ? withdrawData.filter((w) => w.status === "Pending").length > 0
-                      ? "text-amber-600"
-                      : "text-green-600"
-                    : depositData.filter((d) => d.status === "Pending").length > 0
-                      ? "text-amber-600"
-                      : "text-green-600"
-                  }`}
+          ${
+            activeTab === "withdrawal"
+              ? withdrawData.filter((w) => w.status === "Pending").length > 0
+                ? "text-amber-600"
+                : "text-green-600"
+              : depositData.filter((d) => d.status === "Pending").length > 0
+              ? "text-amber-600"
+              : "text-green-600"
+          }`}
               >
                 {activeTab === "withdrawal"
                   ? withdrawData.filter((w) => w.status === "Pending").length

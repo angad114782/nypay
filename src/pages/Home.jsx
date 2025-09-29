@@ -13,6 +13,7 @@ import WithdrawPanel from "../sections/WithdrawPanel";
 import { useAuth } from "../utils/AuthContext";
 import { GlobalContext } from "../utils/globalData";
 import ICONS from "../components/ICONS"; // make sure this path is correct
+import WalletCard from "@/components/Walletcard";
 
 // 🔐 Themed Login Modal Component
 const LoginPromptModal = ({ onClose, onLogin }) => (
@@ -102,11 +103,17 @@ function Home() {
   const whatsappLink = `https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${encodeURIComponent(
     whatsappMessage
   )}`;
-
   return (
     <div className="relative">
       <div className="max-w-3xl mx-auto">
         <Header />
+
+        {isLoggedIn && (
+          <WalletCard
+            onDeposit={handleDepositClick}
+            onWithdraw={handleWithdrawClick}
+          />
+        )}
         <Banner
           images={[
             "/asset/Property 1=Slider.svg",
@@ -115,7 +122,7 @@ function Home() {
           ]}
           interval={4000}
         />
-        <div className="flex justify-center items-center gap-8 py-3">
+        {/* <div className="flex justify-center items-center gap-8 py-3">
           <Button2
             text="Deposit"
             img="Send-Dollar.png"
@@ -127,7 +134,7 @@ function Home() {
             img="Receive-Dollar.png"
             onClick={handleWithdrawClick}
           />
-        </div>
+        </div> */}
 
         <IDSlider
           handlePanelDeposit={handlePanelDeposit}

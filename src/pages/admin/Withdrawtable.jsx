@@ -21,6 +21,8 @@ import TableFilterBar from "./TableFilters";
 import WithdrawalRejectDialog from "./WithdrawalRejectDialog";
 import WithdrawLogo from "/asset/Group 48095823.png";
 import { getStatusColor } from "@/utils/RolesBadgeColor";
+import WithdrawalApproveDialog from "./WithdrawalApprovalDialog";
+import { useState } from "react";
 
 const COLUMN_OPTIONS = [
   { label: "Profile Name", value: "profileName" },
@@ -57,6 +59,8 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
     updateItem,
     refreshData,
   } = useTableFilter({ data, initialColumn: "userName" });
+
+  const [loading, setLoading] = useState(false);
 
   // PDF Download handler
   const handleDownloadPDF = () => {
@@ -118,6 +122,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
   // 1) Helpers at top of WithdrawTable
   const handleStatusUpdate = async (id, newStatus, remark = "") => {
     try {
+      setLoading(true);
       const res = await axios.patch(
         `${import.meta.env.VITE_URL}/api/withdraw/admin/status/${id}`,
         { status: newStatus, remark },
@@ -132,7 +137,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
         remark: res.data.updated.remark,
       });
       toast.success(`Status updated successfully`);
-      await fetchWithdraws();
+      // await fetchWithdraws();
     } catch (err) {
       if (err.response && err.response.status === 403) {
         toast.warning("You are not authorized to perform this action");
@@ -140,6 +145,8 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
       }
       const msg = err?.response?.data?.message || "Failed to update status.";
       toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -174,6 +181,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
             {/* <TableHead>User Name</TableHead> */}
             <TableHead>Wallet Bal.</TableHead>
             <TableHead>Amount</TableHead>
+            <TableHead>UTR</TableHead>
             <TableHead>Payment Type</TableHead>
             <TableHead>Details</TableHead>
             <TableHead>Entry Date</TableHead>
@@ -196,9 +204,9 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                   <CopyButton
                     textToCopy={
                       item.withdrawMethod === "bank"
-                        ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nName: ${item.selectedAccount.accountHolder}\nAccount: ${item.selectedAccount.accountNumber}\nIFSC: ${item.selectedAccount.ifscCode}\nBank: ${item.selectedAccount.bankName}`
+                        ? `ProfileName - ${item.profileName}\nAmount - ${item.amount}\nName: ${item.selectedAccount.accountHolder}\nAccount: ${item.selectedAccount.accountNumber}\nIFSC: ${item.selectedAccount.ifscCode}\nBank: ${item.selectedAccount.bankName}`
                         : item.withdrawMethod === "upi"
-                        ? `ProfileName - ${item.userName}\nAmount - ${item.amount}\nUPI Id: ${item.selectedAccount.upiId}\nUPI Name: ${item.selectedAccount.upiName}`
+                        ? `ProfileName - ${item.profileName}\nAmount - ${item.amount}\nUPI Id: ${item.selectedAccount.upiId}\nUPI Name: ${item.selectedAccount.upiName}`
                         : "No payment details"
                     }
                     title={
@@ -211,7 +219,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                   />
                 </div>
               </TableCell>
-              <TableCell>{item.userName}</TableCell>
+              <TableCell>{item.profileName}</TableCell>
               {/* <TableCell>
                 <div className="flex items-center gap-1">
                   {item.userName}
@@ -237,6 +245,15 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                     textToCopy={item.amount}
                     title="Copy amount Number"
                   />
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  {"3424324234234"}
+                  {/* <CopyButton
+                    textToCopy={item.amount}
+                    title="Copy amount Number"
+                  /> */}
                 </div>
               </TableCell>
               <TableCell>{item.withdrawMethod}</TableCell>
@@ -329,26 +346,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
               <TableCell className="text-center align-middle">
                 <div className="flex gap-1 items-center justify-center">
                   {/* <button
-                    onClick={() => updateStatus(item.id, "approved")}
-                    className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
-                  >
-                    Approve
-                  </button>
-                  <button
-                    onClick={() => updateStatus(item.id, "rejected")}
-                    className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs font-semibold hover:bg-red-200 transition"
-                  >
-                    Reject
-                  </button>
-                  <button
-                    onClick={() => updateRemark(item.id)}
-                    className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs font-semibold hover:bg-yellow-200 transition"
-                  >
-                    Remark
-                  </button> */}
-                  <button
                     className="px-2 py-1 disabled:bg-gray-100 disabled:text-gray-700 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
-                    // onClick={() => handleStatusUpdate(item.id, "Approved")}
                     onClick={() =>
                       handleStatusUpdate(
                         item.id,
@@ -359,7 +357,22 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                     disabled={item.status !== "Pending"}
                   >
                     Approve
-                  </button>
+                  </button> */}
+                  <WithdrawalApproveDialog
+                    buttonLogo={
+                      <button
+                        disabled={item.status !== "Pending"}
+                        className="px-2 py-1 disabled:bg-gray-100 disabled:text-gray-700 rounded bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition"
+                      >
+                        Approve
+                      </button>
+                    }
+                    loading={loading}
+                    gameId={item.id}
+                    handleStatusUpdate={handleStatusUpdate}
+                    onStatusUpdated={fetchWithdraws}
+                  />
+
                   <WithdrawalRejectDialog
                     buttonLogo={
                       <button
@@ -370,7 +383,6 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
                       </button>
                     }
                     gameId={item.id}
-                    // status={item.status !== "Pending"}
                     onStatusUpdated={fetchWithdraws}
                   />
                 </div>
@@ -388,6 +400,7 @@ const WithdrawTable = ({ data, fetchWithdraws }) => {
             transaction={item}
             handleStatusUpdate={handleStatusUpdate}
             fetchWithdraws={fetchWithdraws}
+            loading={loading}
           />
         ))}
       </div>
@@ -407,6 +420,7 @@ export const TransactionCard = ({
   transaction,
   fetchWithdraws,
   handleStatusUpdate,
+  loading = false,
 }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -558,6 +572,12 @@ export const TransactionCard = ({
         </div>
       )}
 
+      {/* UTR // TODO */}
+      <div className="flex items-center p-2 gap-2">
+        <MapPin className="w-4 h-4 text-black" />
+        <span className="text-sm text-black">UTR</span>
+        <span className="ml-auto text-sm ">{"326415624271632"}</span>
+      </div>
       {/* Parent IP */}
       <div className="flex items-center p-2 gap-2">
         <MapPin className="w-4 h-4 text-black" />
@@ -593,7 +613,7 @@ export const TransactionCard = ({
           />
         </div>
         <div className="flex gap-2">
-          <button
+          {/* <button
             onClick={() =>
               handleStatusUpdate(
                 transaction.id,
@@ -605,7 +625,22 @@ export const TransactionCard = ({
             className="bg-green-500 disabled:bg-gray-100 disabled:text-gray-700 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
           >
             Approve
-          </button>
+          </button> */}
+          <WithdrawalApproveDialog
+            buttonLogo={
+              <button
+                disabled={transaction.status !== "Pending"}
+                className="bg-green-500 disabled:bg-gray-100 disabled:text-gray-700 hover:bg-green-600 text-white px-3 py-1 rounded-full text-xs"
+              >
+                Approve
+              </button>
+            }
+            gameId={transaction.id}
+            handleStatusUpdate={handleStatusUpdate}
+            onStatusUpdated={fetchWithdraws}
+            loading={loading}
+          />
+
           <WithdrawalRejectDialog
             buttonLogo={
               <button

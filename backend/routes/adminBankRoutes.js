@@ -12,22 +12,28 @@ const {
 const { protect, roleCheck } = require("../middlewares/auth");
 
 // 🟢 Only Admins can add a bank
-router.post("/add", protect,
-  roleCheck("admin", "manager"), addBank);
+router.post("/add", protect, roleCheck("admin", "manager"), addBank);
 
 // 🟢 Only Admins can get the list of banks
 router.get("/list", protect, getBanks);
 router.get("/active-bank", protect, getActiveBankForUser);
 
 // 🟢 Only Admins can update a bank
-router.put("/update/:id", protect,
-  roleCheck("admin", "manager"), updateBank);
+router.patch("/update/:id", protect, roleCheck("admin", "manager"), updateBank);
 
 // 🟢 Only Admins can delete a bank
-router.delete("/delete/:id", protect,
-  roleCheck("admin", "manager"), deleteBank);
+router.delete(
+  "/delete/:id",
+  protect,
+  roleCheck("admin", "manager"),
+  deleteBank
+);
 
-router.patch("/set-active/:bankId", protect,
-  roleCheck("admin", "manager"), setActiveBank);
+router.patch(
+  "/set-active/:bankId",
+  protect,
+  roleCheck("admin", "manager"),
+  setActiveBank
+);
 
 module.exports = router;

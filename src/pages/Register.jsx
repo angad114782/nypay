@@ -17,7 +17,7 @@ function Register() {
   const [step, setStep] = useState(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  // const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [otpValues, setOtpValues] = useState(Array(6).fill(""));
@@ -66,14 +66,14 @@ function Register() {
     const phoneError = !/^\d{10,15}$/.test(phone);
 
     // If email is empty, create dummy email
-    let finalEmail = email.trim();
-    if (finalEmail === "" && !nameError && !phoneError) {
-      const cleanName = name.trim().replace(/\s+/g, "").toLowerCase();
-      finalEmail = `${cleanName}-${phone.trim()}@demo.com`;
-      setEmail(finalEmail); // update state so it reflects in form if needed
-    }
+    // let finalEmail = email.trim();
+    // if (finalEmail === "" && !nameError && !phoneError) {
+    //   const cleanName = name.trim().replace(/\s+/g, "").toLowerCase();
+    //   finalEmail = `${cleanName}-${phone.trim()}@demo.com`;
+    //   setEmail(finalEmail); // update state so it reflects in form if needed
+    // }
 
-    const emailError = !/\S+@\S+\.\S+/.test(finalEmail);
+    // const emailError = !/\S+@\S+\.\S+/.test(finalEmail);
     const passwordError =
       password.length < 6 ||
       !/\d/.test(password) ||
@@ -84,13 +84,12 @@ function Register() {
       ...errors,
       name: nameError,
       phone: phoneError,
-      email: emailError,
+      // email: emailError,
       password: passwordError,
     });
 
-    return !(nameError || phoneError || emailError || passwordError);
+    return !(nameError || phoneError || passwordError);
   };
-
 
   const handleContinue = async () => {
     if (step === 1) {
@@ -105,7 +104,7 @@ function Register() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name,
-              email,
+              // email,
               phone: "+" + phone,
               password,
               via: "email",
@@ -231,8 +230,9 @@ function Register() {
 
       {step !== 3 && (
         <button
-          className={`py-3  backBtn ${loading ? "opacity-50 pointer-events-none" : ""
-            }`}
+          className={`py-3  backBtn ${
+            loading ? "opacity-50 pointer-events-none" : ""
+          }`}
           onClick={handleBack}
           disabled={loading}
         >
@@ -279,8 +279,9 @@ function Register() {
       >
         {step === 1 && (
           <div
-            className={`step1 ${loading ? "opacity-75 pointer-events-none" : ""
-              }`}
+            className={`step1 ${
+              loading ? "opacity-75 pointer-events-none" : ""
+            }`}
           >
             <div className="flex justify-center items-center my-2">
               <img src="asset/otp.png" alt="" className="img-fluid" />
@@ -289,17 +290,18 @@ function Register() {
               User Registration
             </h6>
             <p className="text-sm font-light ct-grey2">
-              Enter Valid email and whatsapp number(OTP On Whatsapp) to send one time Password
+              Enter Valid email and whatsapp number(OTP On Whatsapp) to send one
+              time Password
             </p>
 
             <FloatingInput
               name={name}
               phone={phone}
-              email={email}
+              // email={email}
               password={password}
               setName={setName}
               setPhone={setPhone}
-              setEmail={setEmail}
+              // setEmail={setEmail}
               setPassword={setPassword}
               errors={errors}
               loading={loading}
@@ -318,11 +320,11 @@ function Register() {
           </div>
         )}
 
-
         {step === 2 && (
           <div
-            className={`step2 ${loading ? "opacity-75 pointer-events-none" : ""
-              }`}
+            className={`step2 ${
+              loading ? "opacity-75 pointer-events-none" : ""
+            }`}
           >
             <h6 className="text-[22px] font-bold font-inter ct-black4 mb-2">
               Verification Code
@@ -364,8 +366,9 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
-              }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
+              loading ? "opacity-90 cursor-not-allowed" : ""
+            }`}
           >
             {renderButtonContent("Continue")}
           </Button>
@@ -374,8 +377,9 @@ function Register() {
           <Button
             onClick={handleContinue}
             disabled={loading || otpValues.some((val) => !val)}
-            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${loading ? "opacity-90 cursor-not-allowed" : ""
-              }`}
+            className={`bg-[#0C42A8] py-6 w-full hover:bg-blue-500 transition-all ${
+              loading ? "opacity-90 cursor-not-allowed" : ""
+            }`}
           >
             {renderButtonContent("Confirm")}
           </Button>

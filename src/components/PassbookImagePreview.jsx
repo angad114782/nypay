@@ -16,7 +16,6 @@ const statusStyles = {
   Cancelled: "bg-gray-400 ct-black",
 };
 
-// Receipt Component
 export const PassbookReceipt = ({
   amount,
   dateTime,
@@ -25,11 +24,14 @@ export const PassbookReceipt = ({
   status,
   txntype,
   url,
+  utr,
+  remark, // Added remark field
 }) => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const receiptRef = useRef(null);
 
   const getTransactionType = (txntype) => {
+    if (!txntype) return "Transaction";
     if (txntype.includes("Deposit")) return "Deposit";
     if (txntype.includes("Withdrawal")) return "Withdrawal";
     if (txntype.includes("Refund")) return "Refund";
@@ -52,51 +54,55 @@ export const PassbookReceipt = ({
   };
 
   const generateReceiptImage = async () => {
-    // Create a high-quality canvas with device pixel ratio
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
 
-    // Get device pixel ratio for crisp rendering
-    const dpr = window.devicePixelRatio || 1;
+    // Higher resolution for crisp text
+    const scale = 3; // Increase scale for better quality
     const width = 400;
-    const height = 650;
+    const height = 700; // Increased height for remark field
 
-    // Set actual size in memory (scaled up)
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
-
-    // Scale the canvas back down using CSS
+    canvas.width = width * scale;
+    canvas.height = height * scale;
     canvas.style.width = width + "px";
     canvas.style.height = height + "px";
 
-    // Scale the drawing context so everything draws at the higher resolution
-    ctx.scale(dpr, dpr);
+    // Scale the context to match the CSS size
+    ctx.scale(scale, scale);
 
-    // Enable better text rendering
+    // Enable text antialiasing for crisp text
     ctx.textBaseline = "top";
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    // Fill background
+    // Set text rendering optimization
+    ctx.textRenderingOptimization = "optimizeLegibility";
+
+    // Background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, width, height);
 
-    // Draw header background with gradient
+    // Header gradient
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, "#2563eb");
     gradient.addColorStop(1, "#1d4ed8");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, 120);
 
-    // Draw receipt icon circle
+    // Icon background circle
+    ctx.save();
     ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
     ctx.beginPath();
     ctx.arc(width / 2, 40, 24, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.restore();
 
-    // Draw receipt icon (simplified)
+    // Receipt icon
+    ctx.save();
     ctx.strokeStyle = "#ffffff";
     ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.rect(width / 2 - 8, 32, 16, 16);
     ctx.moveTo(width / 2 - 4, 36);
@@ -106,40 +112,50 @@ export const PassbookReceipt = ({
     ctx.moveTo(width / 2 - 4, 44);
     ctx.lineTo(width / 2 + 2, 44);
     ctx.stroke();
+    ctx.restore();
 
     // Header text with better font rendering
+    ctx.save();
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 20px system-ui, -apple-system, sans-serif";
+    ctx.font =
+      "bold 20px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.textAlign = "center";
+    ctx.textRenderingOptimization = "optimizeLegibility";
     ctx.fillText("Transaction Receipt", width / 2, 70);
 
-    ctx.font = "14px system-ui, -apple-system, sans-serif";
+    ctx.font =
+      "14px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.fillStyle = "#bfdbfe";
     ctx.fillText("Payment Confirmation", width / 2, 95);
+    ctx.restore();
 
-    // Amount section with better spacing
+    // Amount section
+    ctx.save();
     ctx.fillStyle = "#6b7280";
-    ctx.font = "13px system-ui, -apple-system, sans-serif";
+    ctx.font =
+      "13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.textAlign = "center";
     ctx.fillText("Amount", width / 2, 140);
 
     ctx.fillStyle = "#111827";
-    ctx.font = "bold 32px system-ui, -apple-system, sans-serif";
-    ctx.fillText(`₹${Number(amount).toFixed(2)}`, width / 2, 160);
+    ctx.font =
+      "bold 32px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    ctx.fillText(`₹${Number(amount || 0).toFixed(2)}`, width / 2, 160);
+    ctx.restore();
 
-    // Status badge with rounded corners
+    // Status badge with better rendering
     const statusColors = {
       Approved: { bg: "#dcfce7", text: "#166534" },
       Pending: { bg: "#fef3c7", text: "#92400e" },
       Rejected: { bg: "#fee2e2", text: "#991b1b" },
       Cancelled: { bg: "#f3f4f6", text: "#374151" },
     };
-
     const statusColor = statusColors[status] || statusColors.Cancelled;
 
-    // Draw rounded status background
-    ctx.fillStyle = statusColor.bg;
-    const statusText = status;
-    ctx.font = "12px system-ui, -apple-system, sans-serif";
+    ctx.save();
+    ctx.font =
+      "bold 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    const statusText = status || "Unknown";
     const statusTextWidth = ctx.measureText(statusText).width;
     const statusWidth = statusTextWidth + 20;
     const statusHeight = 24;
@@ -147,80 +163,122 @@ export const PassbookReceipt = ({
     const statusY = 200;
 
     // Rounded rectangle for status
+    const radius = 12;
+    ctx.fillStyle = statusColor.bg;
     ctx.beginPath();
-    ctx.roundRect(statusX, statusY, statusWidth, statusHeight, 12);
+    ctx.roundRect(statusX, statusY, statusWidth, statusHeight, radius);
     ctx.fill();
 
-    // Status text
     ctx.fillStyle = statusColor.text;
     ctx.textAlign = "center";
-    ctx.fillText(statusText, width / 2, statusY + 7);
+    ctx.fillText(statusText, width / 2, statusY + 8);
+    ctx.restore();
 
-    // Transaction details section
+    // Build details array including remark
     const details = [
-      ["Transaction Type:", getTransactionType(txntype)],
-      ["Description:", txntype],
-      ["Reference No.:", reference],
-      ["Date & Time:", dateTime],
+      ["Transaction Type:", getTransactionType(txntype || "")],
+      ["Description:", txntype || ""],
+      ["Reference No.:", reference || ""],
     ];
 
-    if (gameId) {
-      details.push(["Game ID:", gameId]);
-    }
+    if (utr) details.push(["UTR:", utr]);
+    details.push(["Date & Time:", dateTime || ""]);
+    if (gameId) details.push(["Game ID:", gameId]);
+    if (url) details.push(["Platform:", url]);
+    if (remark) details.push(["Remark:", remark]); // Add remark if present
 
-    if (url) {
-      details.push([
-        "Platform:",
-        url.length > 30 ? url.substring(0, 30) + "..." : url,
-      ]);
-    }
-
-    // Draw separator line
+    // Separator line
+    ctx.save();
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(30, 250);
     ctx.lineTo(width - 30, 250);
     ctx.stroke();
+    ctx.restore();
 
-    // Draw details with better typography
-    let yPos = 280;
-    ctx.font = "13px system-ui, -apple-system, sans-serif";
-    const lineHeight = 28;
+    // Improved text wrapping function
+    const wrapText = (context, text, maxWidth) => {
+      if (!text) return ["-"];
 
-    details.forEach(([label, value]) => {
-      // Label
-      ctx.fillStyle = "#6b7280";
-      ctx.textAlign = "left";
-      ctx.fillText(label, 30, yPos);
-
-      // Value with better text wrapping
-      ctx.fillStyle = "#111827";
-      ctx.textAlign = "right";
-
-      const maxWidth = width - 160;
-      const words = value.toString().split(" ");
-      let line = "";
-      let lineY = yPos;
+      const words = text.toString().split(" ");
+      const lines = [];
+      let currentLine = "";
 
       for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + " ";
-        const testWidth = ctx.measureText(testLine).width;
+        const word = words[i];
+        const testLine = currentLine ? currentLine + " " + word : word;
+        const metrics = context.measureText(testLine);
 
-        if (testWidth > maxWidth && line !== "") {
-          ctx.fillText(line.trim(), width - 30, lineY);
-          line = words[i] + " ";
-          lineY += 20;
+        if (metrics.width <= maxWidth) {
+          currentLine = testLine;
         } else {
-          line = testLine;
+          if (currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            // Handle very long words
+            if (word.length > 0) {
+              let chunk = "";
+              for (let j = 0; j < word.length; j++) {
+                const testChunk = chunk + word[j];
+                if (context.measureText(testChunk).width <= maxWidth) {
+                  chunk = testChunk;
+                } else {
+                  if (chunk) lines.push(chunk);
+                  chunk = word[j];
+                }
+              }
+              if (chunk) currentLine = chunk;
+            }
+          }
         }
       }
-      ctx.fillText(line.trim(), width - 30, lineY);
 
-      yPos += lineHeight;
-    });
+      if (currentLine) lines.push(currentLine);
+      return lines.length > 0 ? lines : ["-"];
+    };
 
-    // Draw bottom separator
+    // Draw details with improved text rendering
+    ctx.save();
+    ctx.font =
+      "13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+    let yPos = 280;
+    const labelX = 30;
+    const labelWidth = 120;
+    const rightX = width - 30;
+    const maxValueWidth = width - 30 - (labelX + labelWidth + 10);
+    const lineHeight = 18;
+
+    for (let i = 0; i < details.length; i++) {
+      const [label, value] = details[i];
+
+      // Label (left)
+      ctx.fillStyle = "#6b7280";
+      ctx.textAlign = "left";
+      ctx.font =
+        "13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.fillText(label, labelX, yPos);
+
+      // Value (right, wrapped)
+      ctx.fillStyle = "#111827";
+      ctx.font =
+        "13px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+      ctx.textAlign = "right";
+
+      const wrappedLines = wrapText(ctx, String(value), maxValueWidth);
+
+      for (let j = 0; j < wrappedLines.length; j++) {
+        ctx.fillText(wrappedLines[j], rightX, yPos + j * lineHeight);
+      }
+
+      yPos += wrappedLines.length * lineHeight + 12;
+    }
+    ctx.restore();
+
+    // Bottom separator and footer
+    ctx.save();
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -228,12 +286,13 @@ export const PassbookReceipt = ({
     ctx.lineTo(width - 30, yPos + 15);
     ctx.stroke();
 
-    // Footer text
     ctx.fillStyle = "#9ca3af";
-    ctx.font = "11px system-ui, -apple-system, sans-serif";
+    ctx.font =
+      "11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("This is a computer generated receipt", width / 2, yPos + 40);
-    ctx.fillText(`Reference: ${reference}`, width / 2, yPos + 60);
+    ctx.fillText("This is a computer generated receipt", width / 2, yPos + 35);
+    ctx.fillText(`Reference: ${reference || "N/A"}`, width / 2, yPos + 55);
+    ctx.restore();
 
     return canvas;
   };
@@ -248,15 +307,18 @@ export const PassbookReceipt = ({
     try {
       const canvas = await generateReceiptImage();
 
-      // Convert canvas to blob with higher quality
+      // Convert to blob with maximum quality
       canvas.toBlob(
         async (blob) => {
           if (navigator.share && navigator.canShare) {
-            // Check if we can share files
-            const file = new File([blob], `receipt-${reference}.png`, {
-              type: "image/png",
-              lastModified: Date.now(),
-            });
+            const file = new File(
+              [blob],
+              `receipt-${reference || "receipt"}.png`,
+              {
+                type: "image/png",
+                lastModified: Date.now(),
+              }
+            );
 
             if (navigator.canShare({ files: [file] })) {
               try {
@@ -270,20 +332,17 @@ export const PassbookReceipt = ({
               } catch (err) {
                 if (err.name !== "AbortError") {
                   console.log("Error sharing file:", err);
-                  // Fallback to download
                   downloadImage(blob);
                 }
               }
             } else {
-              // Share without file (just text and URL)
               try {
                 await navigator.share({
                   title: "Transaction Receipt",
                   text: `Transaction Receipt - ${getTransactionType(
                     txntype
-                  )} of ₹${amount}. Reference: ${reference}`,
+                  )} of ₹${amount}. Reference: ${reference || ""}`,
                 });
-                // Also download the image
                 downloadImage(blob);
               } catch (err) {
                 if (err.name !== "AbortError") {
@@ -292,14 +351,13 @@ export const PassbookReceipt = ({
               }
             }
           } else {
-            // Fallback: download the image
             downloadImage(blob);
           }
           setIsGeneratingImage(false);
         },
         "image/png",
         1.0
-      ); // Maximum quality
+      );
     } catch (error) {
       console.error("Error generating receipt image:", error);
       setIsGeneratingImage(false);
@@ -307,14 +365,14 @@ export const PassbookReceipt = ({
   };
 
   const downloadImage = (blob) => {
-    const url = URL.createObjectURL(blob);
+    const urlObj = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url;
-    a.download = `receipt-${reference}.png`;
+    a.href = urlObj;
+    a.download = `receipt-${reference || "receipt"}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(urlObj);
   };
 
   return (
@@ -347,14 +405,14 @@ export const PassbookReceipt = ({
             <div className="text-center border-b pb-4">
               <p className="text-sm text-gray-500 mb-1">Amount</p>
               <p className="text-3xl font-bold text-gray-900">
-                ₹{Number(amount).toFixed(2)}
+                ₹{Number(amount || 0).toFixed(2)}
               </p>
               <span
                 className={`inline-block px-3 py-1 rounded-full text-xs font-medium mt-2 ${getStatusColor(
                   status
                 )}`}
               >
-                {status}
+                {status || "Unknown"}
               </span>
             </div>
 
@@ -373,7 +431,7 @@ export const PassbookReceipt = ({
                   Description:
                 </span>
                 <span className="text-sm text-gray-900 text-right flex-1 ml-4">
-                  {txntype}
+                  {txntype || "-"}
                 </span>
               </div>
 
@@ -382,15 +440,24 @@ export const PassbookReceipt = ({
                   Reference No.:
                 </span>
                 <span className="text-sm font-mono text-gray-900">
-                  {reference}
+                  {reference || "-"}
                 </span>
               </div>
+
+              {utr && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-600">
+                    UTR:
+                  </span>
+                  <span className="text-sm font-mono text-gray-900">{utr}</span>
+                </div>
+              )}
 
               <div className="flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-600">
                   Date & Time:
                 </span>
-                <span className="text-sm text-gray-900">{dateTime}</span>
+                <span className="text-sm text-gray-900">{dateTime || "-"}</span>
               </div>
 
               {gameId && (
@@ -414,6 +481,18 @@ export const PassbookReceipt = ({
                   </span>
                 </div>
               )}
+
+              {/* Add remark field to dialog as well */}
+              {remark && (
+                <div className="flex justify-between items-start">
+                  <span className="text-sm font-medium text-gray-600">
+                    Remark:
+                  </span>
+                  <span className="text-sm text-gray-900 text-right flex-1 ml-4">
+                    {remark}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="border-t pt-4 space-y-3">
@@ -422,7 +501,7 @@ export const PassbookReceipt = ({
                   This is a computer generated receipt
                 </p>
                 <p className="text-xs text-gray-400 mt-1">
-                  Reference: {reference}
+                  Reference: {reference || "-"}
                 </p>
               </div>
 
@@ -450,33 +529,3 @@ export const PassbookReceipt = ({
     </Dialog>
   );
 };
-
-// Demo component to test the receipt
-// const ReceiptDemo = () => {
-//   return (
-//     <div className="p-8 bg-gray-100 min-h-screen">
-//       <div className="max-w-md mx-auto">
-//         <h1 className="text-2xl font-bold text-center mb-8">Receipt Demo</h1>
-//         <div className="bg-white rounded-lg p-6 shadow-lg">
-//           <div className="flex justify-between items-center">
-//             <div>
-//               <h3 className="font-semibold">Sample Transaction</h3>
-//               <p className="text-sm text-gray-600">₹1,250.00</p>
-//             </div>
-//             <PassbookReceipt
-//               amount="1250"
-//               dateTime="2025-08-13 14:30:25"
-//               gameId="GM123456"
-//               reference="TXN789012345"
-//               status="Approved"
-//               txntype="Deposit via UPI"
-//               url="https://example-gaming-platform.com"
-//             />
-//           </div>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ReceiptDemo;

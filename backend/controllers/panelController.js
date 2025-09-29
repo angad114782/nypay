@@ -26,13 +26,27 @@ const createPanel = async (req, res) => {
     });
 
     await newPanel.save();
-    res.status(201).json({ message: "Panel created successfully", panel: newPanel });
+
+    // ✅ Emit socket event after creation
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("panel-created", {
+        action: "create",
+        panelId: newPanel._id,
+        profileName: newPanel.profileName,
+        userId: newPanel.userId,
+        type: newPanel.type,
+        logo: newPanel.logo,
+      });
+    }
+    res
+      .status(201)
+      .json({ message: "Panel created successfully", panel: newPanel });
   } catch (err) {
     console.error("Create Panel Error:", err);
     res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
-
 
 // GET ALL
 const getAllPanels = async (req, res) => {
@@ -79,7 +93,18 @@ const updatePanel = async (req, res) => {
     if (req.file) updates.logo = req.file.filename;
 
     const panel = await Panel.findByIdAndUpdate(id, updates, { new: true });
-
+    // ✅ Emit socket event after creation
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("panel-updated", {
+        action: "update",
+        panelId: panel._id,
+        profileName: panel.profileName,
+        userId: panel.userId,
+        type: panel.type,
+        logo: panel.logo,
+      });
+    }
     const updatedPanel = {
       ...panel._doc,
       logoUrl: panel.logo ? `/uploads/panels/${panel.logo}` : null,
@@ -108,10 +133,30 @@ const togglePanelStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const panel = await Panel.findById(id);
+
+    if (!panel) {
+      return res.status(404).json({
+        success: false,
+        message: "Panel not found",
+      });
+    }
+
     panel.isActive = !panel.isActive;
     await panel.save();
+
+    // ✅ Emit socket event after status toggle
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("panel-status-updated", {
+        action: "status-toggle",
+        panelId: panel._id,
+        isActive: panel.isActive,
+      });
+    }
+
     res.json({ success: true, status: panel.isActive });
   } catch (err) {
+    console.error("❌ togglePanelStatus error:", err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
