@@ -5,13 +5,19 @@ import { GlobalContext } from "../utils/globalData";
 import { useAuth } from "../utils/AuthContext";
 import ICONS from "../components/ICONS"; // adjust path if needed
 
-const LoginPromptModal = ({ onClose, onLogin }) => (
+// Reusable Login Modal
+export const LoginPromptModal = ({
+  onClose,
+  onLogin,
+  title = "Login Required",
+  message = "You need to be logged in to view or create your IDs.",
+}) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[999] px-4">
     <div className="bgt-blue3 text-white font-medium text-[15px] rounded-2xl shadow-md w-full max-w-sm relative overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 bgt-blue2 px-4 py-2 t-shadow3">
         {ICONS["warning"]}
-        <p className="">Login Required</p>
+        <p>{title}</p>
         <button className="ms-auto" onClick={onClose}>
           <svg
             width="25"
@@ -30,9 +36,7 @@ const LoginPromptModal = ({ onClose, onLogin }) => (
 
       {/* Body */}
       <div className="px-6 pb-5 pt-3">
-        <p className="mb-6 text-center">
-          You need to be logged in to view or create your IDs.
-        </p>
+        <p className="mb-6 text-center">{message}</p>
         <div className="flex gap-3">
           <button
             onClick={onLogin}
@@ -101,18 +105,20 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
       </div>
 
       {/* Slider - Fixed version */}
+      {/* <div className="overflow-x-auto bg-gray-500 rounded-lg"> */}
       <div className="overflow-x-auto bg-gray-500 rounded-lg">
-        <div className="flex gap-2 p-2">
-          {myIdCardData.filter(
-            (card) =>
-              card.panelId?.isActive === true && card.status === "Approved"
-          ).length > 0 ? (
-            myIdCardData
+        {myIdCardData.filter(
+          (card) =>
+            card.panelId?.isActive === true && card.status === "Approved"
+        ).length > 0 ? (
+          // ✅ Normal layout (scrollable row)
+          <div className="flex gap-2 p-2">
+            {myIdCardData
               .filter(
                 (card) =>
                   card.panelId?.isActive === true && card.status === "Approved"
               )
-              .map((card, index) => (
+              .map((card) => (
                 <ExCard
                   key={card._id}
                   username={card.username}
@@ -126,31 +132,33 @@ function IDSlider({ handlePanelDeposit, handlePanelWithdraw }) {
                   onclickwithdraw={() => handlePanelWithdraw(card)}
                   onclickdesposit={() => handlePanelDeposit(card)}
                 />
-              ))
-          ) : (
-            <div className="flex-shrink-0 sm:w-64 w-full bg-gray-500 rounded-xl p-2 flex flex-col items-center justify-center text-center">
-              <img
-                src="/asset/Logo-Exchages.png"
-                alt="No IDs"
-                className="w-20 h-20 opacity-75"
-              />
-              <h3 className="text-sm font-semibold text-gray-200">
-                You haven't created any IDs yet.
-              </h3>
-              <p className="text-xs text-gray-400">
-                Tap below to get started—your in‑game profiles will show up
-                here.
-              </p>
-              <button
-                onClick={handleCreateId}
-                className="mt-2 text-xs bg-purple-600 hover:bg-purple-700 transition-all text-white font-medium py-2 px-4 rounded-full"
-              >
-                Create Your First ID
-              </button>
-            </div>
-          )}
-        </div>
+              ))}
+          </div>
+        ) : (
+          // ✅ Empty State Layout (full width + center content)
+          <div className="flex flex-col items-center justify-center text-center w-full min-h-[200px] ">
+            <img
+              src="/asset/Logo-Exchages.png"
+              alt="No IDs"
+              className="w-20 h-20 opacity-75"
+            />
+            <h3 className="text-sm font-semibold text-gray-200 ">
+              You haven't created any IDs yet.
+            </h3>
+            <p className="text-xs text-gray-400 max-w-xs">
+              Tap below to get started—your in-game profiles will show up here.
+            </p>
+            <button
+              onClick={handleCreateId}
+              className="mt-4 text-xs bg-purple-600 hover:bg-purple-700 transition-all text-white font-medium py-2 px-4 rounded-full"
+            >
+              Create Your First ID
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* </div> */}
 
       {/* Login Modal */}
       {showLoginPrompt && (
