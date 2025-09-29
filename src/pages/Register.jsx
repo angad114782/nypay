@@ -94,7 +94,7 @@ function Register() {
   const handleContinue = async () => {
     if (step === 1) {
       if (!validateStep1()) return;
-
+      console.log(import.meta.env.VITE_URL, "URL");
       setLoading(true);
       try {
         const res = await fetch(
@@ -107,7 +107,7 @@ function Register() {
               // email,
               phone: "+" + phone,
               password,
-              via: "email",
+              // via: "email",
             }),
           }
         );

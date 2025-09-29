@@ -108,12 +108,12 @@ function Home() {
       <div className="max-w-3xl mx-auto">
         <Header />
 
-        {isLoggedIn && (
-          <WalletCard
-            onDeposit={handleDepositClick}
-            onWithdraw={handleWithdrawClick}
-          />
-        )}
+        {/* {isLoggedIn && ( */}
+        <WalletCard
+          onDeposit={handleDepositClick}
+          onWithdraw={handleWithdrawClick}
+        />
+        {/* )} */}
         <Banner
           images={[
             "/asset/Property 1=Slider.svg",
