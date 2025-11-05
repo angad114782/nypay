@@ -19,6 +19,8 @@ const io = new Server(server, {
       "http://localhost:5173",
       "https://qs3rfs46-5000.inc1.devtunnels.ms",
       "https://qs3rfs46-5173.inc1.devtunnels.ms",
+       "http://192.168.1.14:5001",
+  "http://192.168.1.14:5173",
     ],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
@@ -30,9 +32,9 @@ app.set("io", io);
 
 // ✅ Optional: Debug connection logs
 io.on("connection", (socket) => {
-  console.log("🟢 New socket connected");
+  // console.log("🟢 New socket connected");
   socket.on("disconnect", () => {
-    console.log("🔴 Socket disconnected");
+    // console.log("🔴 Socket disconnected");
   });
 });
 
@@ -43,6 +45,8 @@ const corsOptions = {
     "http://localhost:5173",
     "https://qs3rfs46-5000.inc1.devtunnels.ms",
     "https://qs3rfs46-5173.inc1.devtunnels.ms",
+       "http://192.168.1.14:5001",
+  "http://192.168.1.14:5173",
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -78,5 +82,5 @@ app.use("/api/user-management", require("./routes/userManagementRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 
 // ✅ Start with socket.io
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

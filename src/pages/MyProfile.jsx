@@ -15,7 +15,6 @@ const MyProfile = () => {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -28,14 +27,9 @@ const MyProfile = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // console.log("✅ Profile response:", res.data);
-
-        const user = res.data; // 🟢 NOT res.data.user
-        console.log(user, "myprofiledata");
+        const user = res.data; // backend returns the user directly
         setName(user.name || "");
         setPhone((user.phone || "").replace("+", ""));
-        setEmail(user.email || "");
-
         if (user.profilePic) {
           setSelectedImage(`${import.meta.env.VITE_URL}/${user.profilePic}`);
         }
@@ -45,15 +39,13 @@ const MyProfile = () => {
     };
 
     fetchProfile();
-  }, []);
+  }, [token]);
 
-  const handleImageClick = () => fileInputRef.current.click();
+  const handleImageClick = () => fileInputRef.current?.click();
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedImage(URL.createObjectURL(file));
-    }
+    if (file) setSelectedImage(URL.createObjectURL(file));
   };
 
   const handleCancel = (e) => {
@@ -63,15 +55,14 @@ const MyProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name || !phone || !email) return alert("Please fill all fields");
+    if (!name || !phone) return alert("Please fill all fields");
 
     try {
       setLoading(true);
       const formData = new FormData();
       formData.append("name", name);
-      formData.append("email", email);
       formData.append("phone", "+" + phone);
-      if (fileInputRef.current.files[0]) {
+      if (fileInputRef.current?.files?.[0]) {
         formData.append("profilePic", fileInputRef.current.files[0]);
       }
 
@@ -92,7 +83,7 @@ const MyProfile = () => {
       if (err.response && err.response.status === 403) {
         toast.warning("You are not authorized to perform this action");
         return;
-      }
+        }
       console.error("❌ Update failed", err);
       toast.error("Failed to update profile");
     } finally {
@@ -106,14 +97,11 @@ const MyProfile = () => {
         onClick={() => navigate(-1)}
         className="absolute top-5 left-4 size-8 text-white cursor-pointer"
       />
+
       <div className="mt-12 relative">
         <div className="h-28 w-28 border-white border-4 rounded-full bg-[#0C49BE] flex items-center justify-center overflow-hidden">
           {selectedImage ? (
-            <img
-              src={selectedImage}
-              className="h-full w-full object-cover"
-              alt="Profile"
-            />
+            <img src={selectedImage} className="h-full w-full object-cover" alt="Profile" />
           ) : (
             <User className="h-24 w-24 text-white" />
           )}
@@ -139,15 +127,10 @@ const MyProfile = () => {
       <div className="flex-1 flex flex-col justify-end items-center w-full">
         <div className="bgt-blue3 text-white absolute bottom-10 font-medium text-[15px] mx-2 rounded-2xl rounded-tl-4xl rounded-tr-4xl shadow-md w-full overflow-hidden mb-4 max-w-3xl">
           <div className="flex items-center justify-center gap-2 mb-1 bgt-blue2 px-3 py-3 relative t-shadow3">
-            <h3 className="text-center text-white font-medium">
-              Update Profile Information
-            </h3>
+            <h3 className="text-center text-white font-medium">Update Profile Information</h3>
           </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-2 px-3 text-[15px] font-medium mb-5 mt-3"
-          >
+          <form onSubmit={handleSubmit} className="flex flex-col gap-2 px-3 text-[15px] font-medium mb-5 mt-3">
             <div>
               <label className="text-white text-sm font-normal">Name</label>
               <input
@@ -160,9 +143,7 @@ const MyProfile = () => {
             </div>
 
             <div>
-              <label className="text-white text-sm font-normal">
-                Mobile Number
-              </label>
+              <label className="text-white text-sm font-normal">Mobile Number</label>
               <PhoneInput
                 country="in"
                 value={phone}
@@ -180,29 +161,10 @@ const MyProfile = () => {
               />
             </div>
 
-            <div>
-              <label className="text-white text-sm font-normal">Email ID</label>
-              <input
-                type="email"
-                placeholder="Enter email ID"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="font-inter font-normal h-[40px] w-full rounded-[10px] px-3 py-2 bg-white text-black text-sm outline-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="bgt-blue2 rounded-lg px-6 mt-2 py-1.5 w-full t-shadow5"
-              disabled={loading}
-            >
+            <button type="submit" className="bgt-blue2 rounded-lg px-6 mt-2 py-1.5 w-full t-shadow5" disabled={loading}>
               {loading ? "Updating..." : "Submit"}
             </button>
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="bgt-blue2 rounded-lg px-6 py-1.5 w-full t-shadow5"
-            >
+            <button type="button" onClick={handleCancel} className="bgt-blue2 rounded-lg px-6 py-1.5 w-full t-shadow5">
               Cancel
             </button>
           </form>
@@ -214,3 +176,9 @@ const MyProfile = () => {
 };
 
 export default MyProfile;
+
+
+
+
+
+

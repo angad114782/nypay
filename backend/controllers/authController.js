@@ -2,8 +2,8 @@ const User = require("../models/User");
 const Otp = require("../models/Otp");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const { sendOtpEmail } = require("../utils/sendEmail");
 const { sendOtpWhatsApp } = require("../utils/sendWhatsApp");
+const axios = require("axios");
 
 // 🔐 JWT Token generator
 const generateToken = (user) => {
@@ -12,18 +12,18 @@ const generateToken = (user) => {
   });
 };
 
-// ✅ Register → Send OTP
+// =====================
+// Register → Send OTP via WhatsApp (phone-only)
+// =====================
 exports.register = async (req, res) => {
-  const { name, phone, email, password } = req.body;
+  const { name, phone, password } = req.body;
 
   try {
-    if (!name || !phone || !email || !password) {
+    if (!name || !phone || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const existingUser = await User.findOne({
-      $or: [{ phone }, { email: email.toLowerCase() }],
-    });
+    const existingUser = await User.findOne({ phone });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
@@ -39,23 +39,25 @@ exports.register = async (req, res) => {
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
         data: {
           name,
-          email: email.toLowerCase(),
           password,
         },
       },
       { upsert: true }
     );
 
-    await Promise.all([sendOtpEmail(email, otp), sendOtpWhatsApp(phone, otp)]);
+    // send OTP only via WhatsApp
+    await sendOtpWhatsApp(phone, otp);
 
-    res.status(200).json({ message: "OTP sent via email and WhatsApp" });
+    res.status(200).json({ message: "OTP sent via WhatsApp" });
   } catch (err) {
     console.error("❌ Register OTP Error:", err.message);
     res.status(500).json({ message: "Failed to send OTP" });
   }
 };
 
-// ✅ Verify Register OTP
+// =====================
+// Verify Register OTP (phone-only)
+// =====================
 exports.verifyOtp = async (req, res) => {
   const { phone, otp } = req.body;
 
@@ -71,16 +73,13 @@ exports.verifyOtp = async (req, res) => {
     if (record.expiresAt < Date.now())
       return res.status(410).json({ message: "OTP expired" });
 
-    const duplicate = await User.findOne({
-      $or: [{ phone }, { email: record.data.email.toLowerCase() }],
-    });
+    const duplicate = await User.findOne({ phone });
     if (duplicate)
       return res.status(409).json({ message: "User already exists" });
 
     const newUser = await User.create({
       name: record.data.name,
       phone: record.phone,
-      email: record.data.email.toLowerCase(),
       password: record.data.password,
       isVerified: true,
     });
@@ -94,7 +93,6 @@ exports.verifyOtp = async (req, res) => {
         _id: newUser._id,
         name: newUser.name,
         phone: newUser.phone,
-        email: newUser.email,
         role: newUser.role,
       },
     });
@@ -104,7 +102,9 @@ exports.verifyOtp = async (req, res) => {
   }
 };
 
-// ✅ Send OTP for WhatsApp Login
+// =====================
+// Send OTP for WhatsApp Login (phone-only)
+// =====================
 exports.sendLoginOtp = async (req, res) => {
   const { phone } = req.body;
 
@@ -134,19 +134,20 @@ exports.sendLoginOtp = async (req, res) => {
   }
 };
 
-const axios = require("axios");
-
+// =====================
+// Login with phone + password (no email)
+// =====================
 exports.login = async (req, res) => {
-  const { email, password } = req.body;
+  const { phone, password } = req.body;
 
   try {
     // ✅ 1. Basic validation
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password required" });
+    if (!phone || !password) {
+      return res.status(400).json({ message: "Phone and password required" });
     }
 
     // ✅ 2. Find user and validate password
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ phone });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -207,7 +208,6 @@ exports.login = async (req, res) => {
         _id: user._id,
         name: user.name,
         phone: user.phone,
-        email: user.email,
         role: user.role,
         lastLoginIp: user.lastLoginIp,
         city: user.city,
@@ -222,7 +222,9 @@ exports.login = async (req, res) => {
   }
 };
 
-
+// =====================
+// Verify Login OTP (phone-only)
+// =====================
 exports.verifyLoginOtp = async (req, res) => {
   const { phone, otp } = req.body;
 
@@ -292,7 +294,6 @@ exports.verifyLoginOtp = async (req, res) => {
         _id: user._id,
         name: user.name,
         phone: user.phone,
-        email: user.email,
         role: user.role,
         lastLoginIp: user.lastLoginIp,
         city: user.city,
@@ -307,8 +308,9 @@ exports.verifyLoginOtp = async (req, res) => {
   }
 };
 
-
-// ✅ Protected profile route
+// =====================
+// Protected profile route
+// =====================
 exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -319,14 +321,16 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+// =====================
+// Update Profile (remove email update)
+// =====================
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, email, phone } = req.body;
+    const { name, phone } = req.body;
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (name) user.name = name;
-    if (email) user.email = email;
     if (phone) user.phone = phone;
     if (req.file) {
       user.profilePic = `uploads/profile_pic/${req.file.filename}`;
@@ -343,14 +347,15 @@ exports.updateProfile = async (req, res) => {
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
-// controllers/authController.js
+
+// =====================
+// Logout
+// =====================
 exports.logout = async (req, res) => {
   try {
     if (req.user?._id) {
       // console.log(`✅ User logged out: ${req.user._id} at ${new Date()}`);
-    } 
-
-    // Optional: Clear refresh tokens or session if used
+    }
 
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
@@ -359,6 +364,9 @@ exports.logout = async (req, res) => {
   }
 };
 
+// =====================
+// Change Password
+// =====================
 exports.changePassword = async (req, res) => {
   const { oldPassword, newPassword, confirmPassword } = req.body;
 
@@ -392,20 +400,23 @@ exports.changePassword = async (req, res) => {
   }
 };
 
+// =====================
+// Send Reset OTP (phone-only via WhatsApp)
+// =====================
 exports.sendResetOtp = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: "Email is required" });
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ message: "Phone is required" });
 
   try {
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     await Otp.findOneAndUpdate(
-      { email, type: "reset" },
+      { phone, type: "reset" },
       {
-        email,
+        phone,
         otp,
         type: "reset",
         expiresAt: new Date(Date.now() + 10 * 60 * 1000),
@@ -413,22 +424,25 @@ exports.sendResetOtp = async (req, res) => {
       { upsert: true }
     );
 
-    await sendOtpEmail(email, otp); // or sendOtpWhatsApp if needed
+    await sendOtpWhatsApp(phone, otp);
 
-    res.status(200).json({ message: "OTP sent to email" });
+    res.status(200).json({ message: "OTP sent via WhatsApp" });
   } catch (err) {
     console.error("Send Reset OTP Error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
+// =====================
+// Verify Reset OTP (phone-only)
+// =====================
 exports.verifyResetOtp = async (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp)
-    return res.status(400).json({ message: "Email and OTP are required" });
+  const { phone, otp } = req.body;
+  if (!phone || !otp)
+    return res.status(400).json({ message: "Phone and OTP are required" });
 
   try {
-    const record = await Otp.findOne({ email, type: "reset" });
+    const record = await Otp.findOne({ phone, type: "reset" });
 
     if (!record) return res.status(404).json({ message: "OTP not found" });
     if (record.otp !== otp)
@@ -443,31 +457,34 @@ exports.verifyResetOtp = async (req, res) => {
   }
 };
 
+// =====================
+// Reset Password (phone + OTP)
+// =====================
 exports.resetPassword = async (req, res) => {
-  const { email, otp, newPassword, confirmPassword } = req.body;
+  const { phone, otp, newPassword, confirmPassword } = req.body;
 
-  if (!email || !otp || !newPassword || !confirmPassword)
+  if (!phone || !otp || !newPassword || !confirmPassword)
     return res.status(400).json({ message: "All fields are required" });
 
   if (newPassword !== confirmPassword)
     return res.status(400).json({ message: "Passwords do not match" });
 
   try {
-    const record = await Otp.findOne({ email, type: "reset" });
+    const record = await Otp.findOne({ phone, type: "reset" });
     if (!record) return res.status(404).json({ message: "OTP not found" });
     if (record.otp !== otp)
       return res.status(400).json({ message: "Invalid OTP" });
     if (record.expiresAt < Date.now())
       return res.status(410).json({ message: "OTP expired" });
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ phone });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.password = newPassword;
     user.markModified("password"); // ✅ Force pre-save hook to hash
     await user.save();
 
-    await Otp.deleteOne({ email, type: "reset" });
+    await Otp.deleteOne({ phone, type: "reset" });
 
     res.status(200).json({ message: "Password reset successful" });
   } catch (err) {

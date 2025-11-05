@@ -193,6 +193,16 @@ function Login() {
                   Continue
                 </Button>
               </div>
+               {/* ✅ Login Link */}
+            <div className="text-sm text-center text-gray-600 mt-4">
+              Don't have an account?{" "}
+              <span
+                onClick={() => navigate("/register")}
+                className="text-blue-600 font-semibold cursor-pointer hover:underline"
+              >
+             Sign up
+              </span>
+            </div>
             </div>
           </div>
         </div>
