@@ -8,55 +8,50 @@ const generateToken = (user) => {
   });
 };
 
-// ✅ Register Team User Without OTP
-const createTeamUser = async (req, res) => {
-  const { profileName, mobile, userId, password, role } = req.body;
+// controllers/userManagementController.js
+const UserManagement = require("../models/UserManagement");
 
+exports.createTeamUser = async (req, res) => {
   try {
-    // ✅ 1. Basic Validation
+    const { profileName, mobile, password, role } = req.body;
+
     if (!profileName || !mobile || !password || !role) {
-      return res.status(400).json({ message: "All fields are required including role" });
+      return res.status(400).json({ message: "profileName, mobile, password, role are required" });
     }
 
-    // ✅ 2. Use role as-is (createID allowed)
-    const selectedRole = role;
-
-    // ✅ 3. Check if user exists
-    const existingUser = await User.findOne({
-      $or: [{ phone: mobile }, { email: userId.toLowerCase() }],
-    });
-
-    if (existingUser) {
-      return res.status(409).json({ message: "User already exists" });
+    // Create or ensure a loginable User (phone-only; email optional)
+    let user = await User.findOne({ phone: mobile });
+    if (!user) {
+      user = await User.create({
+        name: profileName,
+        phone: mobile,
+        password,          // pre-save hook should hash
+        role,              // 'admin' / 'user' etc
+        isVerified: true,  // since this is admin created
+        email: null,       // IMPORTANT: allow null
+      });
     }
 
-    // ✅ 4. Create user
-    const newUser = await User.create({
-      name: profileName,
-      phone: mobile,
-      email: userId.toLowerCase(),
-      password,
-      role: selectedRole,
-      isVerified: true,
+    // Create team profile (UserManagement document)
+    const teamUser = await UserManagement.create({
+      profileName,
+      mobile,
+      user: user._id,
+      role
+      // ...add any other required fields per your schema
     });
 
-    // ✅ 5. Success response
-    res.status(201).json({
-      message: "User registered successfully",
-      token: generateToken(newUser),
-      user: {
-        _id: newUser._id,
-        name: newUser.name,
-        phone: newUser.phone,
-        email: newUser.email,
-        role: newUser.role,
-      },
-    });
+    return res.status(201).json({ message: "Team user created", teamUser });
   } catch (err) {
-    console.error("Register Team User Error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register Team User Error:", err);
+    // Be explicit on common cases
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "Duplicate key (likely phone/email already exists)" });
+    }
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 const getAllTeamUsers = async (req, res) => {
