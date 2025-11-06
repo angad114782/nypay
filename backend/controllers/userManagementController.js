@@ -1,4 +1,4 @@
-const User = require("../models/User");
+const User = require("../models/UserManagement");
 const jwt = require("jsonwebtoken");
 
 // 🔐 JWT Token generator
@@ -10,53 +10,72 @@ const generateToken = (user) => {
 
 // ✅ Register Team User Without OTP
 const createTeamUser = async (req, res) => {
-  const { profileName, mobile, userId, password, role } = req.body;
-
   try {
-    // ✅ 1. Basic Validation
+    let { profileName, mobile, userId, password, role } = req.body;
+
+    // 1) Basic validation (presence)
     if (!profileName || !mobile || !password || !role) {
       return res.status(400).json({ message: "All fields are required including role" });
     }
 
-    // ✅ 2. Use role as-is (createID allowed)
-    const selectedRole = role;
+    // 2) Normalize inputs
+    profileName = String(profileName).trim();
+    mobile = String(mobile).trim();
+    userId = typeof userId === "string" ? userId.trim() : undefined;
 
-    // ✅ 3. Check if user exists
-    const existingUser = await User.findOne({
-      $or: [{ phone: mobile }, { email: userId.toLowerCase() }],
-    });
+    // Optional: E.164 normalize (backend-wide ek format rakho)
+    if (!mobile.startsWith("+")) mobile = `+${mobile}`;
 
+    // 3) Role mapping (agar policy: createID => user)
+    const selectedRole = role === "createID" ? "user" : role;
+
+    // 4) Duplicate check (email condition tabhi lagao jab userId diya ho)
+    const orFilters = [{ phone: mobile }];
+    if (userId) orFilters.push({ email: userId.toLowerCase() });
+
+    const existingUser = await User.findOne({ $or: orFilters });
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
 
-    // ✅ 4. Create user
-    const newUser = await User.create({
+    // 5) Create payload (empty email set mat karo)
+    const createPayload = {
       name: profileName,
       phone: mobile,
-      email: userId.toLowerCase(),
       password,
       role: selectedRole,
       isVerified: true,
-    });
+    };
+    if (userId) createPayload.email = userId.toLowerCase();
 
-    // ✅ 5. Success response
-    res.status(201).json({
+    const newUser = await User.create(createPayload);
+
+    // 6) Response
+    return res.status(201).json({
       message: "User registered successfully",
       token: generateToken(newUser),
       user: {
         _id: newUser._id,
         name: newUser.name,
         phone: newUser.phone,
-        email: newUser.email,
+        email: newUser.email || null,
         role: newUser.role,
+        createdAt: newUser.createdAt,
       },
     });
   } catch (err) {
-    console.error("Register Team User Error:", err.message);
-    res.status(500).json({ message: "Server error" });
+    console.error("Register Team User Error:", err);
+
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ message: err.message });
+    }
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "Duplicate key", details: err.keyValue });
+    }
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 
 
 const getAllTeamUsers = async (req, res) => {
