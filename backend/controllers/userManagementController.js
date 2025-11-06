@@ -1,4 +1,4 @@
-const User = require("../models/UserManagement");
+const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
 // 🔐 JWT Token generator
