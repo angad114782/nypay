@@ -14,7 +14,7 @@ const createTeamUser = async (req, res) => {
 
   try {
     // ✅ 1. Basic Validation
-    if (!profileName || !mobile || !userId || !password || !role) {
+    if (!profileName || !mobile || !password || !role) {
       return res.status(400).json({ message: "All fields are required including role" });
     }
 
