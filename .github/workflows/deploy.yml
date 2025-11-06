@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy to nymeta.in
 
 on:
   push:
@@ -12,56 +12,57 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # (Optional) Port probe: SSH port khula hai ya nahi
+      # (Optional) Quick port probe
       - name: Probe SSH port
+        env:
+          THE_HOST: ${{ secrets.SSH_HOST }}
+          THE_PORT: ${{ secrets.SSH_PORT || '22' }}
         run: |
-          echo "Testing TCP to ${{ secrets.SSH_HOST }}:${{ secrets.SSH_PORT || 22 }}"
-          timeout 10 bash -c "cat < /dev/null > /dev/tcp/${{ secrets.SSH_HOST }}/${{ secrets.SSH_PORT || 22 }}" \
+          echo "Testing TCP to ${THE_HOST}:${THE_PORT}"
+          timeout 10 bash -c "cat < /dev/null > /dev/tcp/${THE_HOST}/${THE_PORT}" \
             && echo "Port open ✅" || (echo "Port closed ❌" && exit 1)
 
-      # Actual deploy via SSH
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}            # e.g. 203.0.113.10
-          username: ${{ secrets.SSH_USERNAME }}    # e.g. ubuntu
-          key: ${{ secrets.SSH_KEY }}              # PRIVATE key (PEM)
-          port: ${{ secrets.SSH_PORT || 22 }}      # custom ho to secret me set karo
-          timeout: "60s"
-          command_timeout: "10m"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}      # <— use SSH_USER secret
+          key: ${{ secrets.SSH_KEY }}            # <— PRIVATE key
+          port: ${{ secrets.SSH_PORT || '22' }}
+          command_timeout: 15m
           script_stop: true
           script: |
             set -e
 
-            # Node/pnpm ensure (agar server par pnpm nahi to)
-            if ! command -v pnpm >/dev/null 2>&1; then
-              if command -v corepack >/dev/null 2>&1; then
-                corepack enable
-                corepack prepare pnpm@latest --activate
-              else
-                npm i -g pnpm
-              fi
-            fi
-
-            # Project path (APNE SERVER KA PATH RAKHO)
+            echo "➡️  Pull latest code"
             cd /var/www/nypay
-
-            # Git pull
             git fetch --all
             git reset --hard origin/main
 
-            # Install & build
-            pnpm install --frozen-lockfile
-            pnpm build
+            echo "➡️  Build frontend (npm)"
+            npm ci
+            npm run build
 
-            # PM2 reload (process name ya ecosystem file ke hisaab se)
-            if pm2 list | grep -q "nypay"; then
-              pm2 reload nypay
-            elif [ -f ecosystem.config.js ]; then
-              pm2 startOrReload ecosystem.config.js
-            else
-              # First time start (example)
-              pm2 start "pnpm start" --name nypay
-            fi
+            echo "➡️  Publish static site to /var/www/nypay_site"
+            mkdir -p /var/www/nypay_site
+            rsync -a --delete /var/www/nypay/dist/ /var/www/nypay_site/
+            chown -R www-data:www-data /var/www/nypay_site
+
+            echo "➡️  Install backend deps"
+            cd /var/www/nypay/backend
+            npm ci
+
+            echo "➡️  Ensure uploads folders"
+            mkdir -p /var/www/nypay/backend/uploads/{slider,panels,profile_pic}
+
+            echo "➡️  Reload backend via PM2"
+            pm2 describe nypay-backend >/dev/null 2>&1 && \
+              pm2 restart nypay-backend --update-env || \
+              pm2 start /var/www/nypay/backend/server.js --name nypay-backend --update-env
 
             pm2 save
+
+            echo "➡️  Reload Nginx"
+            nginx -t && systemctl reload nginx
+
+            echo "✅ Deploy done"
