@@ -3,7 +3,7 @@ const { default: mongoose } = require("mongoose");
 
 const UserManagement = new mongoose.Schema({
   profileName: { type: String, required: true },
-  userId: { type: String, unique: true, required: true },
+  userId: { type: String, unique: true,},
   mobile: { type: String, required: true },
   password: { type: String, required: true },
   role: [{ type: String}],
