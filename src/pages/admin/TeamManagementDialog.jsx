@@ -55,36 +55,28 @@ export const TeamManagementDialog = ({ onSuccess }) => {
   };
 
   const validateForm = () => {
-    const newErrors = {};
+  const newErrors = {};
 
-    if (!teamManagementData.profileName.trim()) {
-      newErrors.profileName = "Profile name is required";
-    }
+  if (!teamManagementData.profileName.trim()) {
+    newErrors.profileName = "Profile name is required";
+  }
 
-    if (!teamManagementData.userId.trim()) {
-      newErrors.userId = "User ID is required";
-    }
+  // ⬇️ Removed: "User ID is required" check
 
-    // // Updated validation for the new PhoneInput component
-    // if (!teamManagementData.mobile.trim()) {
-    //   newErrors.mobile = "Mobile number is required";
-    // } else if (!isValidPhoneNumber(teamManagementData.mobile)) {
-    //     newErrors.mobile = "Enter a valid mobile number";
-    // }
+  if (!teamManagementData.password.trim()) {
+    newErrors.password = "Password is required";
+  } else if (teamManagementData.password.length < 6) {
+    newErrors.password = "Password must be at least 6 characters";
+  }
 
-    if (!teamManagementData.password.trim()) {
-      newErrors.password = "Password is required";
-    } else if (teamManagementData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
+  if (!teamManagementData.selectedRole) {
+    newErrors.roles = "Please select a role";
+  }
 
-    if (!teamManagementData.selectedRole) {
-      newErrors.roles = "Please select a role";
-    }
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
