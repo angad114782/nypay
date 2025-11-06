@@ -235,7 +235,6 @@ export const TeamManagementDialog = ({ onSuccess }) => {
                   className={`mt-2 bg-gray-100 border-0 focus:bg-white ${
                     errors.userId ? "border border-red-500" : ""
                   }`}
-                  required
                 />
                 {errors.userId && (
                   <div className="flex items-center gap-1 mt-1 text-red-500 text-sm">
