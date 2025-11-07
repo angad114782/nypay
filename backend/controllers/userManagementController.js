@@ -135,11 +135,6 @@ const updateUserRoles = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Prevent updating role of "admin"
-    if (user.role === "admin") {
-      return res.status(403).json({ message: "Cannot modify admin role" });
-    }
-
     user.role = role;
     await user.save();
 
