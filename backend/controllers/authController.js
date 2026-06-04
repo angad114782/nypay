@@ -274,12 +274,13 @@ exports.verifyLoginOtp = async (req, res) => {
     }
 
     // ✅ 5. Update user login details
-    user.lastLoginIp = ip;
-    user.city = locationData.city;
-    user.region = locationData.region;
-    user.latitude = locationData.latitude;
-    user.longitude = locationData.longitude;
-    await user.save();
+    await User.findByIdAndUpdate(user._id, {
+      lastLoginIp: ip,
+      city: locationData.city,
+      region: locationData.region,
+      latitude: locationData.latitude,
+      longitude: locationData.longitude,
+    });
 
     // ✅ 6. Clean up OTP
     await Otp.deleteOne({ phone, type: "login" });
